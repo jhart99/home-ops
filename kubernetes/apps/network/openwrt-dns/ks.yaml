@@ -3,7 +3,7 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: unifi-dns
+  name: openwrt-dns
 spec:
   interval: 1h
   path: ./kubernetes/apps/network/openwrt-dns/app
