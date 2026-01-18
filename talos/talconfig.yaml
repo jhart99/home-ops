@@ -1,0 +1,156 @@
+---
+clusterName: kubernetes
+
+talosVersion: "${talosVersion}"
+kubernetesVersion: "${kubernetesVersion}"
+
+endpoint: https://192.168.1.5:6443
+additionalApiServerCertSans: &sans
+  - "127.0.0.1"
+  - "192.168.1.5"
+  - "kube.rnatr.com"
+additionalMachineCertSans: *sans
+
+clusterPodNets: ["10.42.0.0/16"]
+clusterSvcNets: ["10.43.0.0/16"]
+
+# Disable built-in CNI to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "talos-cp-1"
+    ipAddress: "192.168.1.11"
+    installDiskSelector:
+      serial: "Y6NS11VHTALT"
+    machineSpec:
+      secureboot: true
+    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "1c:34:da:6a:fc:56"
+        dhcp: false
+        addresses:
+          - "192.168.1.11/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.1.5"
+  - hostname: "talos-cp-2"
+    ipAddress: "192.168.1.12"
+    installDiskSelector:
+      serial: "S64ENU0T905553E"
+    machineSpec:
+      secureboot: true
+    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "1c:34:da:6b:22:1a"
+        dhcp: false
+        addresses:
+          - "192.168.1.12/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.1.5"
+  - hostname: "talos-cp-3"
+    ipAddress: "192.168.1.13"
+    installDiskSelector:
+      serial: "201218806131"
+    machineSpec:
+      secureboot: true
+    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "b0:0c:d1:52:84:85"
+        dhcp: false
+        addresses:
+          - "192.168.1.13/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.1.5"
+  - hostname: "talos-worker-1"
+    ipAddress: "192.168.1.14"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e5:0a"
+        dhcp: false
+        addresses:
+          - "192.168.1.14/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-2"
+    ipAddress: "192.168.1.15"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e3:cb"
+        dhcp: false
+        addresses:
+          - "192.168.1.15/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-3"
+    ipAddress: "192.168.1.16"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e5:04"
+        dhcp: false
+        addresses:
+          - "192.168.1.16/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-4"
+    ipAddress: "192.168.1.17"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e4:2b"
+        dhcp: false
+        addresses:
+          - "192.168.1.17/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+
+# Global patches
+patches:
+  - "@./patches/global/machine-files.yaml"
+  - "@./patches/global/machine-kubelet.yaml"
+  - "@./patches/global/machine-network.yaml"
+  - "@./patches/global/machine-sysctls.yaml"
+  - "@./patches/global/machine-time.yaml"
+
+# Controller patches
+controlPlane:
+  patches:
+    - "@./patches/controller/cluster.yaml"
+
