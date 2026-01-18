@@ -21,15 +21,14 @@ cniConfig:
 nodes:
   - hostname: "talos-cp-1"
     ipAddress: "192.168.1.11"
-    installDiskSelector:
-      serial: "Y6NS11VHTALT"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "1c:34:da:6a:fc:56"
+          hardwareAddr: "c8:d9:d2:0a:fe:04"
         dhcp: false
         addresses:
           - "192.168.1.11/24"
@@ -38,17 +37,37 @@ nodes:
         mtu: 1500
         vip:
           ip: "192.168.1.5"
+    patches:
+      - # Encrypt system disk with TPM
+        |-
+        machine:
+          systemDiskEncryption:
+            state:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
+            ephemeral:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
+      - # Load kernel modules
+        |-
+        machine:
+          kernel:
+            modules:
+              - name: mlx5-core
   - hostname: "talos-cp-2"
     ipAddress: "192.168.1.12"
-    installDiskSelector:
-      serial: "S64ENU0T905553E"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "1c:34:da:6b:22:1a"
+          hardwareAddr: "f4:39:09:18:25:48"
         dhcp: false
         addresses:
           - "192.168.1.12/24"
@@ -57,13 +76,33 @@ nodes:
         mtu: 1500
         vip:
           ip: "192.168.1.5"
+    patches:
+      - # Encrypt system disk with TPM
+        |-
+        machine:
+          systemDiskEncryption:
+            state:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
+            ephemeral:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
+      - # Load kernel modules
+        |-
+        machine:
+          kernel:
+            modules:
+              - name: mlx5-core
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
-    installDiskSelector:
-      serial: "201218806131"
+    installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/9898f62b228148ec69cf12a557baf96a388f64edd5c42fd74bc61d1e4d81b3ab
+    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
     controlPlane: true
     networkInterfaces:
       - deviceSelector:
@@ -76,6 +115,21 @@ nodes:
         mtu: 1500
         vip:
           ip: "192.168.1.5"
+    patches:
+      - # Encrypt system disk with TPM
+        |-
+        machine:
+          systemDiskEncryption:
+            state:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
+            ephemeral:
+              provider: luks2
+              keys:
+                - slot: 0
+                  tpm: {}
   - hostname: "talos-worker-1"
     ipAddress: "192.168.1.14"
     installDisk: "/dev/mmcblk0"
