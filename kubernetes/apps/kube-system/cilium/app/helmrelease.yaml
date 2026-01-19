@@ -10,9 +10,9 @@ spec:
   interval: 1h
   values:
     autoDirectNodeRoutes: true
-    # bandwidthManager:
-    #   enabled: true
-    #   bbr: true
+    bandwidthManager:
+      enabled: false
+      bbr: false
     bgpControlPlane:
       enabled: true
     bpf:
