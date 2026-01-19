@@ -23,6 +23,8 @@ metadata:
 spec:
   dependsOn:
     - name: rook-ceph
+    - name: snapshot-controller
+      namespace: kube-system
 #    - name: volsync
 #      namespace: volsync-system
   healthChecks:
