@@ -6,5 +6,3 @@ kubernetes-talos-worker-2.yaml
 kubernetes-talos-worker-3.yaml
 kubernetes-talos-worker-4.yaml
 talosconfig
-kubernetes-talos-cp-1b.yaml
-kubernetes-talos-cp-2b.yaml
