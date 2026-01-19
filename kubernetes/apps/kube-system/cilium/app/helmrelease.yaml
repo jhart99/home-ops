@@ -10,19 +10,19 @@ spec:
   interval: 1h
   values:
     autoDirectNodeRoutes: true
-      #    bandwidthManager:
-      #enabled: true
-      #bbr: true
+    bandwidthManager:
+      enabled: true
+      bbr: true
     bgpControlPlane:
       enabled: true
     bpf:
-      # masquerade: true
+      masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
       hostLegacyRouting: true
         # datapathMode: netkit
         # masquerade: true
         # preallocateMaps: true
-        # tproxy: true
+      tproxy: true
     cgroup:
       automount:
         enabled: false
