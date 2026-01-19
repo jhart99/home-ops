@@ -12,7 +12,7 @@ spec:
       "plugins": [
         {
           "type": "macvlan",
-          "master": "multus0.100",
+          "master": "net0.100",
           "mode": "bridge",
           "ipam": {
             "type": "static",

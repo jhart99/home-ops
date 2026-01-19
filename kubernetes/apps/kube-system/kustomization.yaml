@@ -13,6 +13,6 @@ resources:
   - ./csi-driver-nfs/ks.yaml
   - ./descheduler/ks.yaml
   - ./metrics-server/ks.yaml
-    #  - ./multus/ks.yaml
+  - ./multus/ks.yaml
   - ./reloader/ks.yaml
   - ./spegel/ks.yaml
