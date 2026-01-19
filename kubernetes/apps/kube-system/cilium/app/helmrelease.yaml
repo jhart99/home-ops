@@ -16,9 +16,13 @@ spec:
     bgpControlPlane:
       enabled: true
     bpf:
-      masquerade: true
+      # masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
-      hostLegacyRouting: true
+      # hostLegacyRouting: true
+      datapathMode: netkit
+      masquerade: true
+      preallocateMaps: true
+      tproxy: true
     cgroup:
       automount:
         enabled: false
