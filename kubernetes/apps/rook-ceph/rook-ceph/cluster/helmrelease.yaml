@@ -72,15 +72,15 @@ spec:
         config:
           osdsPerDevice: "1"
         nodes:
-         - name: "192.168.1.11"
+         - name: "talos-cp-1"
            devices:             # specific devices to use for storage can be specified for each node
            - name: "/dev/disk/by-id/nvme-CT2000P310SSD8_25034D7DE06D" # Whole storage device
            - name: "/dev/disk/by-id/ata-ST14000NM001G-2KJ103_ZTM0LRT5" # Whole storage device
-         - name: "192.168.1.12"
+         - name: "talos-cp-2"
            devices:             # specific devices to use for storage can be specified for each node
            - name: "/dev/disk/by-id/nvme-Samsung_SSD_980_PRO_2TB_S76ENL0X910298V" # Whole storage device
            - name: "/dev/disk/by-id/ata-WDC_WUH721414ALE6L1_9JG8NRGT" # Whole storage device
-         - name: "192.168.1.13"
+         - name: "talos-cp-3"
            devices:             # specific devices to use for storage can be specified for each node
            - name: "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S59CNM0RB18352W" # Whole storage device
            config:         # configuration can be specified at the node level which overrides the cluster level config
