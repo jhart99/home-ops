@@ -10,9 +10,9 @@ spec:
   interval: 1h
   values:
     autoDirectNodeRoutes: true
-    bandwidthManager:
-      enabled: true
-      bbr: true
+    # bandwidthManager:
+    #   enabled: true
+    #   bbr: true
     bgpControlPlane:
       enabled: true
     bpf:
@@ -22,7 +22,7 @@ spec:
         # datapathMode: netkit
         # masquerade: true
         # preallocateMaps: true
-      tproxy: true
+      # tproxy: true
     cgroup:
       automount:
         enabled: false
