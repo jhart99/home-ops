@@ -14,5 +14,9 @@
     "yaml.schemaStore.enable": true,
     "yaml.schemas": {
         "kubernetes": "./kubernetes/**/*.yaml"
-    }
+    },
+    "debug.javascript.defaultRuntimeExecutable": {
+        "pwa-node": "/home/jhart/.local/share/mise/shims/node"
+    },
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv"
 }
