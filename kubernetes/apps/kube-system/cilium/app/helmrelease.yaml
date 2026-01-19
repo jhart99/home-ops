@@ -10,19 +10,19 @@ spec:
   interval: 1h
   values:
     autoDirectNodeRoutes: true
-    bandwidthManager:
-      enabled: true
-      bbr: true
+      #    bandwidthManager:
+      #enabled: true
+      #bbr: true
     bgpControlPlane:
       enabled: true
     bpf:
       # masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
-      # hostLegacyRouting: true
-      datapathMode: netkit
-      masquerade: true
-      preallocateMaps: true
-      tproxy: true
+      hostLegacyRouting: true
+        # datapathMode: netkit
+        # masquerade: true
+        # preallocateMaps: true
+        # tproxy: true
     cgroup:
       automount:
         enabled: false
@@ -50,7 +50,7 @@ spec:
     kubeProxyReplacement: true
     kubeProxyReplacementHealthzBindAddr: 0.0.0.0:10256
     l2announcements:
-      enabled: false
+      enabled: true
     loadBalancer:
       algorithm: maglev
       mode: "dsr"
