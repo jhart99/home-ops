@@ -24,7 +24,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM
@@ -101,7 +101,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM
@@ -177,7 +177,7 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
+    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM
@@ -315,6 +315,7 @@ nodes:
 
 # Global patches
 patches:
+  - "@./patches/global/cluster.yaml"
   - "@./patches/global/machine-files.yaml"
   - "@./patches/global/machine-kubelet.yaml"
   - "@./patches/global/machine-network.yaml"
@@ -325,4 +326,5 @@ patches:
 controlPlane:
   patches:
     - "@./patches/controller/cluster.yaml"
+    - "@./patches/controller/machine-features.yaml"
 
