@@ -65,7 +65,7 @@ spec:
     route:
       app:
         hostnames:
-          - "{{ .Release.Name }}.turbo.ac"
+          - "{{ .Release.Name }}.rnatr.com"
         parentRefs:
           - name: envoy-internal
             namespace: network
