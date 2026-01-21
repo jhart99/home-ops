@@ -8,10 +8,12 @@ cluster:
       bind-address: 0.0.0.0
   coreDNS:
     disabled: true
-  disablePodSecurityPolicy: true
+  # disablePodSecurityPolicy: true
   etcd:
     extraArgs:
       listen-metrics-urls: http://0.0.0.0:2381
+      election-timeout: "5000"
+      heartbeat-interval: "500"
     advertisedSubnets:
       - 192.168.1.0/24
   proxy:
