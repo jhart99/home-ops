@@ -24,7 +24,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
+    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM
@@ -96,7 +96,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
+    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM
@@ -167,7 +167,7 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/5e76d8a3a72fc26cbc4258d197e71b954168e34b0d763f0772a78f6d519a339b
+    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
       - # Encrypt system disk with TPM

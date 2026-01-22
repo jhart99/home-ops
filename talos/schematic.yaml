@@ -6,7 +6,9 @@ customization:
     - -selinux # Less security, faster puter
     - -lockdown # Less security, faster puter
     - apparmor=0 # Less security, faster puter
+    - i915.enable_dc=0 # prevent crash from headless
     - i915.enable_guc=3 # Meteor Lake CPU & Intel iGPU
+    - intel_idle.max_cstate=7 # prevent crash from headless
     - init_on_alloc=0 # Less security, faster puter
     - init_on_free=0 # Less security, faster puter
     - intel_iommu=on # PCI Passthrough
