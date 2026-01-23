@@ -94,8 +94,8 @@ spec:
             subPath: repository.config
       repository:
         type: nfs
-        server: expanse.internal
-        path: /mnt/eros/VolsyncKopia
+        server: pve.jonathanrosshart.com
+        path: /mnt/volsync
         globalMounts:
           - path: /repository
       tmpfs:
