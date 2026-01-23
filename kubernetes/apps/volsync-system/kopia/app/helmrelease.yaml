@@ -95,7 +95,7 @@ spec:
       repository:
         type: nfs
         server: pve.jonathanrosshart.com
-        path: /mnt/volsync
+        path: /pool/k8s/volsync
         globalMounts:
           - path: /repository
       tmpfs:
