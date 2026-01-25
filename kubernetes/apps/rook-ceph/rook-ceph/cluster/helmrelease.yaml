@@ -65,7 +65,7 @@ spec:
       resources:
         osd:
           limits:
-            memory: 8Gi
+            memory: 4Gi
       storage:
         useAllNodes: false
         useAllDevices: false
