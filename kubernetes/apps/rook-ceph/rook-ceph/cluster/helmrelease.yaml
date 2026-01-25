@@ -84,8 +84,8 @@ spec:
            - name: "/dev/disk/by-id/ata-WDC_WUH721414ALE6L1_9JG8NRGT" # Whole storage device
          - name: "talos-cp-3"
            devices:             # specific devices to use for storage can be specified for each node
-           - name: "/dev/disk/by-id/nvme-Samsung_SSD_970_EVO_Plus_2TB_S59CNM0RB18352W" # Whole storage device
-           - name: "/dev/disk/by-id/ata-WDC_WUH721414ALE6L1_9RGBPXWC" # Whole storage device
+           - name: "/dev/nvme0n1" # Whole storage device
+           - name: "/dev/sda" # Whole storage device
     cephBlockPools:
       - name: ceph-blockpool
         spec:
