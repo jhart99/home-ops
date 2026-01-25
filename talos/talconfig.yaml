@@ -147,7 +147,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
-    installDisk: "/dev/nvme1n1"
+    installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
     talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
