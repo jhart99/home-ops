@@ -24,23 +24,10 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
+    # talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
     talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
-      - # Encrypt system disk with TPM
-        |-
-        machine:
-          systemDiskEncryption:
-            state:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
-            ephemeral:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
       - # Load kernel modules
         |-
         machine:
@@ -56,6 +43,11 @@ nodes:
         selector:
           # Match this specific node's hardware by MAC
           match: "mac(link.permanent_addr) == '1c:34:da:6a:fc:56'"
+        ---
+        apiVersion: v1alpha1
+        kind: Layer2VIPConfig
+        name: 192.168.1.5
+        link: net0
         ---
         apiVersion: v1alpha1
         kind: LinkConfig
@@ -99,20 +91,6 @@ nodes:
     talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
-      - # Encrypt system disk with TPM
-        |-
-        machine:
-          systemDiskEncryption:
-            state:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
-            ephemeral:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
       - # Load kernel modules
         |-
         machine:
@@ -128,6 +106,11 @@ nodes:
         selector:
           # Match this specific node's hardware by MAC
           match: "mac(link.permanent_addr) == '1c:34:da:6b:22:1a'"
+        ---
+        apiVersion: v1alpha1
+        kind: Layer2VIPConfig
+        name: 192.168.1.5
+        link: net0
         ---
         apiVersion: v1alpha1
         kind: LinkConfig
@@ -164,26 +147,12 @@ nodes:
         mtu: 9000
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
-    installDisk: "/dev/nvme0n1"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
     talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
     controlPlane: true
     patches:
-      - # Encrypt system disk with TPM
-        |-
-        machine:
-          systemDiskEncryption:
-            state:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
-            ephemeral:
-              provider: luks2
-              keys:
-                - slot: 0
-                  tpm: {}
       - # Load kernel modules
         |-
         machine:
@@ -198,7 +167,12 @@ nodes:
         name: net0  # <--- This is the common name Multus will look for
         selector:
           # Match this specific node's hardware by MAC
-          match: "mac(link.permanent_addr) == 'b0:0c:d1:52:84:85'"
+          match: "mac(link.permanent_addr) == '24:8a:07:5a:cd:9c'"
+        ---
+        apiVersion: v1alpha1
+        kind: Layer2VIPConfig
+        name: 192.168.1.5
+        link: net0
         ---
         apiVersion: v1alpha1
         kind: LinkConfig
@@ -312,4 +286,5 @@ controlPlane:
   patches:
     - "@./patches/controller/cluster.yaml"
     - "@./patches/controller/machine-features.yaml"
+    - "@./patches/controller/machine-diskencryption.yaml"
 

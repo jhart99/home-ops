@@ -12,7 +12,7 @@ customization:
     - init_on_alloc=0 # Less security, faster puter
     - init_on_free=0 # Less security, faster puter
     - intel_iommu=on # PCI Passthrough
-    - lockdown=none
+    - lockdown=none # for Cilium
     - iommu=pt # PCI Passthrough
     - mitigations=off # Less security, faster puter
     - security=none # Less security, faster puter
@@ -24,4 +24,4 @@ customization:
       - siderolabs/intel-ucode # Intel iGPU
       - siderolabs/mei # Intel iGPU
       - siderolabs/xe # Intel iGPU
-      - siderolabs/mellanox-mstflint # Thunderbolt NICs
+      - siderolabs/mellanox-mstflint # Mellanox NICs
