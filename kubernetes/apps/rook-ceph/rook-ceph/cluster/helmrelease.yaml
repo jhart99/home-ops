@@ -71,6 +71,8 @@ spec:
         useAllDevices: false
         config:
           osdsPerDevice: "1"
+        storage:
+          wipeDevicesFromOtherClusters: true
         nodes:
          - name: "talos-cp-1"
            devices:             # specific devices to use for storage can be specified for each node
