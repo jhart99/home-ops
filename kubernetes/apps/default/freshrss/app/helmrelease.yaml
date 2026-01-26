@@ -20,7 +20,21 @@ spec:
               TZ: America/New_york
               CRON_MIN: 3,33
               TRUSTED_PROXY: 10.0.0.0/8 172.16.0.1/12 192.168.0.1/16
-
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: ["ALL"]}
+            resources:
+              requests:
+                cpu: 100m
+              limits:
+                memory: 256Mi
+        statefulset:
+          volumeClaimTemplates:
+            - name: config
+              storageClass: ceph-block
+              accessMode: ReadWriteOnce
+              size: 5Gi
     service:
       app:
         ports:
