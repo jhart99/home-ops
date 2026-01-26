@@ -207,70 +207,70 @@ nodes:
           - gateway: 192.168.100.1
             metric: 3000
         mtu: 9000
-#  - hostname: "talos-worker-1"
-#    ipAddress: "192.168.1.14"
-#    installDisk: "/dev/mmcblk0"
-#    machineSpec:
-#      secureboot: false
-#    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-#    controlPlane: false
-#    networkInterfaces:
-#      - deviceSelector:
-#          hardwareAddr: "2c:cf:67:7a:e5:0a"
-#        dhcp: false
-#        addresses:
-#          - "192.168.1.14/24"
-#        routes:
-#          - gateway: "192.168.1.1"
-#        mtu: 1500
-#  - hostname: "talos-worker-2"
-#    ipAddress: "192.168.1.15"
-#    installDisk: "/dev/mmcblk0"
-#    machineSpec:
-#      secureboot: false
-#    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-#    controlPlane: false
-#    networkInterfaces:
-#      - deviceSelector:
-#          hardwareAddr: "2c:cf:67:7a:e3:cb"
-#        dhcp: false
-#        addresses:
-#          - "192.168.1.15/24"
-#        routes:
-#          - gateway: "192.168.1.1"
-#        mtu: 1500
-#  - hostname: "talos-worker-3"
-#    ipAddress: "192.168.1.16"
-#    installDisk: "/dev/mmcblk0"
-#    machineSpec:
-#      secureboot: false
-#    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-#    controlPlane: false
-#    networkInterfaces:
-#      - deviceSelector:
-#          hardwareAddr: "2c:cf:67:7a:e5:04"
-#        dhcp: false
-#        addresses:
-#          - "192.168.1.16/24"
-#        routes:
-#          - gateway: "192.168.1.1"
-#        mtu: 1500
-#  - hostname: "talos-worker-4"
-#    ipAddress: "192.168.1.17"
-#    installDisk: "/dev/mmcblk0"
-#    machineSpec:
-#      secureboot: false
-#    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-#    controlPlane: false
-#    networkInterfaces:
-#      - deviceSelector:
-#          hardwareAddr: "2c:cf:67:7a:e4:2b"
-#        dhcp: false
-#        addresses:
-#          - "192.168.1.17/24"
-#        routes:
-#          - gateway: "192.168.1.1"
-#        mtu: 1500
+  - hostname: "talos-worker-1"
+    ipAddress: "192.168.1.14"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e5:0a"
+        dhcp: false
+        addresses:
+          - "192.168.1.14/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-2"
+    ipAddress: "192.168.1.15"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e3:cb"
+        dhcp: false
+        addresses:
+          - "192.168.1.15/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-3"
+    ipAddress: "192.168.1.16"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e5:04"
+        dhcp: false
+        addresses:
+          - "192.168.1.16/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
+  - hostname: "talos-worker-4"
+    ipAddress: "192.168.1.17"
+    installDisk: "/dev/mmcblk0"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: false
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "2c:cf:67:7a:e4:2b"
+        dhcp: false
+        addresses:
+          - "192.168.1.17/24"
+        routes:
+          - gateway: "192.168.1.1"
+        mtu: 1500
 
 # Global patches
 patches:
