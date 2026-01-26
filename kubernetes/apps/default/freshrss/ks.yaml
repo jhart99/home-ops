@@ -13,3 +13,13 @@ spec:
     namespace: flux-system
   targetNamespace: default
   wait: false
+  components:
+    - ../../../../components/nfs-scaler
+    - ../../../../components/volsync
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+  postBuild:
+    substitute:
+      APP: freshrss
+      VOLSYNC_CAPACITY: 5Gi
