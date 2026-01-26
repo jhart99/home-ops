@@ -11,6 +11,9 @@ spec:
   values:
     controllers:
       freshrss:
+        type: statefulset
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
