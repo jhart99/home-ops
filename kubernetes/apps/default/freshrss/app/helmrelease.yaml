@@ -59,6 +59,10 @@ spec:
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
+        accessModes:
+          - ReadWriteOnce
+        size: 1Gi
+        storageClass: ceph-block
         advancedMounts:
           freshrss:
             app:
