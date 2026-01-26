@@ -9,4 +9,5 @@ components:
 resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
+  - ./freshrss/ks.yaml
   - ./whoami/ks.yaml

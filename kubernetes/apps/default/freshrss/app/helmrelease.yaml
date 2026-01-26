@@ -1,0 +1,40 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta2
+kind: HelmRelease
+metadata:
+  name: freshrss
+  namespace: default
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: freshrss
+  interval: 30m
+  values:
+    controllers:
+      freshrss:
+        containers:
+          app:
+            image:
+              repository: freshrss/freshrss
+              tag: latest
+            env:
+              TZ: America/New_york
+              CRON_MIN: 3,33
+              TRUSTED_PROXY: 10.0.0.0/8 172.16.0.1/12 192.168.0.1/16
+
+    service:
+      app:
+        ports:
+          http:
+            port: 80
+    route:
+      app:
+        hostnames:
+          - "{{ .Release.Name }}.rnatr.com"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+      tmp:
+        type: emptyDir
