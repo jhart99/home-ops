@@ -58,11 +58,13 @@ spec:
             namespace: network
     persistence:
       data:
-        existingClaim: "{{ .Release.Name }}"
-        accessModes:
-          - ReadWriteOnce
+        # existingClaim: "{{ .Release.Name }}"
+        enabled: true
+        accessMode: ReadWriteOnce
         size: 1Gi
         storageClass: ceph-block
+        annotations:
+          "helm.sh/resource-policy": keep
         advancedMounts:
           freshrss:
             app:
