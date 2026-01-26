@@ -11,29 +11,32 @@ spec:
   values:
     controllers:
       freshrss:
-        type: statefulset
         annotations:
           reloader.stakater.com/auto: "true"
+        pod:
+          hostUsers: false
         containers:
           app:
             image:
-              repository: ghcr.io/linuxserver/freshrss
-              tag: 1.28.1
+              repository: freshrss/freshrss
+              tag: 1.28.1-alpine
             env:
-              PUID: 1000
-              PGID: 1000
+              LISTEN: &port 8080
+              DOMAIN: freshrss.rnatr.com
               TZ: America/New_york
               CRON_MIN: 3,33
               TRUSTED_PROXY: 10.0.0.0/8 172.16.0.1/12 192.168.0.1/16
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities: {drop: ["ALL"]}
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
             resources:
               requests:
-                cpu: 100m
+                cpu: 12m
+                memory: 128M
               limits:
-                memory: 256Mi
+                memory: 512M
         statefulset:
           volumeClaimTemplates:
             - name: config
@@ -60,7 +63,16 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
-      config:
+      data:
         existingClaim: "{{ .Release.Name }}"
+        advancedMounts:
+          freshrss:
+            app:
+              - path: /var/www/FreshRSS/data
+                subPath: data
+                readOnly: false
+              - path: /var/www/FreshRSS/extensions
+                subPath: extensions
+                readOnly: false
       tmp:
         type: emptyDir
