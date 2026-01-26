@@ -14,7 +14,7 @@ spec:
         containers:
           app:
             image:
-              repository: freshrss/freshrss
+              repository: docker.io/freshrss/freshrss
               tag: latest
             env:
               TZ: America/New_york
