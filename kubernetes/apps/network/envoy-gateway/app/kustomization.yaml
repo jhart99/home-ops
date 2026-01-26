@@ -8,4 +8,4 @@ resources:
   - ./helmrelease.yaml
   - ./observability.yaml
   - ./ocirepository.yaml
-  - ./podmonitor.yaml
+  # - ./podmonitor.yaml
