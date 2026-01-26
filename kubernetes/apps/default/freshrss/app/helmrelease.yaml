@@ -17,9 +17,11 @@ spec:
         containers:
           app:
             image:
-              repository: docker.io/freshrss/freshrss
-              tag: latest
+              repository: lscr.io/linuxserver/freshrss
+              tag: v1.28.1
             env:
+              PUID: 1000
+              PGID: 1000
               TZ: America/New_york
               CRON_MIN: 3,33
               TRUSTED_PROXY: 10.0.0.0/8 172.16.0.1/12 192.168.0.1/16
