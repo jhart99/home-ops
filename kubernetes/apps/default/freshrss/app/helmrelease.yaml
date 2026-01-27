@@ -40,9 +40,15 @@ spec:
                 memory: 512M
         statefulset:
           volumeClaimTemplates:
-            - name: config
+            - name: data
               globalMounts:
-                - path: /var/www/FreshRSS
+                - path: /var/www/FreshRSS/data
+              storageClass: ceph-block
+              accessMode: ReadWriteOnce
+              size: 1Gi
+            - name: extensions
+              globalMounts:
+                - path: /var/www/FreshRSS/extensions
               storageClass: ceph-block
               accessMode: ReadWriteOnce
               size: 1Gi
