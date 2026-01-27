@@ -1,4 +1,4 @@
-apiVersion: helm.toolkit.fluxcd.io/v2
+piVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
   name: freshrss
@@ -11,6 +11,7 @@ spec:
   values:
     controllers:
       freshrss:
+        type: statefulset
         annotations:
           reloader.stakater.com/auto: "true"
         pod:
@@ -37,6 +38,12 @@ spec:
                 memory: 128M
               limits:
                 memory: 512M
+        statefulset:
+          volumeClaimTemplates:
+            - name: config
+              storageClass: ceph-block
+              accessMode: ReadWriteOnce
+              size: 1Gi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
@@ -57,22 +64,7 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
-      data:
-        # existingClaim: "{{ .Release.Name }}"
-        enabled: true
-        accessMode: ReadWriteOnce
-        size: 5Gi
-        storageClass: ceph-block
-        annotations:
-          "helm.sh/resource-policy": keep
-        advancedMounts:
-          freshrss:
-            app:
-              - path: /var/www/FreshRSS/data
-                subPath: data
-                readOnly: false
-              - path: /var/www/FreshRSS/extensions
-                subPath: extensions
-                readOnly: false
+      config:
+        existingClaim: "{{ .Release.Name }}"
       tmp:
         type: emptyDir
