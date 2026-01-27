@@ -61,7 +61,7 @@ spec:
         # existingClaim: "{{ .Release.Name }}"
         enabled: true
         accessMode: ReadWriteOnce
-        size: 1Gi
+        size: 5Gi
         storageClass: ceph-block
         annotations:
           "helm.sh/resource-policy": keep
