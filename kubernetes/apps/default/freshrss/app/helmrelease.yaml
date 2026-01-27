@@ -41,6 +41,8 @@ spec:
         statefulset:
           volumeClaimTemplates:
             - name: config
+              globalMounts:
+                - path: /var/www/FreshRSS
               storageClass: ceph-block
               accessMode: ReadWriteOnce
               size: 1Gi
