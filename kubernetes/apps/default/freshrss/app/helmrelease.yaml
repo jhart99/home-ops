@@ -72,7 +72,5 @@ spec:
           - name: envoy-internal
             namespace: network
     persistence:
-      config:
-        existingClaim: "{{ .Release.Name }}"
       tmp:
         type: emptyDir
