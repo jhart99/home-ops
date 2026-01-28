@@ -13,8 +13,9 @@ spec:
 
   oidc:
     provider:
-      issuer: "https://auth.jonathanrosshart.com" # Or your Keycloak URL
-      authorizationEndpoint: "https://auth.jonathanrosshart.com/realms/Home'"
+      issuer: "https://auth.jonathanrosshart.com/realms/Home" # Or your Keycloak URL
+      authorizationEndpoint: "https://auth.jonathanrosshart.com/realms/Home/protocol/openid-connect/auth"
+      tokenEndpoint: "https://auth.jonathanrosshart.com/realms/Home/protocol/openid-connect/token"
     clientID: "echo-oidc"
     clientSecret:
       name: oauth-client-secret
