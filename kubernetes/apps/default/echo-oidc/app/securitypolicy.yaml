@@ -1,0 +1,21 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: oauth-policy
+  namespace: default
+spec:
+  # ATTACHMENT: This is how you apply the filter.
+  # Option A: Attach to a specific Route (Granular)
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: echo-oidc
+
+  oidc:
+    provider:
+      issuer: "https://auth.jonathanrosshart.com" # Or your Keycloak URL
+      authorizationEndpoint: "https://auth.jonathanrosshart.com/realms/Home'"
+    clientID: "echo-oidc"
+    clientSecret:
+      name: oauth-client-secret
+    redirectURL: "https://echo-oidc.rnatr.com/" # Must match IdP
