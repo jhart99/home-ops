@@ -15,3 +15,6 @@ spec:
       enabled: true
     prometheusRules:
       enabled: false
+    nodeSelector:
+      kubernetes.io/oskubernetes.io/arch: amd64
+
