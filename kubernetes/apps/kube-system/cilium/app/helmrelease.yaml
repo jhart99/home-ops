@@ -45,6 +45,9 @@ spec:
       enabled: false
     hubble:
       enabled: true
+      export:
+        static:
+          enabled: false
       metrics:
         enabled:
          - dns
@@ -54,9 +57,8 @@ spec:
          - port-distribution
       relay:
         enabled: true
-      export:
-        static:
-          enabled: false
+      ui:
+        enabled: true
     ipam:
       mode: kubernetes
     ipv4NativeRoutingCIDR: "10.42.0.0/16"
