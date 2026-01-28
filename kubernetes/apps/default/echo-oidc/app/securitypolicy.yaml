@@ -19,4 +19,4 @@ spec:
     clientID: "echo-oidc"
     clientSecret:
       name: oauth-client-secret
-    redirectURL: "https://echo-oidc.rnatr.com/" # Must match IdP
+    redirectURL: "https://echo-oidc.rnatr.com/myapp/callback" # Must match IdP
