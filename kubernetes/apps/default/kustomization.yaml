@@ -9,6 +9,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
+  - ./echo-secure/ks.yaml
   - ./freshrss/ks.yaml
   - ./thelounge/ks.yaml
   - ./whoami/ks.yaml
