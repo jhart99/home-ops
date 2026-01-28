@@ -34,6 +34,9 @@ spec:
       enabled: true
     # NOTE: devices might need to be set if you have more than one active NIC on your hosts
     # devices: eno+ eth+
+    encryption:
+      enabled: true
+      type: wireguard
     endpointRoutes:
       enabled: true
     envoy:
