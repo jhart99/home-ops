@@ -44,7 +44,14 @@ spec:
     gatewayAPI:
       enabled: false
     hubble:
-      enabled: false
+      enabled: true
+      metrics:
+        enabled: {dns, drop, tcp, flow, port-distribution}
+      relay:
+        enabled: true
+      export:
+        static:
+          enabled: false
     ipam:
       mode: kubernetes
     ipv4NativeRoutingCIDR: "10.42.0.0/16"
