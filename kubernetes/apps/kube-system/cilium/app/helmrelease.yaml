@@ -11,8 +11,8 @@ spec:
   values:
     autoDirectNodeRoutes: true
     bandwidthManager:
-      enabled: false
-      bbr: false
+      enabled: true
+      bbr: true
     bgpControlPlane:
       enabled: true
     bpf:
