@@ -21,6 +21,8 @@ metadata:
 spec:
   parentRefs:
     - name: envoy-external
+      namespace: network
+      sectionName: https
   hostnames:
     - "echo-secure.rnatr.com"
   rules:
