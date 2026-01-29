@@ -55,6 +55,8 @@ spec:
          - tcp
          - flow
          - port-distribution
+        serviceMonitor:
+          enabled: true
       relay:
         enabled: true
       ui:
