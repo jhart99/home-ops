@@ -1,0 +1,29 @@
+---
+customization:
+  extraKernelArgs:
+    #  - -init_on_alloc # Less security, faster puter
+    #  - -init_on_free # Less security, faster puter
+    #  - -selinux # Less security, faster puter
+     - -lockdown # Less security, faster puter
+    #  - apparmor=0 # Less security, faster puter
+    #  - i915.enable_dc=0 # prevent crash from headless
+    #  - i915.enable_guc=3 # Meteor Lake CPU & Intel iGPU
+    #  - intel_idle.max_cstate=7 # prevent crash from headless
+    #  - init_on_alloc=0 # Less security, faster puter
+    #  - init_on_free=0 # Less security, faster puter
+    #  - intel_iommu=on # PCI Passthrough
+     - lockdown=none # for Cilium
+    #  - iommu=pt # PCI Passthrough
+    #  - mitigations=off # Less security, faster puter
+    #  - security=none # Less security, faster puter
+    #  - sysctl.kernel.kexec_load_disabled=1 # Meteor Lake CPU & Intel iGPU
+    #  - talos.auditd.disabled=1 # Less security, faster puter
+  systemExtensions:
+    officialExtensions:
+      - siderolabs/binfmt-misc
+      - siderolabs/mellanox-mstflint
+      - siderolabs/nonfree-kmod-nvidia-lts
+      - siderolabs/nvidia-container-toolkit-lts
+      - siderolabs/nvidia-gdrdrv-device
+      - siderolabs/util-linux-tools
+  bootloader: grub
