@@ -4,5 +4,6 @@ kind: Kustomization
 resources:
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
+  - ./httproute.yaml
   - ./networks.yaml
   - ./ocirepository.yaml
