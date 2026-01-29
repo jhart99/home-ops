@@ -1,0 +1,13 @@
+apiVersion: nfd.k8s.io/v1
+kind: NodeFeatureRule
+metadata:
+  name: zooz-zwave-rule
+spec:
+  rules:
+    - # This rule matches a USB device with vendor ID 1d6b and device ID 0003
+      name: "zooz-zwave"
+      matchFeatures:
+        - feature: "usb"
+          matchExpressions:
+            vendor: { operator: In, value: ["1a86"] }
+            device: { operator: In, value: ["55d4"] }
