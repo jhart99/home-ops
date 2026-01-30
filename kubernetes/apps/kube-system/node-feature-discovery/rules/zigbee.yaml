@@ -1,4 +1,5 @@
-apiVersion: nfd.k8s.io/v1
+---
+apiVersion: nfd.k8s-sigs.io/v1alpha1
 kind: NodeFeatureRule
 metadata:
   name: sonoff-zigbee-rule
