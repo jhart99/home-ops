@@ -38,4 +38,4 @@ spec:
               - key: nvidia.feature.node.kubernetes.io/gpu
                 operator: In
                 values:
-                  - true
+                  - "true"

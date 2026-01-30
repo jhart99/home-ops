@@ -8,6 +8,8 @@ spec:
     kind: OCIRepository
     name: freshrss
   interval: 30m
+  upgrade:
+    force: true
   values:
     controllers:
       freshrss:
