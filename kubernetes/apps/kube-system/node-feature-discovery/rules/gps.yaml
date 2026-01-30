@@ -5,10 +5,11 @@ metadata:
   name: ublox-gps-rule
 spec:
   rules:
-    - # This rule matches a USB device with vendor ID 1d6b and device ID 0003
-      name: "ublox-gps"
+    - name: "ublox-gps"
+      labels:
+        feature.node.kubernetes.io/ublox-gps: "true"
       matchFeatures:
         - feature: "usb"
           matchExpressions:
-            vendor: { operator: In, value: ["1546"] }
-            device: { operator: In, value: ["01a8"] }
+            vendor: { op: In, value: ["1546"] }
+            device: { op: In, value: ["01a8"] }

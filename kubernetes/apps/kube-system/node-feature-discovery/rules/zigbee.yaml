@@ -5,10 +5,11 @@ metadata:
   name: sonoff-zigbee-rule
 spec:
   rules:
-    - # This rule matches a USB device with vendor ID 1d6b and device ID 0003
-      name: "sonoff-zigbee"
+    - name: "sonoff-zigbee"
+      labels:
+        feature.node.kubernetes.io/sonoff-zigbee: "true"
       matchFeatures:
         - feature: "usb"
           matchExpressions:
-            vendor: { operator: In, value: ["10c4"] }
-            device: { operator: In, value: ["ea60"] }
+            vendor: { op: In, value: ["10c4"] }
+            device: { op: In, value: ["ea60"] }

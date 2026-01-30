@@ -5,10 +5,11 @@ metadata:
   name: zooz-zwave-rule
 spec:
   rules:
-    - # This rule matches a USB device with vendor ID 1d6b and device ID 0003
-      name: "zooz-zwave"
+    - name: "zooz-zwave"
+      labels:
+        feature.node.kubernetes.io/zooz-zwave: "true"
       matchFeatures:
         - feature: "usb"
           matchExpressions:
-            vendor: { operator: In, value: ["1a86"] }
-            device: { operator: In, value: ["55d4"] }
+            vendor: { op: In, value: ["1a86"] }
+            device: { op: In, value: ["55d4"] }
