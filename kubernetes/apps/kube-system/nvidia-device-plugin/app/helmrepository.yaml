@@ -2,7 +2,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: HelmRepository
 metadata:
-  name: nvidia
+  name: nvdp
 spec:
   interval: 1h
-  url: https://helm.ngc.nvidia.com/nvidia
+  url: https://nvidia.github.io/k8s-device-plugin
