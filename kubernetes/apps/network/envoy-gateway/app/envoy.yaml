@@ -101,6 +101,12 @@ spec:
           - kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
     - name: syslog
+      protocol: UDP  # No TLS at the gateway; raw TCP pass-through
+      port: 5140
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: syslog-tcp
       protocol: TCP  # No TLS at the gateway; raw TCP pass-through
       port: 5140
       allowedRoutes:

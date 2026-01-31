@@ -6,4 +6,4 @@ resources:
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
   - ./ocirepository.yaml
-  - ./tcproute.yaml
+  - ./route.yaml

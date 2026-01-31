@@ -35,6 +35,14 @@ spec:
 
         [INPUT]
           Name     syslog
+          Mode     tcp
+          Listen   0.0.0.0
+          Port     5140
+          Parser   syslog-rfc3164
+          Tag      syslog
+
+        [INPUT]
+          Name     syslog
           Mode     udp
           Listen   0.0.0.0
           Port     5140
@@ -113,6 +121,10 @@ spec:
       - port: 5140
         containerPort: 5140
         protocol: TCP
+        name: syslog-tcp
+      - port: 5140
+        containerPort: 5140
+        protocol: udp
         name: syslog
     dashboards:
       enabled: true
