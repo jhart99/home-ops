@@ -1,0 +1,15 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: openwrt-exporter
+  labels:
+    release: prometheus # This label must match your Helm chart's serviceMonitorSelector
+spec:
+  selector:
+    matchLabels:
+      app: openwrt-exporter
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics

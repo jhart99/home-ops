@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openwrt-exporter
+  labels:
+    app: openwrt-exporter
+spec:
+  ports:
+    - name: metrics
+      port: 9100
+      targetPort: 9100
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: openwrt-exporter
+subsets:
+  - addresses:
+      - ip: 192.168.1.1 # Your Router IP
+    ports:
+      - name: metrics
+        port: 9100
