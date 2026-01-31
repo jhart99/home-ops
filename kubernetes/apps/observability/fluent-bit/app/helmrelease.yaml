@@ -33,6 +33,14 @@ spec:
           skip_empty_lines on
           skip_long_lines on
 
+        [INPUT]
+          Name     syslog
+          Mode     udp
+          Listen   0.0.0.0
+          Port     5140
+          Parser   syslog-rfc3164
+          Tag      openwrt.logs
+
       filters: |-
         [FILTER]
           name kubernetes
@@ -65,6 +73,12 @@ spec:
           rename k_labels_app app
           rename k_labels_k8s-app app
 
+        [FILTER]
+          Name    record_modifier
+          Match   openwrt.logs
+          Record  job openwrt
+          Record  env home
+
       customParsers: |-
         [PARSER]
           name containerd
@@ -84,6 +98,22 @@ spec:
           json_date_format iso8601
           compress gzip
           log_response_payload false
+
+        [OUTPUT]
+          Name        http
+          Match       openwrt.logs
+          Host        victoria-logs-server.observability.svc.cluster.local
+          Port        9428
+          uri /insert/jsonline?_stream_fields=stream,k_namespace_name,k_pod_name,app&_msg_field=log&_time_field=date
+          format json_lines
+          json_date_format iso8601
+          compress gzip
+          log_response_payload false
+    extraPorts:
+      - port: 5140
+        containerPort: 5140
+        protocol: TCP
+        name: syslog
     dashboards:
       enabled: true
     serviceMonitor:
