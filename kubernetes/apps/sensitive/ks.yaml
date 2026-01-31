@@ -8,11 +8,10 @@ spec:
   interval: 30m
   retryInterval: 1m
   timeout: 2m
-  # Forces all resources from this repo into the 'sensitive' namespace
-  targetNamespace: sensitive
   sourceRef:
     kind: GitRepository
     name: sensitive
+    namespace: flux-system
   path: "./cluster/config"
   prune: true
   wait: true
