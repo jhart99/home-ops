@@ -276,8 +276,13 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/7182f523bedd8b411ff411dfdac71652dae8372c736143602f39fdacd7101e09
+    talosImageURL: factory.talos.dev/installer/5760b263114485faae3827cd3decc98005f432c68c7b7d60b9bc9b989709ce47
     controlPlane: false
+    kernelModules:
+      - name: nvidia
+      - name: nvidia_uvm
+      - name: nvidia_drm
+      - name: nvidia_modeset
     networkInterfaces:
       - deviceSelector:
           hardwareAddr: "4c:bb:47:2d:23:ff"
