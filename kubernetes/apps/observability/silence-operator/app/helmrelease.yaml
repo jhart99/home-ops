@@ -13,3 +13,10 @@ spec:
     alertmanagerAddress: http://kube-prometheus-stack-alertmanager:9093
     networkPolicy:
       enabled: false
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/arch
+            operator: In
+            values: ["amd64"]
