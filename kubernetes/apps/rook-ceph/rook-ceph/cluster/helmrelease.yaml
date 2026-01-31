@@ -87,6 +87,60 @@ spec:
            - name: "/dev/nvme0n1" # Whole storage device
            - name: "/dev/sda" # Whole storage device
     cephBlockPools:
+      - name: ceph-fast
+        spec:
+          failureDomain: host
+          replicated:
+            size: 3
+          deviceClass: nvme
+        storageClass:
+          enabled: true
+          name: ceph-fast
+          isDefault: true
+          reclaimPolicy: Delete
+          allowVolumeExpansion: true
+          volumeBindingMode: Immediate
+          mountOptions:
+            - discard
+          parameters:
+            compression_mode: aggressive
+            compression_algorithm: zstd
+            imageFormat: "2"
+            imageFeatures: layering,fast-diff,object-map,deep-flatten,exclusive-lock
+            csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+            csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+            csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+            csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/fstype: ext4
+      - name: ceph-slow
+        spec:
+          failureDomain: host
+          replicated:
+            size: 3
+          deviceClass: hdd
+        storageClass:
+          enabled: true
+          name: ceph-slow
+          isDefault: true
+          reclaimPolicy: Delete
+          allowVolumeExpansion: true
+          volumeBindingMode: Immediate
+          mountOptions:
+            - discard
+          parameters:
+            compression_mode: aggressive
+            compression_algorithm: zstd
+            imageFormat: "2"
+            imageFeatures: layering,fast-diff,object-map,deep-flatten,exclusive-lock
+            csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+            csi.storage.k8s.io/provisioner-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+            csi.storage.k8s.io/controller-expand-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+            csi.storage.k8s.io/node-stage-secret-namespace: "{{ .Release.Namespace }}"
+            csi.storage.k8s.io/fstype: ext4
       - name: ceph-blockpool
         spec:
           failureDomain: host
