@@ -6,10 +6,11 @@
     "files.trimTrailingWhitespace": true,
     "sops.defaults.ageKeyFile": "age.key",
     "vs-kubernetes": {
-        "vs-kubernetes.kubeconfig": "./kubeconfig",
+        "vs-kubernetes.kubeconfig": "/home/jhart/home-ops/kubeconfig",
         "vs-kubernetes.knownKubeconfigs": [
-          "./kubeconfig"
-      ]
+            "./kubeconfig",
+            "/home/jhart/home-ops/kubeconfig"
+        ]
     },
     "yaml.schemaStore.enable": true,
     "yaml.schemas": {
