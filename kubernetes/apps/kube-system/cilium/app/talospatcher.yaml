@@ -50,6 +50,13 @@ spec:
               set -e
               apk add --no-cache iproute2 jq
 
+              # --- CONFIGURATION ---
+              VLAN_IFACE="net0.10"
+              VLAN_GW="192.168.2.1"
+              TABLE_ID="200"
+              # ---------------------
+
+              echo "--- STARTING PBR TEST ON $HOSTNAME ---"
               # 1. Check Interface
               if ! ip link show "$VLAN_IFACE" > /dev/null 2>&1; then
                 echo "ERROR: Interface $VLAN_IFACE not found!"
