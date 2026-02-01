@@ -27,12 +27,12 @@ spec:
               TZ: America/New_York
             resources:
               requests:
-                gpu.intel.com/i915: 1
                 cpu: 100m
+                gpu.intel.com/i915: 1
                 memory: 1000Mi
               limits:
                 gpu.intel.com/i915: 1
-                memory: 16Gi
+                memory: 4Gi
             probes:
               liveness: &probe
                 enabled: true
@@ -65,8 +65,9 @@ spec:
         fsGroup: 1000
         runAsNonRoot: true
         fsGroupChangePolicy: OnRootMismatch
-      nodeSelector:
-        intel.feature.node.kubernetes.io/gpu: "true"
+      resourceClaims:
+        - name: gpu
+          resourceClaimTemplateName: jellyfin
 
     service:
       app:

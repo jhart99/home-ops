@@ -10,7 +10,7 @@ spec:
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
-    - name: intel-device-plugin-gpu
+    - name: intel-gpu-resource-driver
       namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/default/jellyfin/app
