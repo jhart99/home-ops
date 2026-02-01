@@ -7,5 +7,5 @@ namespace: flux-system
 resources:
   - ./gitrepository.yaml
   - ./ks.yaml
-  # - ./namespace.yaml
+  - ./receiver.yaml
 
