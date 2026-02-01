@@ -95,7 +95,7 @@ spec:
           - "{{ .Release.Name }}.rnatr.com"
           - status.rnatr.com
         parentRefs:
-          - name: envoy-external
+          - name: envoy-internal
             namespace: network
     rbac:
       roles:
