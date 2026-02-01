@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: vlan10-route-fix
+  namespace: kube-system
+  labels:
+    app: vlan10-route-fix
+spec:
+  selector:
+    matchLabels:
+      app: vlan10-route-fix
+  template:
+    metadata:
+      labels:
+        app: vlan10-route-fix
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - talos-cp-1
+                    - talos-cp-2
+                    - talos-cp-3
+
+      hostNetwork: true
+      hostPID: true
+      tolerations:
+        # Allow this to run on control plane nodes
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+        - key: node-role.kubernetes.io/master
+          operator: Exists
+          effect: NoSchedule
+
+      containers:
+        - name: route-fixer
+          image: alpine:latest
+          securityContext:
+            privileged: true
+            capabilities:
+              add: ["NET_ADMIN"]
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              apk add --no-cache iproute2 jq
+
+              # 1. Check Interface
+              if ! ip link show "$VLAN_IFACE" > /dev/null 2>&1; then
+                echo "ERROR: Interface $VLAN_IFACE not found!"
+                exit 1
+              fi
+              echo "Interface $VLAN_IFACE found."
+
+              # 2. Get IP
+              CURRENT_IP=$(ip -4 addr show dev $VLAN_IFACE | grep inet | awk '{print $2}' | cut -d/ -f1 | head -n1)
+              if [ -z "$CURRENT_IP" ]; then
+                echo "ERROR: No IP found on $VLAN_IFACE"
+                exit 1
+              fi
+              echo "Detected IP: $CURRENT_IP"
+
+              # 3. Apply Route
+              echo "Adding default gateway $VLAN_GW to table $TABLE_ID..."
+              ip route replace default via $VLAN_GW dev $VLAN_IFACE table $TABLE_ID
+
+              # 4. Apply Rule
+              echo "Adding rule for Source IP $CURRENT_IP..."
+              if ! ip rule list | grep -q "$CURRENT_IP"; then
+                 ip rule add from $CURRENT_IP/32 table $TABLE_ID priority 1000
+                 echo "Rule added successfully."
+              else
+                 echo "Rule already exists."
+              fi
+
+              # 5. VERIFICATION
+              echo "--- VERIFICATION ---"
+              echo "Testing route get 8.8.8.8 from $CURRENT_IP..."
+              ip route get 8.8.8.8 from $CURRENT_IP
+
+              echo "--- TEST COMPLETE ---"
+              echo "Sleeping for 1 hour so you can view logs..."
+              sleep 3600
