@@ -8,4 +8,5 @@ resources:
   - ./gitrepository.yaml
   - ./ks.yaml
   - ./receiver.yaml
+  - ./secret.sops.yaml
 
