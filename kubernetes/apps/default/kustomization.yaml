@@ -11,7 +11,7 @@ resources:
   - ./echo/ks.yaml
   - ./echo-oidc/ks.yaml
   - ./echo-secure/ks.yaml
-  - ./jellyfin/ks.yaml
+  # - ./jellyfin/ks.yaml
   - ./renovate/ks.yaml
   # - ./freshrss/ks.yaml
   # - ./thelounge/ks.yaml
