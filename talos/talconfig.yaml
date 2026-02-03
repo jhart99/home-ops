@@ -298,15 +298,16 @@ nodes:
       - name: nvidia_uvm
       - name: nvidia_drm
       - name: nvidia_modeset
+      - name: mlx5-core
     networkInterfaces:
       - deviceSelector:
-          hardwareAddr: "4c:bb:47:2d:23:ff"
+          hardwareAddr: "4c:bb:47:2d:24:00"
         dhcp: false
         addresses:
           - "192.168.1.18/24"
         routes:
           - gateway: "192.168.1.1"
-        mtu: 1500
+        mtu: 9000
 
 # Global patches
 patches:
