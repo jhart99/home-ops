@@ -23,6 +23,12 @@ spec:
         repository: ghcr.io/goauthentik/server
         tag: 2025.12.3
       fullnameOverride: authentik
+      env:
+        - name: AUTHENTIK_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: authentik-secret
+              key: secretKey
     authentik:
       log_level: debug
       avatars: "initials"
