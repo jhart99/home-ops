@@ -1,7 +1,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: authentik
+  name: authentik-db
 spec:
   instances: 2
 
@@ -15,11 +15,11 @@ spec:
     initdb:
       database: authentik
       owner: authentik
-  postgresql:
-    pg_hba:
-      # Enforce mTLS: User 'authentik' must present a valid cert
-      - hostssl authentik authentik all cert
-      - hostssl all all all md5
+#  postgresql:
+#    pg_hba:
+#      # Enforce mTLS: User 'authentik' must present a valid cert
+#      - hostssl authentik authentik all cert
+#      - hostssl all all all md5
 #  certificates:
 #    clientCASecret: authentik-db-ca-secret
 #    serverTLSSecret: authentik-db-ca-secret

@@ -25,6 +25,36 @@ spec:
             secretKeyRef:
               name: authentik-secret
               key: secretKey
+
+        - name: AUTHENTIK_POSTGRESQL__HOST
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app  # The secret created by CNPG
+              key: host               # CNPG standard key for host
+
+        - name: AUTHENTIK_POSTGRESQL__NAME
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app
+              key: dbname             # CNPG standard key for database name
+
+        - name: AUTHENTIK_POSTGRESQL__USER
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app
+              key: user               # CNPG standard key for username
+
+        - name: AUTHENTIK_POSTGRESQL__PORT
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app
+              key: port               # CNPG standard key for port
+
+        - name: AUTHENTIK_POSTGRESQL__PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: authentik-db-app
+              key: password           # CNPG standard key for password
     authentik:
       log_level: debug
       avatars: "initials"
