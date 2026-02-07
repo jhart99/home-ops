@@ -1,3 +1,23 @@
+---
+# 2. The CA Certificate
+# Cert-Manager creates the secret 'authentik-db-ca-secret' with correct tls.crt/tls.key keys.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: authentik-db-ca
+  namespace: security
+spec:
+  isCA: true
+  commonName: authentik-db-ca
+  secretName: authentik-db-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

@@ -21,7 +21,7 @@ spec:
       - hostssl authentik authentik all cert
       - hostssl all all all md5
   certificates:
-    clientCASecret: authentik-db-ca
+    clientCASecret: authentik-db-ca-secret
 
   backup:
     # Volume snapshot backups
