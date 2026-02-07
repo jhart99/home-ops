@@ -19,7 +19,7 @@ spec:
       # masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
       # hostLegacyRouting: true
-      datapathMode: netkit
+      # datapathMode: netkit
       masquerade: true
       preallocateMaps: true
       tproxy: true
