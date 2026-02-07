@@ -56,7 +56,7 @@ spec:
               name: authentik-db-app
               key: password           # CNPG standard key for password
     authentik:
-      log_level: debug
+      log_level: info
       avatars: "initials"
      #  email:
      #    host: "smtp-relay.default.svc.cluster.local"
@@ -71,13 +71,6 @@ spec:
         container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
       postgresql:
         enabled: false
-        # Point to the CNPG Service in the SAME namespace
-      #  host: "authentik-db-rw.security.svc.cluster.local"
-      #  name: "authentik"
-      #  user: "authentik"
-      #  password: ""
-      # redis:
-      #   host: "dragonfly.databases.svc.cluster.local"
 
     server:
       replicas: 1
@@ -90,11 +83,6 @@ spec:
           enabled: true
           hostnames: ["auth.rnatr.com"]
           parentRefs:
-            - group: gateway.networking.k8s.io
-              kind: Gateway
-              name: envoy-internal
-              namespace: networking
-              sectionName: https
             - group: gateway.networking.k8s.io
               kind: Gateway
               name: envoy-external
