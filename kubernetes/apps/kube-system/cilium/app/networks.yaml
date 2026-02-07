@@ -15,7 +15,8 @@ metadata:
 spec:
   loadBalancerIPs: true
   # NOTE: interfaces might need to be set if you have more than one active NIC on your hosts
-  # interfaces:
+  interfaces:
+    - ^net0
   #   - ^eno[0-9]+
   #   - ^eth[0-9]+
   nodeSelector:
@@ -79,7 +80,7 @@ metadata:
   name: kube-api
   annotations:
     external-dns.alpha.kubernetes.io/hostname: k8s.rnatr.com
-    lbipam.cilium.io/ips: 192.168.1.75
+    lbipam.cilium.io/ips: 192.168.1.5
 spec:
   type: LoadBalancer
   externalTrafficPolicy: Local
