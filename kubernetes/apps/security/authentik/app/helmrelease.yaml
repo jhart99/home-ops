@@ -86,7 +86,7 @@ spec:
             - group: gateway.networking.k8s.io
               kind: Gateway
               name: envoy-external
-              namespace: networking
+              namespace: network
               sectionName: https
       metrics:
         serviceMonitor:
