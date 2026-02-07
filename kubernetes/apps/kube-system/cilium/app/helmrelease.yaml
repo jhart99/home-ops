@@ -23,6 +23,7 @@ spec:
       masquerade: true
       preallocateMaps: true
       # tproxy: true
+    bpfClockProbe: true
     cgroup:
       automount:
         enabled: false
