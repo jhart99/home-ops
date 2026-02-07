@@ -16,6 +16,7 @@ spec:
   valuesFrom:
     - kind: Secret
       name: authentik-secret
+      valuesKey: values.yaml
   values:
     global:
       image:
@@ -30,7 +31,6 @@ spec:
      #    port: 587
      #    use_tls: false
      #    from: "no-reply@skylab.fi"
-      secret_key: "${SECRET_AUTHENTIK_SECRET_KEY}"
       error_reporting:
         enable: true
         send_pii: false
