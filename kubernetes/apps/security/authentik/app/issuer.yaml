@@ -15,4 +15,4 @@ metadata:
   name: authentik-db-issuer
 spec:
   ca:
-    secretName: authentik-db-ca
+    secretName: authentik-db-ca-secret
