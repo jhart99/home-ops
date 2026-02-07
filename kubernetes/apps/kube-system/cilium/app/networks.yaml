@@ -17,6 +17,7 @@ spec:
   # NOTE: interfaces might need to be set if you have more than one active NIC on your hosts
   interfaces:
     - ^net0
+    - ^ethSel0
   #   - ^eno[0-9]+
   #   - ^eth[0-9]+
   nodeSelector:
