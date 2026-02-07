@@ -1,0 +1,29 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: authentik
+spec:
+  instances: 2
+
+  storage:
+    storageClass: ceph-block
+    size: 5Gi
+  walStorage:
+    storageClass: ceph-block
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: authentik
+      owner: authentik
+  postgresql:
+    pg_hba:
+      # Enforce mTLS: User 'authentik' must present a valid cert
+      - hostssl authentik authentik all cert
+      - hostssl all all all md5
+  certificates:
+    clientCASecret: authentik-db-ca
+
+  backup:
+    # Volume snapshot backups
+    volumeSnapshot:
+       className: csi-ceph-blockpool
