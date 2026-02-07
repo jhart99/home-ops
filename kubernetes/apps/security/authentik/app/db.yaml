@@ -20,9 +20,9 @@ spec:
       # Enforce mTLS: User 'authentik' must present a valid cert
       - hostssl authentik authentik all cert
       - hostssl all all all md5
-  certificates:
-    clientCASecret: authentik-db-ca-secret
-    serverTLSSecret: authentik-db-ca-secret
+#  certificates:
+#    clientCASecret: authentik-db-ca-secret
+#    serverTLSSecret: authentik-db-ca-secret
 
   backup:
     # Volume snapshot backups
