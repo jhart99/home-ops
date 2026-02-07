@@ -72,10 +72,10 @@ spec:
       postgresql:
         enabled: false
         # Point to the CNPG Service in the SAME namespace
-        host: "authentik-db-rw.security.svc.cluster.local"
-        name: "authentik"
-        user: "authentik"
-        password: ""
+      #  host: "authentik-db-rw.security.svc.cluster.local"
+      #  name: "authentik"
+      #  user: "authentik"
+      #  password: ""
       # redis:
       #   host: "dragonfly.databases.svc.cluster.local"
 
@@ -109,29 +109,6 @@ spec:
           memory: 512Mi
         limits:
           memory: 2Gi
-      volumes:
-        - name: db-cert
-          secret:
-            secretName: authentik-user-tls
-        - name: db-ca
-          secret:
-            secretName: authentik-db-ca-secret
-      volumeMounts:
-        - name: db-cert
-          mountPath: /certs/db-user
-          readOnly: true
-        - name: db-ca
-          mountPath: /certs/db-ca
-          readOnly: true
-      env:
-        - name: AUTHENTIK_POSTGRESQL__SSLMODE
-          value: "verify-full"
-        - name: AUTHENTIK_POSTGRESQL__SSLCERT
-          value: "/certs/db-user/tls.crt"
-        - name: AUTHENTIK_POSTGRESQL__SSLKEY
-          value: "/certs/db-user/tls.key"
-        - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
-          value: "/certs/db-ca/ca.crt"
     worker:
       replicas: 1
       serviceAccount:
@@ -146,33 +123,10 @@ spec:
           memory: 512Mi
         limits:
           memory: 1.5Gi
-      volumes:
-        - name: db-cert
-          secret:
-            secretName: authentik-user-tls
-        - name: db-ca
-          secret:
-            secretName: authentik-db-ca-secret
-      volumeMounts:
-        - name: db-cert
-          mountPath: /certs/db-user
-          readOnly: true
-        - name: db-ca
-          mountPath: /certs/db-ca
-          readOnly: true
-      env:
-        - name: AUTHENTIK_POSTGRESQL__SSLMODE
-          value: "verify-full"
-        - name: AUTHENTIK_POSTGRESQL__SSLCERT
-          value: "/certs/db-user/tls.crt"
-        - name: AUTHENTIK_POSTGRESQL__SSLKEY
-          value: "/certs/db-user/tls.key"
-        - name: AUTHENTIK_POSTGRESQL__SSLROOTCERT
-          value: "/certs/db-ca/ca.crt"
     prometheus:
       rules:
         enabled: true
     postgresql:
       enabled: false
     redis:
-      enabled: false
+      enabled: true
