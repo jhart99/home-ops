@@ -12,7 +12,6 @@ spec:
       sourceRef:
         kind: HelmRepository
         name: cloudnative-pg
-        namespace: flux-system
   values:
     crds:
       create: true
