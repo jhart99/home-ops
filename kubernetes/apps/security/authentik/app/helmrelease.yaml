@@ -13,6 +13,9 @@ spec:
         kind: HelmRepository
         name: authentik-charts
       interval: 5m
+  valuesFrom:
+    - kind: Secret
+      name: authentik-secret
   values:
     global:
       image:
