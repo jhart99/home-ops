@@ -66,7 +66,6 @@ spec:
         container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
       postgresql:
         enabled: false
-
     server:
       replicas: 1
       pdb:
@@ -84,6 +83,7 @@ spec:
               namespace: network
               sectionName: https
       metrics:
+        enabled: true
         serviceMonitor:
           enabled: true
       resources:
@@ -106,6 +106,10 @@ spec:
           memory: 512Mi
         limits:
           memory: 1.5Gi
+      metrics:
+        enabled: true
+        serviceMonitor:
+          enabled: true
     prometheus:
       rules:
         enabled: true

@@ -15,15 +15,8 @@ spec:
     initdb:
       database: authentik
       owner: authentik
-#  postgresql:
-#    pg_hba:
-#      # Enforce mTLS: User 'authentik' must present a valid cert
-#      - hostssl authentik authentik all cert
-#      - hostssl all all all md5
-#  certificates:
-#    clientCASecret: authentik-db-ca-secret
-#    serverTLSSecret: authentik-db-ca-secret
-
+  monitoring:
+    enablePodMonitor: true
   backup:
     # Volume snapshot backups
     volumeSnapshot:
