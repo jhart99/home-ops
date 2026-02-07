@@ -9,10 +9,8 @@ components:
 resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
+  - ./echo-auth/ks.yaml
   - ./echo-oidc/ks.yaml
   - ./echo-secure/ks.yaml
-  # - ./jellyfin/ks.yaml
   - ./renovate/ks.yaml
-  # - ./freshrss/ks.yaml
-  # - ./thelounge/ks.yaml
   - ./whoami/ks.yaml

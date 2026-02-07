@@ -1,0 +1,17 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: echo-auth-oauth-policy
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: echo-auth
+
+  oidc:
+    provider:
+      issuer: "https://auth.rnatr.com/application/o/echo-auth-oidc"
+    clientID: "zervQZYSRM5uyYvSwnscHaQLQdFFz7NRLiHFxpIx"
+    clientSecret:
+      name: echo-auth-client-secret
+    redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
