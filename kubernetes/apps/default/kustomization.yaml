@@ -13,4 +13,5 @@ resources:
   - ./echo-oidc/ks.yaml
   - ./echo-secure/ks.yaml
   - ./renovate/ks.yaml
+  - ./smtp-relay/ks.yaml
   - ./whoami/ks.yaml
