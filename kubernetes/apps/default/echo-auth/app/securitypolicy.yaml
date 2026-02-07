@@ -10,7 +10,7 @@ spec:
 
   oidc:
     provider:
-      issuer: "https://auth.rnatr.com/application/o/echo-auth-oidc"
+      issuer: "https://auth.rnatr.com/application/o/echo-auth"
     clientID: "zervQZYSRM5uyYvSwnscHaQLQdFFz7NRLiHFxpIx"
     clientSecret:
       name: echo-auth-client-secret
