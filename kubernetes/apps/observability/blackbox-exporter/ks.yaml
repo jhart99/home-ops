@@ -28,6 +28,9 @@ spec:
   #     namespace: kube-system
   interval: 1h
   path: ./kubernetes/apps/observability/blackbox-exporter/vpn
+  postBuild:
+    substitute:
+      APP: blackbox-exporter-vpn
   prune: true
   sourceRef:
     kind: GitRepository

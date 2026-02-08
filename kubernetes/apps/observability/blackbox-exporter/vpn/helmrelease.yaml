@@ -13,13 +13,6 @@ spec:
     fullnameOverride: blackbox-exporter-vpn
     strategy:
       type: Recreate
-    podAnnotations:
-      k8s.v1.cni.cncf.io/networks: |-
-        [{
-          "name": "vpn",
-          "namespace": "kube-system",
-          "ips": ["192.168.2.50/24"]
-        }]
     config:
       modules:
         http_2xx:
