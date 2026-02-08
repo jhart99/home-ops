@@ -1,0 +1,24 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: ${APP}
+spec:
+  # 1. Which pods does this apply to?
+  selectors:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: ${APP}
+
+  # 2. Where is the traffic going? (The remote server)
+  destinationCIDRs:
+    - "0.0.0.0/0" 
+  excludedCIDRs:
+   - "192.168.1.0/24"
+
+  # 3. Which node handles the exit, and what IP/interface to use?
+  egressGateway:
+    nodeSelector:
+      matchLabels:
+        kubernetes.io/hostname: "talos-cp-1"
+    interface: net0.10
