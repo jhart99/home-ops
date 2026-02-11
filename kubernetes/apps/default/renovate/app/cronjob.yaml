@@ -11,7 +11,7 @@ spec:
       template:
         spec:
           containers:
-            - image: renovate/renovate:43.4.3
+            - image: renovate/renovate:43.8.1
               name: renovate-bot
               env:
                 - name: LOG_LEVEL
