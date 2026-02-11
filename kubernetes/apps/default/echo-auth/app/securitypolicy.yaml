@@ -15,3 +15,20 @@ spec:
     clientSecret:
       name: echo-auth-client-secret
     redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
+
+  # 2. JWT configuration extracts claims from that token into headers
+  jwt:
+    providers:
+      - name: authentik-provider
+        issuer: "https://auth.rnatr.com/application/o/echo-auth"
+        # Envoy must verify the signature before extracting claims.
+        # Ensure this URI matches your Authentik JWKS endpoint.
+        remoteJWKS:
+          uri: "https://auth.rnatr.com/application/o/echo-auth/jwks/"
+    claimToHeaders:
+      - claim: email
+        header: X-User-Email
+      - claim: name
+        header: X-User-Name
+      - claim: preferred_username
+        header: X-User-ID
