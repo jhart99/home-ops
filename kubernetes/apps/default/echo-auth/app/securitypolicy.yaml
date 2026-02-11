@@ -20,8 +20,9 @@ spec:
   jwt:
     providers:
       - name: authentik-provider
-        fromCookies:
-          - "id_token"
+        extractFrom:
+          cookies:
+            - "id_token"
         issuer: "https://auth.rnatr.com/application/o/echo-auth"
         # Envoy must verify the signature before extracting claims.
         # Ensure this URI matches your Authentik JWKS endpoint.
