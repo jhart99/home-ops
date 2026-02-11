@@ -25,10 +25,10 @@ spec:
         # Ensure this URI matches your Authentik JWKS endpoint.
         remoteJWKS:
           uri: "https://auth.rnatr.com/application/o/echo-auth/jwks/"
-    claimToHeaders:
-      - claim: email
-        header: X-User-Email
-      - claim: name
-        header: X-User-Name
-      - claim: preferred_username
-        header: X-User-ID
+        claimToHeaders:
+          - claim: email
+            header: X-User-Email
+          - claim: name
+            header: X-User-Name
+          - claim: preferred_username
+            header: X-User-ID
