@@ -15,6 +15,7 @@ spec:
     clientSecret:
       name: echo-auth-client-secret
     redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
+    forwardBearerToken: true
 
   # 2. JWT configuration extracts claims from that token into headers
   # jwt:
