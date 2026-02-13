@@ -16,7 +16,6 @@ spec:
     bgpControlPlane:
       enabled: true
     bpf:
-      # masquerade: true
       # Ref: https://github.com/siderolabs/talos/issues/10002
       # hostLegacyRouting: true
       datapathMode: netkit
