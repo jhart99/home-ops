@@ -238,6 +238,26 @@ nodes:
         routes:
           - gateway: "192.168.1.1"
         mtu: 1500
+    patches:
+      - # Load kernel modules
+        |-
+        machine:
+          kubelet:
+            extraConfig:
+              systemReserved:
+                cpu: "50m"
+                memory: "100Mi"
+                ephemeral-storage: "1Gi"
+              kubeReserved:
+                cpu: "50m"
+                memory: "150Mi"
+                ephemeral-storage: "1Gi"
+              evictionHard:
+                memory.available: "100Mi"
+                nodefs.available: "10%"
+          # nodeTaints:
+          #   hardware-type: "edge": NoSchedule
+          #   network-bandwidth: "low": PreferNoSchedule
   - hostname: "talos-worker-2"
     ipAddress: "192.168.1.15"
     installDisk: "/dev/mmcblk0"
