@@ -14,7 +14,7 @@ spec:
       configFile: |-
         email_domains = [ "*" ]
         oidc_issuer_url="https://auth.rnatr.com/application/o/echo-auth/"
-        whitelist_domain=".rnatr.com"
+        whitelist_domains=[".rnatr.com"]
         upstreams="static://202"
         skip_provider_button="true"
         set_authorization_header="true"
