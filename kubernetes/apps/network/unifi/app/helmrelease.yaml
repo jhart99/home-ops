@@ -14,15 +14,6 @@ spec:
       unifi:
         annotations:
           reloader.stakater.com/auto: "true"
-        pod:
-          annotations:
-            k8s.v1.cni.cncf.io/networks: |
-              [{
-                "name":"local",
-                "namespace": "kube-system",
-                "ips": ["192.168.1.252/24"],
-                "mac": "48:C3:71:81:39:77"
-              }]
         containers:
           app:
             image:
@@ -48,6 +39,7 @@ spec:
     service:
       app:
         type: LoadBalancer
+        controller: unifi
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "{{ .Release.Name }}.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.20
