@@ -27,6 +27,7 @@ spec:
               UNIFI_STDOUT: "true"
               JVM_INIT_HEAP_SIZE:
               JVM_MAX_HEAP_SIZE: 1024M
+              SYSTEM_IP: &system_ip 192.168.30.20
             resources:
               requests:
                 memory: 2Gi
@@ -42,7 +43,7 @@ spec:
         controller: unifi
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "{{ .Release.Name }}.${SECRET_DOMAIN}"
-          lbipam.cilium.io/ips: 192.168.30.20
+          lbipam.cilium.io/ips: *system_ip
         externalTrafficPolicy: Local
         ports:
           https:
