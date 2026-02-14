@@ -11,6 +11,15 @@ spec:
   values:
     config:
       existingSecret: oauth2proxy-secret
+      configFile: |-
+        email_domains = [ "*" ]
+        oidc_issuer_url="https://auth.rnatr.com/application/o/echo-auth/"
+        redirect_url="http://oauth2-proxy.oauth2-proxy.localhost/oauth2/callback"
+        upstreams="static://202"
+        skip_provider_button="true"
+        set_authorization_header="true"
+        pass_access_token="true"
+        set_xauthrequest="true"
 
     replicaCount: 1
 
