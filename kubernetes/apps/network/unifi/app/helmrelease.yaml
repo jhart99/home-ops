@@ -40,35 +40,23 @@ spec:
     service:
       app:
         type: LoadBalancer
-        controller: unifi
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: "{{ .Release.Name }}.${SECRET_DOMAIN}"
+          external-dns.alpha.kubernetes.io/hostname: unifi.rnatr.com
           lbipam.cilium.io/ips: *system_ip
         externalTrafficPolicy: Local
         ports:
           https:
             port: &port 8443
-            protocol: HTTPS
           controller:
-            enabled: true
             port: 8080
-            protocol: TCP
           speedtest:
-            enabled: true
             port: 6789
-            protocol: TCP
           stun:
-            enabled: true
             port: 3478
-            protocol: UDP
           syslog:
-            enabled: true
             port: 5514
-            protocol: UDP
           discovery:
-            enabled: true
             port: 10001
-            protocol: UDP
 #    route:
 #      app:
 #        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
