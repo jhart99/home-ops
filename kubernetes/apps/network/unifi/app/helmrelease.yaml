@@ -19,7 +19,7 @@ spec:
             k8s.v1.cni.cncf.io/networks: |
               [{
                 "name":"local",
-                "namespace": "network",
+                "namespace": "kube-system",
                 "ips": ["192.168.1.252/24"],
                 "mac": "48:C3:71:81:39:77"
               }]
