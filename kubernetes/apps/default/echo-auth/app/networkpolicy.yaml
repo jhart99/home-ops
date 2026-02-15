@@ -2,12 +2,12 @@
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: secure-backend-ingress
+  name: echo-auth-ingress
   namespace: default
 spec:
   endpointSelector:
     matchLabels:
-      app: echo-oidc
+      app: echo-auth
   ingress:
     - fromEndpoints:
         # ONLY allow traffic from the Envoy Gateway
@@ -22,11 +22,11 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: limit-outbound-access
+  name: echo-auth-egress
 spec:
   endpointSelector:
     matchLabels:
-      app: echo-oidc
+      app: echo-auth
   egress:
     # Rule 1: Allow DNS (Required to resolve domains)
     - toEndpoints:
@@ -37,10 +37,12 @@ spec:
         - ports:
             - port: "53"
               protocol: UDP
-    # Rule 2: Allow ONLY Stripe API
-    - toFQDNs:
-        - matchName: "api.stripe.com"
+    # Rule 2: Allow Oauth2proxy
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+            k8s-app: oauth2-proxy
       toPorts:
         - ports:
-            - port: "443"
+            - port: "80"
               protocol: TCP
