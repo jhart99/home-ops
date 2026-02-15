@@ -11,7 +11,7 @@ spec:
   interval: 1h
   values:
     controllers:
-      smtp-relay:
+      wg-easy:
         replicas: 2
         strategy: RollingUpdate
         annotations:
