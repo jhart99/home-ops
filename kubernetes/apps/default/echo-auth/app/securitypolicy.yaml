@@ -7,15 +7,28 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: echo-auth
+    sectionName: "rule-1"
 
-  oidc:
-    provider:
-      issuer: "https://auth.rnatr.com/application/o/echo-auth"
-    clientID: "zervQZYSRM5uyYvSwnscHaQLQdFFz7NRLiHFxpIx"
-    clientSecret:
-      name: echo-auth-client-secret
-    redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
-    forwardBearerToken: true
+  extAuth:
+    http:
+      backendRefs:
+        - name: oauth2-proxy.security.svc.cluster.local # The K8s Service for OAuth2 Proxy
+          port: 4180
+
+      # Define which headers from the OAuth2 Proxy response (200 OK)
+      # should be copied to the request sent to your backend.
+      headersToBackend:
+        - "Authorization"       # The Bearer Token (JWT)
+        - "X-Auth-Request-User" # The Email/User ID
+        - "X-Auth-Request-Email"
+  # oidc:
+  #   provider:
+  #     issuer: "https://auth.rnatr.com/application/o/echo-auth"
+  #   clientID: "zervQZYSRM5uyYvSwnscHaQLQdFFz7NRLiHFxpIx"
+  #   clientSecret:
+  #     name: echo-auth-client-secret
+  #   redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
+  #   forwardBearerToken: true
 
   # 2. JWT configuration extracts claims from that token into headers
   # jwt:

@@ -66,6 +66,19 @@ spec:
             namespace: network
             sectionName: https
         rules:
-          - backendRefs:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /oauth2
+            backendRefs:
+              - name: oauth2-proxy.security.svc.cluster.local # Service name of your OAuth2 Proxy deployment
+                port: 4180
+
+          # RULE 2: Your Application (Protected by Policy)
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
               - identifier: app
                 port: *port
