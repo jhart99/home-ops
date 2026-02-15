@@ -7,7 +7,6 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: echo-auth
-    sectionName: "rule-1"
 
   extAuth:
     http:
