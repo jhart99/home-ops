@@ -1,0 +1,18 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-default-ns
+  namespace: security # MUST be in the namespace where the Service lives
+spec:
+  from:
+    # Allow HTTPRoutes in 'default' to route to Services here
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: default
+    # Allow SecurityPolicies in 'default' to use Services here for extAuth
+    - group: gateway.envoyproxy.io
+      kind: SecurityPolicy
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
