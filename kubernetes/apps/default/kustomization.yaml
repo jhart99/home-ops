@@ -10,6 +10,7 @@ resources:
   - ./namespace.yaml
   - ./echo/ks.yaml
   - ./echo-auth/ks.yaml
+  - ./echo-auth2/ks.yaml
   - ./echo-oidc/ks.yaml
   - ./echo-secure/ks.yaml
   - ./renovate/ks.yaml

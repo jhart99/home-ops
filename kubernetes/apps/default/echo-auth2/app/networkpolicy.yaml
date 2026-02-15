@@ -1,0 +1,48 @@
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: echo-auth-ingress
+  namespace: default
+spec:
+  endpointSelector:
+    matchLabels:
+      app: echo-auth
+  ingress:
+    - fromEndpoints:
+        # ONLY allow traffic from the Envoy Gateway
+        - matchLabels:
+            gateway.envoyproxy.io/owning-gateway-name: envoy-external
+            gateway.envoyproxy.io/owning-gateway-namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: echo-auth-egress
+spec:
+  endpointSelector:
+    matchLabels:
+      app: echo-auth
+  egress:
+    # Rule 1: Allow DNS (Required to resolve domains)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+    # Rule 2: Allow Oauth2proxy
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+            k8s-app: oauth2-proxy
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
