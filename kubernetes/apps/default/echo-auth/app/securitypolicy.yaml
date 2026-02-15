@@ -11,7 +11,8 @@ spec:
   extAuth:
     http:
       backendRefs:
-        - name: security/oauth2-proxy # The K8s Service for OAuth2 Proxy
+        - name: oauth2-proxy # The K8s Service for OAuth2 Proxy
+          namespace: security
           port: 4180
 
       # Define which headers from the OAuth2 Proxy response (200 OK)
