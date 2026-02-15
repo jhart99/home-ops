@@ -59,22 +59,22 @@ spec:
         endpoints:
           - port: http
     route:
-      oauth:
-        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
-        parentRefs:
-          - name: envoy-external
-            namespace: network
-            sectionName: https
-        rules:
-          - name: auth-callback
-            matches:
-              - path:
-                  type: PathPrefix
-                  value: /oauth2
-            backendRefs:
-              - name: oauth2proxy-oauth2-proxy # Service name of your OAuth2 Proxy deployment
-                namespace: security
-                port: 80
+      # oauth:
+      #   hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
+      #   parentRefs:
+      #     - name: envoy-external
+      #       namespace: network
+      #       sectionName: https
+      #   rules:
+      #     - name: auth-callback
+      #       matches:
+      #         - path:
+      #             type: PathPrefix
+      #             value: /oauth2
+      #       backendRefs:
+      #         - name: oauth2proxy-oauth2-proxy # Service name of your OAuth2 Proxy deployment
+      #           namespace: security
+      #           port: 80
       app:
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
