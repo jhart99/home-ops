@@ -71,7 +71,8 @@ spec:
                   type: PathPrefix
                   value: /oauth2
             backendRefs:
-              - name: oauth2proxy-oauth2-proxy.security # Service name of your OAuth2 Proxy deployment
+              - name: oauth2proxy-oauth2-proxy # Service name of your OAuth2 Proxy deployment
+                namespace: security
                 port: 80
 
           # RULE 2: Your Application (Protected by Policy)
