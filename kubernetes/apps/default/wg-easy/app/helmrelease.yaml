@@ -29,7 +29,7 @@ spec:
               INIT_ENABLED: true
               INIT_HOST: vpn.${SECRET_DOMAIN}
               INIT_PORT: 51820
-              INIT_DNS: 192.168.254.1
+              INIT_DNS: 192.168.1.1
               INIT_IPV4_CIDR: 192.168.45.0/24
             envFrom:
               - secretRef:
