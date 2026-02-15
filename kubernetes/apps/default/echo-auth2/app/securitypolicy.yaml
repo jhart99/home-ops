@@ -1,7 +1,7 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: echo-auth-oauth-policy
+  name: echo-auth2-oauth-policy
 spec:
   targetRef:
     group: gateway.networking.k8s.io
