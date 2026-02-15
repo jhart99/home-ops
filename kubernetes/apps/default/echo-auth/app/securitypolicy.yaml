@@ -14,4 +14,3 @@ spec:
     clientSecret:
       name: echo-auth-client-secret
     redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
-    forwardBearerToken: true
