@@ -1,0 +1,93 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wg-easy
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: wg-easy
+  interval: 1h
+  values:
+    controllers:
+      smtp-relay:
+        replicas: 2
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/wg-easy/wg-easy
+              tag: 15.2.2@sha256:cf815209439101842f81d62bb25f7d66140e4cf8c100b4de5d0e84569d38732a
+            env:
+              TZ: ${TIMEZONE}
+              PORT: &port 80
+              DISABLE_IPV6: true
+              EXPERIMENTAL_AWG: true
+              INIT_ENABLED: true
+              INIT_HOST: vpn.${SECRET_DOMAIN}
+              INIT_PORT: 51820
+              INIT_DNS: 192.168.254.1
+              INIT_IPV4_CIDR: 192.168.45.0/24
+            envFrom:
+              - secretRef:
+                  name: wg-easy-secret
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { add: ["NET_ADMIN", "NET_RAW"], drop: ["ALL"] }
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 256Mi
+
+    service:
+      app:
+        forceRename: "{{ .Release.Name }}"
+        primary: true
+        ports:
+          http:
+            port: *port
+      wireguard:
+        type: LoadBalancer
+        annotations:
+          external-dns.alpha.kubernetes.io/hostname: wg.rnatr.com
+          lbipam.cilium.io/ips: 192.168.30.10
+        ports:
+          wg:
+            port: 51820
+            protocol: UDP
+    route:
+      app:
+        forceRename: "{{ .Release.Name }}"
+        hostnames:
+          - "wireguard.rnatr.com"
+        parentRefs:
+          - name: envoy-internal
+            namespace: networking
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: http
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        globalMounts:
+          - path: /etc/wireguard
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          wg-easy:
+            app:
+              - path: /run
+                subPath: run
+              - path: /tmp
+                subPath: tmp
