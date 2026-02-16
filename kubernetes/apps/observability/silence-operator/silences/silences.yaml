@@ -8,8 +8,6 @@ spec:
   matchers:
     - name: alertname
       value: CephNodeNetworkPacketDrops
-    - name: instance
-      value: "192.168.1.13:9100"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
 apiVersion: observability.giantswarm.io/v1alpha2
@@ -20,8 +18,6 @@ spec:
   matchers:
     - name: alertname
       value: CephNodeNetworkPacketErrors
-    - name: instance
-      value: "192.168.1.11:9100"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/observability.giantswarm.io/silence_v1alpha2.json
 apiVersion: observability.giantswarm.io/v1alpha2
