@@ -3,7 +3,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: intel-device-plugin-gpu
+  name: intel-device-plugins-gpu
 spec:
   interval: 15m
   layerSelector:
