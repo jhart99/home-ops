@@ -22,6 +22,8 @@ spec:
               repository: ghcr.io/sujiba/pihole-unbound-hyperlocal
               tag: 2025.11.1
             env:
+              PIHLE_UID: 1000
+              PIHLE_GID: 1000
               FTLCONF_dns_listeningMode: all
               FTLCONF_dns_dnssec: 'false'
               FTLCONF_dns_upstreams: 192.168.1.1
@@ -85,7 +87,7 @@ spec:
               readiness: *exporter-probes
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFileSystem: true
+              # readOnlyRootFileSystem: true
               capabilities: { drop: ['ALL'] }
               runAsNonRoot: true
               runAsUser: 1000
