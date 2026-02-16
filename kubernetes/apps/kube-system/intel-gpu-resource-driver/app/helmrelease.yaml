@@ -15,4 +15,4 @@ spec:
       dynamicPath: /var/cdi/dynamic
     kubeletPlugin:
       nodeSelector:
-        feature.node.kubernetes.io/intel-gpu: "true"
+        feature.node.kubernetes.io/intel-dgpu: "true"
