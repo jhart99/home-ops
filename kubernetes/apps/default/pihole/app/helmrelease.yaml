@@ -137,7 +137,7 @@ spec:
         rules:
           - backendRefs:
               - identifier: app
-                port: http
+                port: *pihole-port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
