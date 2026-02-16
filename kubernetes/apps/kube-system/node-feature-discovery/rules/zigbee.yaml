@@ -9,7 +9,7 @@ spec:
       labels:
         feature.node.kubernetes.io/sonoff-zigbee: "true"
       matchFeatures:
-        - feature: "usb"
+        - feature: "usb.device"
           matchExpressions:
             vendor: { op: In, value: ["10c4"] }
             device: { op: In, value: ["ea60"] }

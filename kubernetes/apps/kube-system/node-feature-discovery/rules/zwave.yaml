@@ -9,7 +9,7 @@ spec:
       labels:
         feature.node.kubernetes.io/zooz-zwave: "true"
       matchFeatures:
-        - feature: "usb"
+        - feature: "usb.device"
           matchExpressions:
             vendor: { op: In, value: ["1a86"] }
             device: { op: In, value: ["55d4"] }
