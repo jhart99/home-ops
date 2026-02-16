@@ -33,18 +33,18 @@ spec:
                   secretKeyRef:
                     name: pihole-secret
                     key: password
-            probes:
-              liveness: &pihole-probes
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - /usr/bin/nslookup
-                      - pihole
-                      - '127.0.0.1'
-              startup: *pihole-probes
-              readiness: *pihole-probes
+            # probes:
+            #   liveness: &pihole-probes
+            #     enabled: true
+            #     custom: true
+            #     spec:
+            #       exec:
+            #         command:
+            #           - /usr/bin/nslookup
+            #           - pihole
+            #           - '127.0.0.1'
+            #   startup: *pihole-probes
+            #   readiness: *pihole-probes
             securityContext:
               allowPrivilegeEscalation: false
             resources:
