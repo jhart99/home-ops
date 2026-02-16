@@ -11,4 +11,24 @@ spec:
       matchFeatures:
         - feature: pci.device
           matchExpressions:
+            vendor: { op: In, value: ["8086", "9bc8"] }
+        - feature: pci.device
+          matchExpressions:
+            vendor: { op: In, value: ["8086", "3e92"] }
+        - feature: pci.device
+          matchExpressions:
             vendor: { op: In, value: ["8086", "1912"] }
+---
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: intel-arc
+spec:
+  rules:
+    - name: intel-arc
+      labels:
+        feature.node.kubernetes.io/intel-arc: "true"
+      matchFeatures:
+        - feature: pci.device
+          matchExpressions:
+            vendor: { op: In, value: ["8086", "56a6"] }
