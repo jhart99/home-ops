@@ -21,6 +21,7 @@ spec:
           version: v1
           flags:
             migStrategy: none
+            nvidiaDriverRoot: "/"
           sharing:
             timeSlicing:
               renameByDefault: false
