@@ -23,16 +23,6 @@ spec:
       - "email"
       - "profile"
       - "offline_access"
----
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: SecurityPolicy
-metadata:
-  name: echo-oidcauth-jwt-policy
-spec:
-  targetRef:
-    group: gateway.networking.k8s.io
-    kind: HTTPRoute
-    name: echo-oidcauth-auth
   jwt:
     providers:
       - name: authentik
