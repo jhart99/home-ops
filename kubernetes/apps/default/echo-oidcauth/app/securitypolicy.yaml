@@ -1,12 +1,12 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
-  name: echo-auth-oauth-policy
+  name: echo-oidcauth-oauth-policy
 spec:
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
-    name: echo-auth
+    name: echo-oidcauth
   oidc:
     provider:
       issuer: "https://auth.rnatr.com/application/o/echo-auth"
