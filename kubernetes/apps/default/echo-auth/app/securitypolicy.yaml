@@ -14,6 +14,9 @@ spec:
     clientSecret:
       name: echo-auth-client-secret
     redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
+    cookieDomain: "rnatr.com"
+    cookieNames:
+      accessToken: "access-token"
     scopes:
       - "openid"
       - "email"
