@@ -5,7 +5,7 @@ metadata:
   name: echo-secure
 spec:
   interval: 1h
-  path: ./kubernetes/apps/default/echo-secure/app
+  path: ./kubernetes/apps/default/echo-basicauth/app
   postBuild:
     substituteFrom:
       - name: cluster-secrets
