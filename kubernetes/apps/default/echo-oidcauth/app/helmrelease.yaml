@@ -59,7 +59,7 @@ spec:
         endpoints:
           - port: http
     route:
-      app:
+      auth:
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external
@@ -67,10 +67,22 @@ spec:
             sectionName: https
         rules:
           - name: protected-app
-            matches:
-              - path:
-                  type: PathPrefix
-                  value: /
+            headers:
+              - type: RegularExpression
+                name: Cookie
+                value: ".*access_token=.*"
+            backendRefs:
+              - identifier: app
+                port: *port
+
+      default:
+        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+            sectionName: https
+        rules:
+          - name: protected-app
             backendRefs:
               - identifier: app
                 port: *port
