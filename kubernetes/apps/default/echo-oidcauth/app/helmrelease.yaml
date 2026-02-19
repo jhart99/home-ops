@@ -59,22 +59,6 @@ spec:
         endpoints:
           - port: http
     route:
-      auth:
-        hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
-        parentRefs:
-          - name: envoy-external
-            namespace: network
-            sectionName: https
-        rules:
-          - name: protected-app
-            headers:
-              - type: RegularExpression
-                name: Cookie
-                value: ".*access_token=.*"
-            backendRefs:
-              - identifier: app
-                port: *port
-
       default:
         hostnames: ["{{ .Release.Name }}.${SECRET_DOMAIN}"]
         parentRefs:

@@ -7,7 +7,7 @@ spec:
   targetRef:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
-    name: echo-oidcauth-default
+    name: echo-oidcauth
   oidc:
     provider:
       issuer: "https://auth.rnatr.com/application/o/echo-auth"
