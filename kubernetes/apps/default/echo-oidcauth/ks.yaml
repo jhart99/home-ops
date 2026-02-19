@@ -2,10 +2,10 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: echo-auth
+  name: echo-oidcauth
 spec:
   interval: 1h
-  path: ./kubernetes/apps/default/echo-auth/app
+  path: ./kubernetes/apps/default/echo-oidcauth/app
   postBuild:
     substituteFrom:
       - name: cluster-secrets
