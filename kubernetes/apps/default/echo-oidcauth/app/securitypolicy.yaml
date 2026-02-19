@@ -13,7 +13,7 @@ spec:
     clientID: "zervQZYSRM5uyYvSwnscHaQLQdFFz7NRLiHFxpIx"
     clientSecret:
       name: echo-auth-client-secret
-    redirectURL: "https://echo-auth.rnatr.com/oauth2/callback"
+    redirectURL: "https://echo-oidcauth.rnatr.com/oauth2/callback"
     cookieDomain: "rnatr.com"
     cookieNames:
       accessToken: "access-token"
