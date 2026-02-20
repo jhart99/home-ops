@@ -7,4 +7,4 @@ namespace: security
 resources:
   - ./namespace.yaml
   - ./authentik/ks.yaml
-  - ./oauth2proxy/ks.yaml
+  # - ./oauth2proxy/ks.yaml
