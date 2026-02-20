@@ -22,6 +22,7 @@ spec:
       - "openid"
       - "email"
       - "profile"
+      - "groups"
       - "offline_access"
   jwt:
     providers:
@@ -39,3 +40,5 @@ spec:
             header: X-User-Name
           - claim: preferred_username
             header: X-User-ID
+          - claim: groups
+            header: X-User-Groups
