@@ -1,0 +1,26 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: wg-easy-oauth-policy
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: wg-easy
+  oidc:
+    provider:
+      issuer: "https://auth.rnatr.com/application/o/echo-oidcauth"
+    clientID: "WqgzUIgnNj8mRt3VgHcCAi2Mt2jpzONuTXBja154"
+    clientSecret:
+      name: wg-easy-client-secret
+    redirectURL: "https://wireguard.rnatr.com/oauth2/callback"
+    cookieDomain: "rnatr.com"
+    cookieNames:
+      accessToken: "access-token"
+    scopes:
+      - "openid"
+      - "email"
+      - "profile"
+      - "groups"
+      - "offline_access"
