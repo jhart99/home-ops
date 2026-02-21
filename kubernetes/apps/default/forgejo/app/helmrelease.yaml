@@ -62,9 +62,3 @@ spec:
       parentRefs:
         - name: envoy-internal
           namespace: network
-
-  valuesFrom:
-    - kind: Secret
-      name: "forgejo-helm-values"
-      valuesKey: forgejo.yaml
-      optional: false
