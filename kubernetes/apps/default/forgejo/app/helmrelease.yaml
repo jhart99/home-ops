@@ -35,7 +35,7 @@ spec:
     gitea:
       admin:
         existingSecret: forgejo-admin-secret
-        email: "forgejo@$rnatr.com"
+        email: "forgejo@rnatr.com"
 
       # See https://forgejo.org/docs/latest/admin/config-cheat-sheet/
       config:
