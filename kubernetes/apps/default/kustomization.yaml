@@ -11,7 +11,7 @@ resources:
   - ./echo/ks.yaml
   - ./echo-basicauth/ks.yaml
   - ./echo-oidcauth/ks.yaml
-  # - ./forgejo/ks.yaml
+  - ./forgejo/ks.yaml
   - ./pihole/ks.yaml
   - ./renovate/ks.yaml
   - ./smtp-relay/ks.yaml
