@@ -17,7 +17,7 @@ spec:
   postBuild:
     substitute:
       APP: forgejo
-      VOLSYNC_CAPACITY: 2Gi
+      VOLSYNC_CAPACITY: 10Gi
   prune: true
   sourceRef:
     kind: GitRepository
