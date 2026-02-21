@@ -16,16 +16,17 @@ spec:
         type: LoadBalancer
         port: 2222
         annotations:
-          metallb.io/loadBalancerIPs: "${CLUSTER_EXTERNAL_SUBNET_PREFIX}.${CLUSTER_LB_FORGEJO}"
+          external-dns.alpha.kubernetes.io/hostname: git.rnatr.com
+          lbipam.cilium.io/ips: 192.168.30.22
+        externalTrafficPolicy: Local
 
     persistence:
       enabled: true
-      create: false
-      claimName: nfs-forgejo
+      claimName: forgejo
 
     # databases
     redis-cluster:
-      enabled: true
+      enabled: false
     postgresql-ha:
       enabled: false
     postgresql:
@@ -33,43 +34,31 @@ spec:
 
     gitea:
       admin:
-        username: forgejo-admin
-        # password: set in secret
-        email: "forgejo@${CLUSTER_SHORT_DOMAIN}"
+        existingSecret: forgejo-admin-secret
+        email: "forgejo@$rnatr.com"
 
       # See https://forgejo.org/docs/latest/admin/config-cheat-sheet/
       config:
-        APP_NAME: "Forgejo for ${CLUSTER_SHORT_DOMAIN}"
-        #RUN_MODE: dev
+        APP_NAME: "Forgejo for rnatr.com"
+        config:
+          server:
+            ENABLE_PPROF: true
+        metrics:
+          enabled: true
+          serviceMonitor:
+            enabled: true
+        security:
+          PASSWORD_COMPLEXITY: spec
         server:
           SSH_PORT : 2222
           SSH_LISTEN_PORT : 2222
-        security:
-          PASSWORD_COMPLEXITY: spec
-        database:
-          DB_TYPE: postgres
         service:
           REQUIRE_SIGNIN_VIEW: true
           DISABLE_REGISTRATION: true
           ENABLE_NOTIFY_MAIL: true
-        openid:
-          ENABLE_OPENID_SIGNIN: false
-        oauth2:
-          ENABLE_AUTO_REGISTRATION: true
-          USERNAME: nickname
-          UPDATE_AVATAR: true
-          ACCOUNT_LINKING: auto
-        mailer:
-          ENABLED: true
-          SMTP_ADDR: "${CLUSTER_MAIL_SERVER}"
-          SMTP_PORT: "${CLUSTER_MAIL_SERVER_PORT}"
-          PROTOCOL: smtp
-          FROM: "forgejo@${CLUSTER_SHORT_DOMAIN}"
-          USER: ""
-          PASSWD: ""
     httpRoute:
       enabled: true
-      hostnames: [ "git.rnatr.com" ]
+      hostnames: [ "forgejo.rnatr.com" ]
       parentRefs:
         - name: envoy-internal
           namespace: network
@@ -79,23 +68,3 @@ spec:
       name: "forgejo-helm-values"
       valuesKey: forgejo.yaml
       optional: false
-    - kind: Secret
-      name: forgejo-db-app
-      optional: false
-      valuesKey: host
-      targetPath: gitea.config.database.HOST
-    - kind: Secret
-      name: forgejo-db-app
-      optional: false
-      valuesKey: dbname
-      targetPath: gitea.config.database.NAME
-    - kind: Secret
-      name: forgejo-db-app
-      optional: false
-      valuesKey: password
-      targetPath: gitea.config.database.PASSWD
-    - kind: Secret
-      name: forgejo-db-app
-      optional: false
-      valuesKey: user
-      targetPath: gitea.config.database.USER
