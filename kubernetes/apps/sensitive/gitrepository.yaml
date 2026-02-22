@@ -8,3 +8,6 @@ spec:
   url: https://forgejo.rnatr.com/delf/sensitive.git
   ref:
     branch: main
+  secretRef:
+    name: forgejo-pat-secret
+    namespace: flux-system
