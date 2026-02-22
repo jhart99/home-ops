@@ -41,7 +41,6 @@ spec:
       principal:
         jwt:
           provider: authentik
-          scopes: ["read", "add", "modify"]
           claims:
           - name: groups
             values:
