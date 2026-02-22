@@ -4,6 +4,9 @@ kind: Kustomization
 metadata:
   name: sensitive
 spec:
+  dependsOn:
+    - name: flux-instance
+    - name: flux-operator
   interval: 30m
   retryInterval: 1m
   timeout: 2m
