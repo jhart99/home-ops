@@ -33,11 +33,16 @@ spec:
         extractFrom:
           cookies:
             - "access-token"
+  authorization:
+    defaultAction: Deny
     rules:
-      - principal:
+    - name: "allow"
+      action: Allow
+      principal:
+        jwt:
           provider: authentik
-        claims:
+          scopes: ["read", "add", "modify"]
+          claims:
           - name: groups
             values:
-              - "admin"
               - "superuser"
