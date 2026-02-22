@@ -65,6 +65,21 @@ spec:
           wg:
             port: 51820
             protocol: UDP
+
+    serviceMonitor:
+      app:
+        forceRename: "{{ .Release.Name }}"
+        service:
+          identifier: app
+        endpoints:
+          - port: http # exporter-port's name
+            scheme: http
+            path: /metrics/prometheus
+            interval: 1m
+            scrapeTimeout: 1m
+            bearerTokenSecret:
+              name: wg-easy-secret
+              key: bearer_token
     route:
       app:
         forceRename: "{{ .Release.Name }}"
