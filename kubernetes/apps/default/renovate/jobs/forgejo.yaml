@@ -1,0 +1,26 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.ok8.sh/renovate-operator.mogenius.com/renovatejob_v1alpha1.json
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: forgejo
+spec:
+  extraEnv:
+    - name: LOG_LEVEL
+      value: debug
+    - name: RENOVATE_ALLOWED_COMMANDS
+      value: '["pnpm run bundle"]'
+    - name: RENOVATE_PLATFORM_COMMIT
+      value: "true"
+  image: ghcr.io/renovatebot/renovate:43.31.1
+  parallelism: 5
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  schedule: 0 * * * *
+  secretRef: forgejo-renovate-secret
+  webhook:
+    enabled: true
+    authentication:
+      enabled: false
