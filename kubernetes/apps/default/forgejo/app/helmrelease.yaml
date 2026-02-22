@@ -47,7 +47,7 @@ spec:
           ALLOW_DOMAINS: "github.com, *.github.com, *.rnatr.com, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
           ALLOW_LOCALNETWORKS: true
           MAX_ATTEMPTS: 3
-          RETRY_BACKOFF:w: 3
+          RETRY_BACKOFF: 3
         security:
           PASSWORD_COMPLEXITY: spec
         server:
