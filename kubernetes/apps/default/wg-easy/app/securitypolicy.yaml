@@ -43,5 +43,6 @@ spec:
           provider: authentik
           claims:
           - name: groups
+            valueType: StringArray
             values:
               - "superuser"
