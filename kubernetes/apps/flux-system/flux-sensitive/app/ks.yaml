@@ -1,0 +1,15 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: sensitive
+spec:
+  interval: 30m
+  retryInterval: 1m
+  timeout: 2m
+  sourceRef:
+    kind: GitRepository
+    name: sensitive
+  path: "./cluster/config"
+  prune: true
+  wait: true
