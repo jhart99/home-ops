@@ -47,6 +47,11 @@ spec:
           enabled: true
           serviceMonitor:
             enabled: true
+        migrations:
+          maxAttempts: 3
+          retryBackoff: 3
+          allowDomains: "github.com, *.github.com, *.rnatr.com, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
+          allowLocalnetworks: true
         security:
           PASSWORD_COMPLEXITY: spec
         server:
