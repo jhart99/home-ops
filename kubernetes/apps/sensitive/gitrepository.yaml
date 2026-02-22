@@ -5,6 +5,6 @@ metadata:
   name: sensitive
 spec:
   interval: 30m
-  url: https://forgejo.jonathanrosshart.com/delf/sensitive.git
+  url: https://forgejo.rnatr.com/delf/sensitive.git
   ref:
     branch: main
