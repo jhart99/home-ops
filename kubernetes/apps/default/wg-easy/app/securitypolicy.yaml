@@ -33,6 +33,11 @@ spec:
         extractFrom:
           cookies:
             - "access-token"
+  cors:
+    allowOrigins:
+      - "https://wireguard.rnatr.com"
+    allowCredentials: true
+    maxAge: "86400s" # Cache the preflight response for 24 hours
   authorization:
     defaultAction: Deny
     rules:
