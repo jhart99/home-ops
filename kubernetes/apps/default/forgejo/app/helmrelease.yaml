@@ -19,10 +19,13 @@ spec:
           external-dns.alpha.kubernetes.io/hostname: git.rnatr.com
           lbipam.cilium.io/ips: 192.168.30.22
         externalTrafficPolicy: Local
-
     persistence:
       enabled: true
       claimName: forgejo
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
 
     # databases
     redis-cluster:
@@ -40,27 +43,27 @@ spec:
       # See https://forgejo.org/docs/latest/admin/config-cheat-sheet/
       config:
         APP_NAME: "Forgejo for rnatr.com"
-        config:
-          server:
-            ENABLE_PPROF: true
-        metrics:
-          enabled: true
-          serviceMonitor:
-            enabled: true
         migrations:
-          maxAttempts: 3
-          retryBackoff: 3
-          allowDomains: "github.com, *.github.com, *.rnatr.com, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
-          allowLocalnetworks: true
+          ALLOW_DOMAINS: "github.com, *.github.com, *.rnatr.com, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
+          ALLOW_LOCALNETWORKS: true
+          MAX_ATTEMPTS: 3
+          RETRY_BACKOFF:w: 3
         security:
           PASSWORD_COMPLEXITY: spec
         server:
-          SSH_PORT : 2222
+          DOMAIN: forgejo.${SECRET_DOMAIN}
+          ENABLE_PPROF: true
+          LANDING_PAGE: explore
+          ROOT_URL: https://forgejo.${SECRET_DOMAIN}
+          SSH_DOMAIN: git.${SECRET_DOMAIN}
           SSH_LISTEN_PORT : 2222
+          SSH_PORT : 2222
         service:
-          REQUIRE_SIGNIN_VIEW: true
           DISABLE_REGISTRATION: true
           ENABLE_NOTIFY_MAIL: true
+          REQUIRE_SIGNIN_VIEW: true
+        webhook:
+          ALLOWED_HOST_LIST: "*.${SECRET_DOMAIN}"
     httpRoute:
       enabled: true
       hostnames: [ "forgejo.rnatr.com" ]
