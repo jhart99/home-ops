@@ -13,6 +13,7 @@ resources:
   - ./echo-oidcauth/ks.yaml
   - ./forgejo/ks.yaml
   - ./freshrss/ks.yaml
+  - ./paperless/ks.yaml
   - ./pihole/ks.yaml
   - ./renovate/ks.yaml
   - ./smtp-relay/ks.yaml
