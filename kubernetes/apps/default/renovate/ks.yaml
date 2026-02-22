@@ -25,7 +25,7 @@ metadata:
   name: &app renovate-operator
 spec:
   interval: 30m
-  path: ./kubernetes/apps/renovate/renovate/operator
+  path: ./kubernetes/apps/default/renovate/operator
   postBuild:
     substitute:
       APP: *app
