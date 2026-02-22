@@ -24,3 +24,20 @@ spec:
       - "profile"
       - "groups"
       - "offline_access"
+  jwt:
+    providers:
+      - name: authentik
+        issuer: https://auth.rnatr.com/application/o/echo-oidcauth/
+        remoteJWKS:
+          uri: https://auth.rnatr.com/application/o/echo-oidcauth/jwks/
+        extractFrom:
+          cookies:
+            - "access-token"
+    rules:
+      - principal:
+          provider: authentik
+        claims:
+          - name: groups
+            values:
+              - "admin"
+              - "superuser"
