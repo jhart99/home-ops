@@ -128,6 +128,9 @@ spec:
 
     route:
       app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 403"]
         forceRename: "{{ .Release.Name }}"
         hostnames:
           - "pihole.rnatr.com"
