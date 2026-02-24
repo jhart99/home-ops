@@ -3,8 +3,9 @@ kind: Cluster
 metadata:
   name: immich-db
 spec:
+  imageName: ghcr.io/tensorchord/cloudnative-vectorchord:18.0-0.5.3@sha256:267f6cbb32af6e109e138a143c7e9dd5d44d68433ec2303f0c30e745c788d1a9
+  primaryUpdateStrategy: unsupervised
   instances: 2
-
   storage:
     storageClass: ceph-block
     size: 10Gi
@@ -21,3 +22,34 @@ spec:
     # Volume snapshot backups
     volumeSnapshot:
        className: csi-ceph-blockpool
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+    parameters:
+      shared_buffers: 256MB
+  resources:
+    requests:
+      cpu: 50m
+    limits:
+      memory: 1Gi
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/postgresql.cnpg.io/database_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich-database
+spec:
+  name: immich
+  owner: immich
+  cluster:
+    name: immich-db
+  extensions:
+    - ensure: present
+      name: vector
+    - ensure: present
+      name: vchord
+      version: 0.5.3
+    - ensure: present
+      name: cube
+    - ensure: present
+      name: earthdistance
