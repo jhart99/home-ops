@@ -24,7 +24,7 @@ spec:
             env:
               TZ: "America/New_York"
               IMMICH_MEDIA_LOCATION: &mediaLocation /library
-              IMMICH_ALLOW_SETUP: "false"
+              IMMICH_ALLOW_SETUP: "true"
               DB_URL:
                 valueFrom:
                   secretKeyRef:
