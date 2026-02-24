@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-db
+spec:
+  instances: 2
+
+  storage:
+    storageClass: ceph-block
+    size: 10Gi
+  walStorage:
+    storageClass: ceph-block
+    size: 2Gi
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+  monitoring:
+    enablePodMonitor: true
+  backup:
+    # Volume snapshot backups
+    volumeSnapshot:
+       className: csi-ceph-blockpool
