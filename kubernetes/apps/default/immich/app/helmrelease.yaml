@@ -3,148 +3,144 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: pihole
+  name: immich
 spec:
+  interval: 1h
   chartRef:
     kind: OCIRepository
-    name: pihole
-  interval: 1h
+    name: immich
   values:
     controllers:
-      pihole:
-        replicas: 1
+      immich:
         strategy: RollingUpdate
-        annotations:
-          reloader.stakater.com/auto: "true"
+        pod:
+          annotations:
+            reloader.stakater.com/auto: "true"
         containers:
-          app:
+          main:
             image:
-              repository: ghcr.io/sujiba/pihole-unbound-hyperlocal
-              tag: 2026.02.0
+              repository: ghcr.io/immich-app/immich-server
+              tag: v2.5.6@sha256:aa163d2e1cc2b16a9515dd1fef901e6f5231befad7024f093d7be1f2da14341a
             env:
-              FTLCONF_dns_listeningMode: all
-              FTLCONF_dns_dnssec: 'false'
-              FTLCONF_dns_upstreams: 192.168.1.1
-              FTLCONF_webserver_interface_boxed: false
-              FTLCONF_webserver_interface_theme: default-auto
-              FTLCONF_webserver_port: &pihole-port 80
-              FTLCONF_webserver_api_password: &pihole-password
+              TZ: "America/New_York"
+              IMMICH_MEDIA_LOCATION: &mediaLocation /library
+              IMMICH_ALLOW_SETUP: "false"
+              DB_URL:
                 valueFrom:
                   secretKeyRef:
-                    name: pihole-secret
-                    key: password
-            # probes:
-            #   liveness: &pihole-probes
-            #     enabled: true
-            #     custom: true
-            #     spec:
-            #       exec:
-            #         command:
-            #           - /usr/bin/nslookup
-            #           - pihole
-            #           - '127.0.0.1'
-            #   startup: *pihole-probes
-            #   readiness: *pihole-probes
-            securityContext:
-              allowPrivilegeEscalation: false
+                    name: immich-db-app  # The secret created by CNPG
+                    key: uri
+              REDIS_HOSTNAME: &redisHostname "immich-dragonfly"
+              IMMICH_TELEMETRY_INCLUDE: "all"
             resources:
               requests:
-                cpu: 10m
+                cpu: 100m
+                memory: 256Mi
               limits:
-                memory: 512Mi
-          exporter: &exporter
+                memory: 6G
+      machine-learning:
+        strategy: RollingUpdate
+        pod:
+          annotations:
+            reloader.stakater.com/auto: "true"
+        containers:
+          main:
             image:
-              repository: docker.io/ekofr/pihole-exporter
-              tag: v1.2.0
-            env: &exporterEnv
-              PIHOLE_HOSTNAME:
-                valueFrom:
-                  fieldRef:
-                    fieldPath: status.podIP
-              PIHOLE_PORT: *pihole-port
-              PIHOLE_PASSWORD: *pihole-password
+              repository: ghcr.io/immich-app/immich-machine-learning
+              tag: v2.5.6@sha256:b213fa3c82d27a21a299c46ffbb38a091f18384db1ad67d409a3b34fe0fce556
+            env:
+              REDIS_HOSTNAME: *redisHostname
+              MPLCONFIGDIR: "/config/matplotlib"
+              IMMICH_MEDIA_LOCATION: *mediaLocation
             resources:
               requests:
-                cpu: 10m
+                cpu: 100m
+                memory: 256Mi
               limits:
-                memory: 32Mi
+                memory: 4G
             probes:
-              liveness: &exporter-probes
+              liveness: &probes
                 enabled: true
                 custom: true
                 spec:
-                  failureThreshold: 5
-                  initialDelaySeconds: 20
-                  periodSeconds: 20
-                  successThreshold: 1
                   httpGet:
-                    path: /metrics
-                    port: &exporter-port 9617
-                  timeoutSeconds: 10
-              readiness: *exporter-probes
-            securityContext:
-              allowPrivilegeEscalation: false
-              # readOnlyRootFileSystem: true
-              capabilities: { drop: ['ALL'] }
-              runAsNonRoot: true
-              runAsUser: 1000
-              runAsGroup: 1000
-              fsGroup: 1000
-              fsGroupChangePolicy: OnRootMismatch
-
+                    path: /ping
+                    port: &mlPort 3003
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ping
+                    port: *mlPort
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 60
     service:
-      app:
-        forceRename: "{{ .Release.Name }}"
-        type: LoadBalancer
-        annotations:
-          external-dns.alpha.kubernetes.io/hostname: pihole.rnatr.com
-          lbipam.cilium.io/ips: 192.168.30.53
-        primary: true
+      immich:
+        controller: immich
         ports:
           http:
-            primary: true
-            port: *pihole-port
-          dns-udp:
-            port: 53
-            protocol: UDP
-          dns-tcp:
-            port: 53
-            protocol: TCP
-          prometheus:
-            port: *exporter-port
-            protocol: HTTP
-
+            port: &port 2283
+          metrics-api:
+            port: 8081
+          metrics-ms:
+            port: 8082
+      machine-learning:
+        controller: machine-learning
+        ports:
+          http:
+            port: *mlPort
     serviceMonitor:
-      app:
-        forceRename: "{{ .Release.Name }}"
-        service:
-          identifier: app
+      immich:
+        enabled: true
+        serviceName: immich
         endpoints:
-          - port: prometheus # exporter-port's name
+          - port: metrics-api
             scheme: http
             path: /metrics
-            interval: 1m
-            scrapeTimeout: 1m
-
+          - port: metrics-ms
+            scheme: http
+            path: /metrics
     route:
-      app:
-        forceRename: "{{ .Release.Name }}"
-        hostnames:
-          - "pihole.rnatr.com"
+      immich:
+        hostnames: ["immich.rnatr.com"]
         parentRefs:
           - name: envoy-internal
-            namespace: network
+            namespace: networking
+            sectionName: https
         rules:
           - backendRefs:
-              - identifier: app
-                port: *pihole-port
+              - name: immich
+                port: *port
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
         advancedMounts:
-          pihole:
-            app:
-              - path: /etc/pihole
-                subPath: pihole
-              - path: /final
-                subPath: init
+          machine-learning:
+            main:
+              - path: /cache
+                subPath: cache
+              - path: /.cache
+                subPath: dotCache
+      library:
+        type: nfs
+        server: pve.jonathanrosshart.com
+        path: /pool/share/fileshare/data/immich
+        globalMounts:
+          - path: *mediaLocation
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          immich:
+            main:
+              - path: /usr/src/app/.reverse-geocoding-dump
+                subPath: geocoding
+              - path: /usr/src/app/.transformers_cache
+                subPath: transformers
