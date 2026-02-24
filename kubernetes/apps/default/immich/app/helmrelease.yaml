@@ -113,7 +113,7 @@ spec:
         hostnames: ["immich.rnatr.com"]
         parentRefs:
           - name: envoy-internal
-            namespace: networking
+            namespace: network
             sectionName: https
         rules:
           - backendRefs:
