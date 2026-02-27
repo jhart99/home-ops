@@ -6,7 +6,7 @@ metadata:
   name: jupyterhub
 spec:
   interval: 1h
-  path: ./kubernetes/apps/default/jupyterhub/app
+  path: ./kubernetes/apps/jupyterhub/jupyterhub/app
   dependsOn:
     - name: rook-ceph-cluster
       namespace: rook-ceph
@@ -23,5 +23,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: jupyterhub
   wait: false

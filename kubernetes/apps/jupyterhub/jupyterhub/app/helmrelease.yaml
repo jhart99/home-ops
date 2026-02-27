@@ -32,7 +32,6 @@ spec:
 
     httpRoute:
       enabled: true
-      annotations: {}
       hostnames:
         - jupyterhub.rnatr.com
       gateway:
