@@ -25,6 +25,8 @@ spec:
         networkPolicy:
           enabled: false
     singleuser:
+      cloudMetadata:
+        blockWithIptables: false
       networkPolicy:
         enabled: false
       storage:
