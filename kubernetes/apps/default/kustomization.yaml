@@ -14,6 +14,7 @@ resources:
   - ./forgejo/ks.yaml
   - ./freshrss/ks.yaml
   - ./immich/ks.yaml
+  - ./jupyterhub/ks.yaml
   - ./paperless/ks.yaml
   - ./pihole/ks.yaml
   - ./renovate/ks.yaml
