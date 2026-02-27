@@ -17,9 +17,17 @@ spec:
   values:
     debug:
       enabled: true
-    networkPolicy:
-      enabled: false
+    hub:
+      enabled: true
+      networkPolicy:
+        enabled: false
+    chp:
+      enabled: true
+      networkPolicy:
+        enabled: false
     singleuser:
+      networkPolicy:
+        enabled: false
       storage:
         type: none
         extraVolumes:
