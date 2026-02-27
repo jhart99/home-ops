@@ -17,6 +17,8 @@ spec:
   values:
     debug:
       enabled: true
+    networkPolicy:
+      enabled: false
     singleuser:
       storage:
         type: none
