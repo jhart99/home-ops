@@ -25,7 +25,7 @@ spec:
         extraVolumes:
           - name: jupyter-pvc
             persistentVolumeClaim:
-              claimName: jupyter-data-platform
+              claimName: jupyterhub
         extraVolumeMounts:
           - name: jupyter-pvc
             mountPath: /home/shared
