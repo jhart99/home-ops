@@ -18,13 +18,12 @@ spec:
     debug:
       enabled: true
     hub:
-      enabled: true
       networkPolicy:
         enabled: false
-    chp:
-      enabled: true
-      networkPolicy:
-        enabled: false
+    proxy:
+      chp:
+        networkPolicy:
+          enabled: false
     singleuser:
       networkPolicy:
         enabled: false
