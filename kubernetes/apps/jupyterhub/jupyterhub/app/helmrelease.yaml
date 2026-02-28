@@ -46,7 +46,7 @@ spec:
           description: "Hardware-accelerated Linux desktop with direct network access."
           kubespawner_override:
             # Multi-arch base image for ARM64 compatibility
-            image: lscr.io/linuxserver/baseimage-selkies:latest
+            image: lscr.io/linuxserver/chromium:latest
 
             # Critical for containerized browsers to prevent crashing
             shm_size: "2G"
