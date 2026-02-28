@@ -16,7 +16,7 @@ spec:
         type: LoadBalancer
         port: 2222
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: git.rnatr.com
+          external-dns.alpha.kubernetes.io/hostname: "git.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.22
         externalTrafficPolicy: Local
     persistence:
@@ -38,13 +38,13 @@ spec:
     gitea:
       admin:
         existingSecret: forgejo-admin-secret
-        email: "forgejo@rnatr.com"
+        email: "forgejo@${SECRET_DOMAIN}"
 
       # See https://forgejo.org/docs/latest/admin/config-cheat-sheet/
       config:
-        APP_NAME: "Forgejo for rnatr.com"
+        APP_NAME: "Forgejo for ${SECRET_DOMAIN}"
         migrations:
-          ALLOW_DOMAINS: "github.com, *.github.com, *.rnatr.com, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
+          ALLOW_DOMAINS: "github.com, *.github.com, *.${SECRET_DOMAIN}, *.jonathanrosshart.com, gitlab.com, *.gitlab.com"
           ALLOW_LOCALNETWORKS: true
           MAX_ATTEMPTS: 3
           RETRY_BACKOFF: 3
@@ -66,7 +66,7 @@ spec:
           ALLOWED_HOST_LIST: "*.${SECRET_DOMAIN}"
     httpRoute:
       enabled: true
-      hostnames: [ "forgejo.rnatr.com" ]
+      hostnames: [ "forgejo.${SECRET_DOMAIN}" ]
       parentRefs:
         - name: envoy-internal
           namespace: network
