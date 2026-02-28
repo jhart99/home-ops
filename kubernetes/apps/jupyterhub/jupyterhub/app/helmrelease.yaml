@@ -29,6 +29,18 @@ spec:
         blockWithIptables: false
       networkPolicy:
         enabled: false
+      profileList:
+        - display_name: "Minimal environment"
+          description: "To avoid too much bells and whistles: Python."
+        - display_name: "Pyspark environment"
+          description: "Spark Env"
+          kubespawner_override:
+            image: jupyter/pyspark-notebook:latest
+          default: true
+        - display_name: "Datascience environment"
+          description: "If you want the additional bells and whistles: Python, R, and Julia."
+          kubespawner_override:
+            image: jupyter/datascience-notebook:latest
       storage:
         type: none
         extraVolumes:
