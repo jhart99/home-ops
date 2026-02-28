@@ -110,7 +110,7 @@ spec:
             path: /metrics
     route:
       immich:
-        hostnames: ["immich.rnatr.com"]
+        hostnames: ["immich.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-internal
             namespace: network
