@@ -9,7 +9,7 @@ spec:
   - name: envoy-internal
     namespace: network
   hostnames:
-  - hubble.rnatr.com
+  - "hubble.${SECRET_DOMAIN}"
   rules:
     - backendRefs:
       - group: ""
