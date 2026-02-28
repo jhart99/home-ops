@@ -10,7 +10,7 @@ spec:
       name: envoy-internal
       namespace: network
   hostnames:
-    - "flux.rnatr.com"
+    - "flux.${SECRET_DOMAIN}"
   rules:
     - matches:
         - path:
