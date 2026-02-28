@@ -47,16 +47,21 @@ spec:
           kubespawner_override:
             # Multi-arch base image for ARM64 compatibility
             image: lscr.io/linuxserver/chromium:latest
+            # 1. Forces the container to start as root for s6-overlay init
+            uid: 0
 
-            # Critical for containerized browsers to prevent crashing
+            # 2. Instructs s6-overlay which user ID to drop down to after init.
+            # Match this to the permissions required by your Ceph Rook PVCs.
+            environment:
+              PUID: "1000"
+              PGID: "100"
+
             shm_size: "2G"
 
             extra_annotations:
-              # Instructs Cilium to bypass overlay and pull an IP from your BGP pool
               io.cilium.ipam.ip-pool: "jupyter-vdi-pool"
 
             extra_resource_limits:
-              # Injects the hardware from the Nvidia device plugin
               nvidia.com/gpu: "1"
               memory: "4G"
             extra_resource_guarantees:
