@@ -66,6 +66,13 @@ spec:
               memory: "4G"
             extra_resource_guarantees:
               memory: "2G"
+            # --- NEW: emptyDir mount for /tmp ---
+            volumes:
+              - name: tmp-dir
+                emptyDir: {}
+            volume_mounts:
+              - name: tmp-dir
+                mountPath: /tmp
       storage:
         type: none
         extraVolumes:
