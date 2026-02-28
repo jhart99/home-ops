@@ -13,7 +13,7 @@ spec:
     fullnameOverride: renovate-operator
     route:
       enabled: true
-      hostnames: ["renovate.rnatr.com"]
+      hostnames: ["renovaate.${SECRET_DOMAIN}"]
       parentRefs:
         - name: envoy-internal
           namespace: network
