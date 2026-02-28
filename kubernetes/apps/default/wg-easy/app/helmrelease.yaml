@@ -84,7 +84,7 @@ spec:
       app:
         forceRename: "{{ .Release.Name }}"
         hostnames:
-          - "wireguard.rnatr.com"
+          - "wireguard.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
