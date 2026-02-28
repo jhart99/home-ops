@@ -97,7 +97,7 @@ spec:
         forceRename: "{{ .Release.Name }}"
         type: LoadBalancer
         annotations:
-          external-dns.alpha.kubernetes.io/hostname: pihole-dns.rnatr.com
+          external-dns.alpha.kubernetes.io/hostname: "pihole-dns.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.53
         primary: true
         ports:
@@ -133,7 +133,7 @@ spec:
             conditions: ["[STATUS] == 403"]
         forceRename: "{{ .Release.Name }}"
         hostnames:
-          - "pihole.rnatr.com"
+          - "pihole.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
