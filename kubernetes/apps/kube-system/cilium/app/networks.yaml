@@ -10,6 +10,18 @@ spec:
     - cidr: "192.168.30.0/24"
 ---
 apiVersion: cilium.io/v2alpha1
+kind: CiliumPodIPPool
+metadata:
+  name: jupyter-vdi-pool
+spec:
+  ipv4:
+    cidrs:
+      - "192.168.40.0/24"
+    # maskSize dictates how large of an IP chunk is dynamically assigned to a node
+    # when a pod lands on it. A /28 gives the node 16 IPs at a time.
+    maskSize: 28
+---
+apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy
 metadata:
   name: l2-policy
@@ -24,8 +36,6 @@ spec:
   nodeSelector:
     matchLabels:
       kubernetes.io/os: linux
-
-
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgpadvertisement_v2.json
 apiVersion: cilium.io/v2
@@ -43,6 +53,8 @@ spec:
       selector:
         matchExpressions:
           - {key: somekey, operator: NotIn, values: ["never-used-value"]}
+    # --- Announces Pod IPs to your physical network ---
+    - advertisementType: PodCIDR
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
