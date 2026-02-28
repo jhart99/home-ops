@@ -47,7 +47,7 @@ spec:
       app:
         forceRename: "{{ .Release.Name }}"
         hostnames:
-          - "freshrss.rnatr.com"
+          - "freshrss.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
