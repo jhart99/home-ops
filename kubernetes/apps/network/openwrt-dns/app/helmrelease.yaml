@@ -79,6 +79,6 @@ spec:
     txtOwnerId: main
     txtPrefix: k8s.main.
     domainFilters:
-      - rnatr.com
+      - "${SECRET_DOMAIN}"
     serviceMonitor:
       enabled: true

@@ -3,10 +3,16 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: openwrt-dns
+  name: &app openwrt-dns
 spec:
   interval: 1h
   path: ./kubernetes/apps/network/openwrt-dns/app
+  postBuild:
+    substitute:
+      APP: *app
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
