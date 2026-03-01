@@ -24,5 +24,8 @@ spec:
   webhook:
     enabled: true
     authentication:
-      enabled: false
+      enabled: true
+      secretRef:
+        name: forgejo-apitoken-secret
+        key: token
 
