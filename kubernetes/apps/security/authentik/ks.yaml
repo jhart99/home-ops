@@ -13,6 +13,12 @@ spec:
       namespace: rook-ceph
   targetNamespace: security
   path: ./kubernetes/apps/security/authentik/app
+  postBuild:
+    substitute:
+      APP: authentik
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
@@ -20,7 +26,4 @@ spec:
     namespace: flux-system
   interval: 30m
   timeout: 5m
-  postBuild:
-    substitute:
-      APP: authentik
   wait: false

@@ -57,7 +57,7 @@ spec:
         host: "smtp-relay.default.svc.cluster.local"
         port: 25
         use_tls: false
-        from: "auth@rnatr.com"
+        from: "auth@${SECRET_DOMAIN}"
       error_reporting:
         enable: true
         send_pii: false
@@ -75,7 +75,7 @@ spec:
       route:
         main:
           enabled: true
-          hostnames: ["auth.rnatr.com"]
+          hostnames: ["auth.${SECRET_DOMAIN}"]
           parentRefs:
             - group: gateway.networking.k8s.io
               kind: Gateway
