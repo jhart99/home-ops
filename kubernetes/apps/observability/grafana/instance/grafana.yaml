@@ -29,7 +29,7 @@ spec:
       angular_support_enabled: "true"
     server:
       enable_gzip: "true"
-      root_url: https://grafana.rnatr.com
+      root_url: "https://grafana.${SECRET_DOMAIN}"
   deployment:
     spec:
       strategy:
@@ -61,7 +61,7 @@ spec:
   httpRoute:
     spec:
       hostnames:
-        - grafana.rnatr.com
+        - "grafana.${SECRET_DOMAIN}"
       parentRefs:
         - name: envoy-internal
           namespace: network
