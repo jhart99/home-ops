@@ -16,14 +16,14 @@ spec:
         main:
           enabled: true
           hostnames:
-            - alertmanager.rnatr.com
+            - "alertmanager.${SECRET_DOMAIN}"
           parentRefs:
             - name: envoy-internal
               namespace: network
       alertmanagerSpec:
         alertmanagerConfiguration:
           name: alertmanager
-        externalUrl: https://alertmanager.rnatr.com
+        externalUrl: "https://alertmanager.${SECRET_DOMAIN}"
         storage:
           volumeClaimTemplate:
             spec:
@@ -42,12 +42,12 @@ spec:
         main:
           enabled: true
           hostnames:
-            - prometheus.rnatr.com
+            - "prometheus.${SECRET_DOMAIN}"
           parentRefs:
             - name: envoy-internal
               namespace: network
       prometheusSpec:
-        externalUrl: https://prometheus.rnatr.com
+        externalUrl: "https://prometheus.${SECRET_DOMAIN}"
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
