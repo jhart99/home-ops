@@ -9,6 +9,6 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
-  commonName: 'unifi.rnatr.com'
+  commonName: "unifi.${SECRET_DOMAIN}"
   dnsNames:
-    - 'unifi.rnatr.com'
+    - "unifi.${SECRET_DOMAIN}"

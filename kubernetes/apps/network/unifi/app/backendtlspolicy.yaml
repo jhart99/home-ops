@@ -13,4 +13,4 @@ spec:
       sectionName: https
   validation:
     wellKnownCACertificates: System
-    hostname: unifi.rnatr.com
+    hostname: "unifi.${SECRET_DOMAIN}"
