@@ -13,5 +13,5 @@ spec:
     - datasourceName: prometheus
       inputName: DS_PROMETHEUS
   configMapRef:
-    key: json
+    key: renovate-operator.json
     name: renovate-operator-dashboard
