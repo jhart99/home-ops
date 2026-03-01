@@ -53,7 +53,7 @@ spec:
     httpRoute:
       enabled: true
       hostnames:
-        - jupyterhub.rnatr.com
+        - "jupyterhub.${SECRET_DOMAIN}"
       gateway:
         name: envoy-internal
         namespace: network
