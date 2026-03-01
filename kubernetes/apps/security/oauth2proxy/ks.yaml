@@ -8,6 +8,12 @@ spec:
     - name: authentik
   targetNamespace: security
   path: ./kubernetes/apps/security/oauth2proxy/app
+  postBuild:
+    substitute:
+      APP: oauth2proxy
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
@@ -15,7 +21,4 @@ spec:
     namespace: flux-system
   interval: 30m
   timeout: 5m
-  postBuild:
-    substitute:
-      APP: oauth2proxy
   wait: false

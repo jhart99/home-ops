@@ -13,8 +13,8 @@ spec:
       existingSecret: oauth2proxy-secret
       configFile: |-
         email_domains = [ "*" ]
-        oidc_issuer_url="https://auth.rnatr.com/application/o/echo-auth/"
-        whitelist_domains=[".rnatr.com"]
+        oidc_issuer_url="https://auth.${SECRET_DOMAIN}/application/o/echo-auth/"
+        whitelist_domains=[".${SECRET_DOMAIN}"]
         upstreams="static://202"
         skip_provider_button="true"
         set_authorization_header="true"
