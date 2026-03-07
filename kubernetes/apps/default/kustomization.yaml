@@ -13,7 +13,7 @@ resources:
   - ./echo-basicauth/ks.yaml
   - ./echo-oidcauth/ks.yaml
   - ./forgejo/ks.yaml
-  - ./forgejo-runner/ks.yaml
+  # - ./forgejo-runner/ks.yaml
   - ./freshrss/ks.yaml
   - ./immich/ks.yaml
   - ./paperless/ks.yaml
