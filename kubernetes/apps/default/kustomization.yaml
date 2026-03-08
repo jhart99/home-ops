@@ -24,4 +24,4 @@ resources:
   - ./smtp-relay/ks.yaml
   - ./wg-easy/ks.yaml
   - ./whoami/ks.yaml
-  - ./zwave/ks.yaml
+  # - ./zwave/ks.yaml
