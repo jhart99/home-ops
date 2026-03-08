@@ -10,6 +10,9 @@ spec:
     name: zwave
   interval: 1h
   values:
+    defaultPodOptions:
+      nodeSelector:
+        feature.node.kubernetes.io/zooz-zwave: "true"
     controllers:
       zwave:
         containers:
@@ -50,7 +53,7 @@ spec:
     route:
       app:
         hostnames:
-          - "{{ .Release.Name }}.turbo.ac"
+          - "{{ .Release.Name }}.${SECRET_DOMAIN}"
         parentRefs:
           - name: envoy-internal
             namespace: network
