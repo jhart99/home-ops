@@ -45,7 +45,7 @@ spec:
               limits:
                 memory: 512Mi
         pod:
-          hostUsers: false
+          hostUsers: true
     service:
       app:
         ports:
