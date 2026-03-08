@@ -23,6 +23,8 @@ spec:
             env:
               TZ: America/New_York
               PORT: &port 80
+            securityContext:
+              privileged: true
             probes:
               liveness: &probes
                 enabled: true
@@ -64,3 +66,9 @@ spec:
           - path: /usr/src/app/store
       tmp:
         type: emptyDir
+      usb-device:
+        type: hostPath
+        hostPath: /dev/serial/by-id/usb-Zooz_800_Z-Wave_Stick_533D004242-if00     # The path on the physical host node
+        hostPathType: CharDevice   # Ensures Kubernetes expects a character device
+        globalMounts:
+          - path: /dev/zwave     # The path inside the container
