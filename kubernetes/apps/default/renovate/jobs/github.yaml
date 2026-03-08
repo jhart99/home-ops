@@ -1,8 +1,7 @@
 apiVersion: renovate-operator.mogenius.com/v1alpha1
 kind: RenovateJob
 metadata:
-  name: renovate-github
-  namespace: renovate-operator
+  name: github
 spec:
   discoveryFilter: ###GITHUB_USERNAME###/*
   extraEnv:
@@ -10,11 +9,11 @@ spec:
       value: github
     - name: RENOVATE_ENDPOINT
       value: https://api.github.com/
-  image: renovate/renovate:43.59.3
+  image: ghcr.io/renovatebot/renovate:43.59.3
   parallelism: 5
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
   schedule: 0 * * * *
-  secretRef: renovate-secret
+  secretRef: github-renovate-secret
