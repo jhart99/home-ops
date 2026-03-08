@@ -11,6 +11,7 @@ spec:
   interval: 1h
   values:
     defaultPodOptions:
+      hostUsers: true
       nodeSelector:
         feature.node.kubernetes.io/zooz-zwave: "true"
     controllers:
