@@ -72,12 +72,6 @@ spec:
       hostUsers: true
       nodeSelector:
         feature.node.kubernetes.io/sonoff-zigbee: "true"
-      securityContext:
-        runAsNonRoot: true
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        fsGroupChangePolicy: OnRootMismatch
     service:
       app:
         ports:
