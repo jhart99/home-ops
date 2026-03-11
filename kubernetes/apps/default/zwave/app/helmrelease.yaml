@@ -11,7 +11,6 @@ spec:
   interval: 1h
   values:
     defaultPodOptions:
-      hostUsers: true
       nodeSelector:
         feature.node.kubernetes.io/zooz-zwave: "true"
     controllers:
@@ -25,7 +24,11 @@ spec:
               TZ: America/New_York
               PORT: &port 80
             securityContext:
-              privileged: true
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
             probes:
               liveness: &probes
                 enabled: true
@@ -42,10 +45,10 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                rnatr.com/zwave: 1
               limits:
                 memory: 512Mi
-        pod:
-          hostUsers: true
+                rnatr.com/zwave: 1
     service:
       app:
         ports:
@@ -67,9 +70,3 @@ spec:
           - path: /usr/src/app/store
       tmp:
         type: emptyDir
-      usb-device:
-        type: hostPath
-        hostPath: /dev/serial/by-id/usb-Zooz_800_Z-Wave_Stick_533D004242-if00     # The path on the physical host node
-        hostPathType: CharDevice   # Ensures Kubernetes expects a character device
-        globalMounts:
-          - path: /dev/zwave     # The path inside the container
