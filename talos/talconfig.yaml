@@ -24,8 +24,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    # talosImageURL: factory.talos.dev/installer-secureboot/376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba
-    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
+    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules
@@ -93,7 +92,7 @@ nodes:
     installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
+    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules
@@ -160,7 +159,7 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/39d47fd62e185edcf0daaba6c0d54bb83aae7516475fb257076e26137458e778
+    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules

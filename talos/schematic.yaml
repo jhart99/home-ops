@@ -12,6 +12,10 @@ customization:
     - i915.enable_guc=3           # Enables GuC/HuC firmware loading for better iGPU encoding/transcoding.
     - intel_idle.max_cstate=7     # Prevents CPU from sleeping too deep and crashing headless systems.
 
+    # --- Intel ARC fixes ---
+    - xe.force_probe=56a6
+    - i915.force_probe=!56a6
+
     # --- Passthrough & Networking ---
     - intel_iommu=on              # Enables IOMMU for PCI passthrough.
     - iommu=pt                    # "Passthrough" mode. Improves host performance when IOMMU is on.
@@ -19,8 +23,6 @@ customization:
     - lockdown=none               # Required for Cilium's eBPF features to modify kernel networking.
 
     # --- Security Defaults ---
-    # REMOVED: security=none      # RESTORED AppArmor. (Negligible perf hit, prevents container breakouts).
-    # REMOVED: apparmor=0         # RESTORED AppArmor.
     - sysctl.kernel.kexec_load_disabled=1 # Prevents loading a new kernel at runtime (Standard security practice).
 
   systemExtensions:
