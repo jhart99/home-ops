@@ -60,14 +60,16 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                rnatr.com/zigbee: 1
               limits:
                 memory: 1Gi
-        pod:
-          hostUsers: true
-    defaultPodOptions:
-      hostUsers: true
-      nodeSelector:
-        feature.node.kubernetes.io/sonoff-zigbee: "true"
+                rnatr.com/zigbee: 1
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
     service:
       app:
         ports:
@@ -83,9 +85,3 @@ spec:
     persistence:
       config:
         existingClaim: "{{ .Release.Name }}"
-      usb-device:
-        type: hostPath
-        hostPath: /dev/serial/by-id/usb-Itead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_V2_e60b847ecbf3ef118b51bd1b6d9880ab-if00-port0  # The path on the physical host node
-        hostPathType: CharDevice   # Ensures Kubernetes expects a character device
-        globalMounts:
-          - path: /dev/zigbee     # The path inside the container
