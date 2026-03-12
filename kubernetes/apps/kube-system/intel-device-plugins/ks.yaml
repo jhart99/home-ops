@@ -53,3 +53,37 @@ spec:
     namespace: flux-system
   targetNamespace: kube-system
   wait: false
+
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: intel-device-plugins-arc
+spec:
+  dependsOn:
+    - name: intel-device-plugins-operator
+    - name: intel-gpu-resource-driver
+  # healthChecks:
+  #   - apiVersion: helm.toolkit.fluxcd.io/v2
+  #     kind: HelmRelease
+  #     name: intel-device-plugins-gpu
+  #     namespace: kube-system
+  #   - apiVersion: deviceplugin.intel.com/v1
+  #     kind: GpuDevicePlugin
+  #     name: i915
+  # healthCheckExprs:
+  #   - apiVersion: deviceplugin.intel.com/v1
+  #     kind: GpuDevicePlugin
+  #     failed: status.desiredNumberScheduled != status.numberReady
+  #     current: status.desiredNumberScheduled == status.numberReady
+  interval: 1h
+  path: ./kubernetes/apps/kube-system/intel-device-plugins/arc
+  prune: true
+  retryInterval: 2m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: kube-system
+  wait: false
