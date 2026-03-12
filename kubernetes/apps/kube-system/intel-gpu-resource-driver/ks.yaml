@@ -5,6 +5,8 @@ kind: Kustomization
 metadata:
   name: intel-gpu-resource-driver
 spec:
+  dependsOn:
+    - name: node-feature-discovery-rules
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
