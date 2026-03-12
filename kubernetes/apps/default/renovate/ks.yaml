@@ -27,6 +27,9 @@ kind: Kustomization
 metadata:
   name: &app renovate-jobs
 spec:
+  dependsOn:
+    - name: renovate-operator
+      namespace: default
   interval: 30m
   path: ./kubernetes/apps/default/renovate/jobs
   postBuild:
