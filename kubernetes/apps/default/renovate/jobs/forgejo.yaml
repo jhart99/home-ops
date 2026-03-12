@@ -13,7 +13,6 @@ spec:
     - name: RENOVATE_PLATFORM_COMMIT
       value: "true"
   image: ghcr.io/renovatebot/renovate:43.64.3
-  platform: forgejo
   provider:
     name: forgejo
     endpoint: https://forgejo.rnatr.com/api/v1
