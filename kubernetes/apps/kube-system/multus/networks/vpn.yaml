@@ -1,4 +1,3 @@
----
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/k8s.cni.cncf.io/networkattachmentdefinition_v1.json
 apiVersion: k8s.cni.cncf.io/v1
 kind: NetworkAttachmentDefinition
@@ -15,7 +14,11 @@ spec:
           "master": "net0.10",
           "mode": "bridge",
           "ipam": {
-            "type": "static",
+            "type": "host-local",
+            "subnet": "192.168.2.0/24",
+            "rangeStart": "192.168.2.100",
+            "rangeEnd": "192.168.2.200",
+            "gateway": "192.168.2.1",
             "routes": [
               {"dst": "0.0.0.0/5", "gw": "192.168.2.1"},
               {"dst": "8.0.0.0/7", "gw": "192.168.2.1"},
