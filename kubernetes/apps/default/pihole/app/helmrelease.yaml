@@ -13,9 +13,13 @@ spec:
     controllers:
       pihole:
         replicas: 1
-        strategy: RollingUpdate
+        strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
         containers:
           app:
             image:
@@ -68,6 +72,13 @@ spec:
                 cpu: 10m
               limits:
                 memory: 32Mi
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: { drop: ['ALL'] }
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
             probes:
               liveness: &exporter-probes
                 enabled: true
