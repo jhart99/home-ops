@@ -40,4 +40,4 @@ spec:
                 valueFrom:
                   fieldRef:
                     fieldPath: status.hostIP
-        serviceAccountName: *name
+        serviceAccountName: home-ops-runner-rbac
