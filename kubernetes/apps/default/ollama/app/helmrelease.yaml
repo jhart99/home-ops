@@ -47,9 +47,11 @@ spec:
               requests:
                 cpu: 200m
                 memory: 2Gi
+                ephemeral-storage: "30Gi"
               limits:
                 memory: 8Gi
                 nvidia.com/gpu: "1"
+                ephemeral-storage: "100Gi"
 
     service:
       app:
@@ -59,6 +61,6 @@ spec:
 
     persistence:
       models:
-        existingClaim: ollama-models
+        type: emptyDir
         globalMounts:
           - path: /models

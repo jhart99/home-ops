@@ -8,8 +8,6 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/default/ollama/app
   dependsOn:
-    - name: rook-ceph-cluster
-      namespace: rook-ceph
     - name: nvidia-device-plugin
       namespace: kube-system
   postBuild:
