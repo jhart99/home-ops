@@ -34,9 +34,9 @@ task talos:reset                  # Reset all nodes back to maintenance mode (DE
 
 ## Cluster Architecture
 
-**3 control plane nodes** (192.168.1.11-13, VIP at 192.168.1.75) + **5 worker nodes** (192.168.1.14-18):
+**3 control plane nodes** (192.168.1.11-13, External LB at 192.168.1.75, Internal VIP at 192.168.1.5) + **5 worker nodes** (192.168.1.14-18):
 - Workers 1-4 are ARM (Raspberry Pi-class, eMMC storage)
-- Worker 5 is x86 with NVIDIA GPU and Mellanox NIC
+- Worker 5 is ARM64 (DGX Spark) with NVIDIA GPU and Mellanox NIC
 - Pod network: `10.42.0.0/16`, Service network: `10.43.0.0/16`
 
 **Network layout**: Control plane and worker-5 nodes use Mellanox NICs (`mlx5`) with jumbo frames (MTU 9000) and two VLANs (VLAN 10 @ 192.168.2.x, VLAN 100 @ 192.168.100.x). Layer2 VIPs provide HA for gateways.

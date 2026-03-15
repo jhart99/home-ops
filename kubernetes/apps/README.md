@@ -124,6 +124,8 @@ All application deployments, grouped by Kubernetes namespace. Each namespace dir
 | home-assistant | Home automation platform |
 | immich | Photo and video library |
 | mosquitto | MQTT broker (IoT) |
+| ollama | Self-hosted LLM runner |
+| open-webui | Web UI for Ollama |
 | paperless | Document management system |
 | pihole | DNS-based ad blocker |
 | renovate | Self-hosted Renovate dependency bot |

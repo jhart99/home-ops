@@ -19,7 +19,7 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 
 ## Hardware
 
-**3 Control Plane Nodes** — VIP: `192.168.1.75`
+**3 Control Plane Nodes** — External LB: `192.168.1.75`, Internal VIP: `192.168.1.5`
 
 | Node | IP | Disk | Notes |
 |------|----|------|-------|
@@ -35,7 +35,7 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 | talos-worker-2 | 192.168.1.15 | eMMC | ARM (Raspberry Pi-class) |
 | talos-worker-3 | 192.168.1.16 | eMMC | ARM (Raspberry Pi-class) |
 | talos-worker-4 | 192.168.1.17 | eMMC | ARM (Raspberry Pi-class) |
-| talos-worker-5 | 192.168.1.18 | NVMe | x86, NVIDIA GPU, Mellanox NIC |
+| talos-worker-5 | 192.168.1.18 | NVMe | ARM64, NVIDIA GPU, Mellanox NIC (DGX Spark) |
 
 **Networks**: Pod CIDR `10.42.0.0/16`, Service CIDR `10.43.0.0/16`. Control plane and worker-5 use VLANs 10 (`192.168.2.x`) and 100 (`192.168.100.x`) with jumbo frames (MTU 9000).
 

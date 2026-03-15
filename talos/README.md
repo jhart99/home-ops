@@ -25,22 +25,23 @@ Current versions are pinned in `talenv.yaml` and automatically updated by Renova
 | Node | Role | IP | Arch | Install Disk | Notes |
 |------|------|----|------|--------------|-------|
 | talos-cp-1 | controlplane | 192.168.1.11 | x86 | /dev/nvme1n1 | Mellanox NIC, VLAN 10/100 |
-| talos-cp-2 | controlplane | 192.168.1.12 | x86 | /dev/nvme0n1 | Mellanox NIC, VLAN 10/100 |
-| talos-cp-3 | controlplane | 192.168.1.13 | x86 | /dev/nvme1n1 | Mellanox NIC, VLAN 10/100 |
+| talos-cp-2 | controlplane | 192.168.1.12 | x86 | /dev/nvme1n1 | Mellanox NIC, VLAN 10/100 |
+| talos-cp-3 | controlplane | 192.168.1.13 | x86 | /dev/nvme0n1 | Mellanox NIC, VLAN 10/100 |
 | talos-worker-1 | worker | 192.168.1.14 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
 | talos-worker-2 | worker | 192.168.1.15 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
 | talos-worker-3 | worker | 192.168.1.16 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
 | talos-worker-4 | worker | 192.168.1.17 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
-| talos-worker-5 | worker | 192.168.1.18 | x86 | /dev/nvme0n1 | NVIDIA GPU, Mellanox NIC |
+| talos-worker-5 | worker | 192.168.1.18 | ARM64 | /dev/nvme0n1 | NVIDIA GPU (DGX Spark), Mellanox NIC |
 
-**VIP**: `192.168.1.75` (control plane HA)
+**External LB**: `192.168.1.75`, **Internal VIP**: `192.168.1.5` (control plane HA)
 
 ## Schematics
 
 Node OS images are built via the [Talos Image Factory](https://factory.talos.dev):
 
-- **x86 nodes** (`schematic.yaml`): Mellanox `mlx5-core` module, NVIDIA driver extensions for worker-5
-- **ARM nodes** (`schematic-spark.yaml`): Minimal extensions for Raspberry Pi hardware
+- **x86 nodes** (`schematic.yaml`): Intel-specific fixes (i915, Meteor Lake), Mellanox tools.
+- **ARM64 DGX Spark** (`schematic-spark.yaml`): Mellanox and NVIDIA driver extensions.
+- **ARM Raspberry Pi**: Standard ARM image with minimal extensions.
 
 Schematic IDs from the factory are referenced in `talconfig.yaml` per node.
 
