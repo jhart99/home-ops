@@ -12,7 +12,6 @@ spec:
   values:
     fullnameOverride: victoria-logs
     server:
-      mode: deployment
       persistentVolume:
         enabled: true
         storageClassName: ceph-fast
@@ -37,8 +36,6 @@ spec:
               - path:
                   type: Exact
                   value: /
-      service:
-        clusterIP: null
       serviceMonitor:
         enabled: true
     dashboards:
