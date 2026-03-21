@@ -81,4 +81,4 @@ spec:
     domainFilters:
       - "${SECRET_DOMAIN}"
     serviceMonitor:
-      enabled: true
+      enabled: false
