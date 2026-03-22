@@ -5,4 +5,4 @@ kind: Kustomization
 resources:
   - ./grafanadashboard.yaml
   - ./service.yaml
-  - ./servicemonitor.yaml
+  # - ./servicemonitor.yaml
