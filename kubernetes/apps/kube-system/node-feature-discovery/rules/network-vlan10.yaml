@@ -8,9 +8,9 @@ spec:
     - name: "vlan10.available"
       labels:
         # This is the label your pod's nodeSelector will look for
-        "network.jhart99.com/vlan10": "true"
+        "feature.node.kubernetes.io/vlan100": "true"
       matchFeatures:
-        - feature: network.device
+        - feature: network.virtual
           matchExpressions:
             # Modify this to match the actual interface name or pattern on your nodes
             name: { op: In, value: ["net0.10"] }
