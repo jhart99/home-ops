@@ -56,6 +56,26 @@ tasks:
       - test -f {{.TALOSCONFIG}}
       - which talhelper talosctl yq
 
+  remove-node:
+    desc: Remove a Talos node [IP=required]
+    dir: '{{.TALOS_DIR}}'
+    cmds:
+      - kubectl cordon {{.NODE}}
+      - kubectl drain {{.NODE}} --ignore-daemonsets --delete-emptydir-data --force
+      - kubectl delete node {{.NODE}}
+      - talhelper gencommand reset --node {{.IP}} --extra-flags "--reboot --graceful=true --wait=false" | bash
+    vars:
+      NODE:
+        sh: yq '.nodes[] | select(.ipAddress == "{{.IP}}") | .hostname' {{.TALOS_DIR}}/talconfig.yaml
+    requires:
+      vars: [IP]
+    preconditions:
+      - talosctl --nodes {{.IP}} get machineconfig
+      - talosctl config info
+      - test -f {{.TALOSCONFIG}}
+      - test -n "{{.NODE}}"
+      - which kubectl talhelper talosctl yq
+
   reset:
     desc: Resets nodes back to maintenance mode
     dir: '{{.TALOS_DIR}}'
