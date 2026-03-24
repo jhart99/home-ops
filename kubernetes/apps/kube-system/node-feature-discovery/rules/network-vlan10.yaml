@@ -2,10 +2,10 @@
 apiVersion: nfd.k8s-sigs.io/v1alpha1
 kind: NodeFeatureRule
 metadata:
-  name: detect-vlan100
+  name: detect-vlan10
 spec:
   rules:
-    - name: "vlan100.available"
+    - name: "vlan10.available"
       labels:
         # This is the label your pod's nodeSelector will look for
         "network.jhart99.com/vlan10": "true"
