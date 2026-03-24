@@ -44,6 +44,8 @@ spec:
             "ips": ["192.168.100.20/24"],
             "mac": "c6:07:27:af:fb:53"
           }]
+      nodeSelector:
+        "feature.node.kubernetes.io/vlan10": "true"
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
