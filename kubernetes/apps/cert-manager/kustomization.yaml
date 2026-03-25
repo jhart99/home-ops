@@ -9,4 +9,5 @@ components:
 resources:
   - ./namespace.yaml
   - ./cert-manager/ks.yaml
+  - ./cert-manager-csi-driver/ks.yaml
   - ./trust-manager/ks.yaml
