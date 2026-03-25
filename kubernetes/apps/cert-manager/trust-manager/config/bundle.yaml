@@ -1,0 +1,14 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.erwanleboucher.dev/trust.cert-manager.io/bundle_v1alpha1.json
+apiVersion: trust.cert-manager.io/v1alpha1
+kind: Bundle
+metadata:
+  name: rnatr-internal-ca
+spec:
+  sources:
+    - secret:
+        name: "rnatr-ca-key-pair"
+        key: "tls.crt"
+  target:
+    secret:
+      key: "ca.crt"
