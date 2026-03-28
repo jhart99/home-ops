@@ -63,9 +63,12 @@ spec:
   dependsOn:
     - name: intel-device-plugins-gpu
   interval: 1h
-  targetNamespace: kube-system
+  path: ./kubernetes/apps/kube-system/intel-device-plugins/gpu/patch
+  prune: true
+  retryInterval: 2m
   sourceRef:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  path: ./kubernetes/apps/kube-system/intel-device-plugins/gpu/patch
+  targetNamespace: kube-system
+  wait: false
