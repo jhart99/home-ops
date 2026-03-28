@@ -13,23 +13,4 @@ spec:
     name: i915
     nodeFeatureRule: false
     sharedDevNum: 99
-  postRenderers:
-    - kustomize:
-        patches:
-          - target:
-              kind: (Deployment|StatefulSet|DaemonSet)
-            patch: |
-              - op: replace
-                path: /spec/template/spec/affinity
-                value:
-                  nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                      nodeSelectorTerms:
-                      - matchExpressions:
-                        - key: gpu.intel.com/device-id.0300-9bc8.present
-                          operator: In
-                          values: ["true"]
-                      - matchExpressions:
-                        - key: gpu.intel.com/device-id.0300-3e92.present
-                          operator: In
-                          values: ["true"]
+
