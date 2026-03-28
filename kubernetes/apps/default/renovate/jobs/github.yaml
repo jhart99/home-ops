@@ -25,3 +25,8 @@ spec:
   skipForks: true
   webhook:
     enabled: true
+    authentication:
+      enabled: true
+      secretRef:
+        name: github-apitoken-secret
+        key: token
