@@ -3,17 +3,25 @@ kind: RenovateJob
 metadata:
   name: github
 spec:
-  discoveryFilter: ###GITHUB_USERNAME###/*
+  discoveryFilter: jhart99/home-ops
   extraEnv:
-    - name: RENOVATE_PLATFORM
-      value: github
-    - name: RENOVATE_ENDPOINT
-      value: https://api.github.com/
+    - name: LOG_LEVEL
+      value: debug
+    - name: RENOVATE_ALLOWED_COMMANDS
+      value: '["pnpm run bundle"]'
+    - name: RENOVATE_PLATFORM_COMMIT
+      value: "true"
   image: ghcr.io/renovatebot/renovate:43.96.0
   parallelism: 5
+  provider:
+    name: github
+    endpoint: https://api.github.com
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
   schedule: 0 * * * *
-  secretRef: github-renovate-secret
+  secretRef: renovate-secret
+  skipForks: true
+  webhook:
+    enabled: true
