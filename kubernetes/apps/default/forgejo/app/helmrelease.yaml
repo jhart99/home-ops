@@ -62,7 +62,7 @@ spec:
           ENABLE_NOTIFY_MAIL: true
           REQUIRE_SIGNIN_VIEW: true
         webhook:
-          ALLOWED_HOST_LIST: "*.${SECRET_DOMAIN}"
+          ALLOWED_HOST_LIST: "*.${SECRET_DOMAIN}, *.cluster.local"
     httpRoute:
       enabled: true
       hostnames: [ "forgejo.${SECRET_DOMAIN}" ]
