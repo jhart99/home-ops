@@ -34,7 +34,14 @@ spec:
       enabled: false
 
     nodeCollector:
-      enabled: false
+      volumeMounts:
+        - name: etc-os-release
+          mountPath: /host/etc/os-release
+          readOnly: true
+      volumes:
+        - name: etc-os-release
+          hostPath:
+            path: /etc/os-release
       # Resource limits for node collector
       resources:
         requests:
