@@ -21,7 +21,7 @@ spec:
     trivy:
       ignoreUnfixed: true
       mode: ClientServer
-      storageClassName: local-path
+      storageClassName: ceph-block
 
       slow: true
       resources:

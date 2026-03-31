@@ -6,6 +6,11 @@ metadata:
   namespace: flux-system
 spec:
   targetNamespace: security
+  components:
+    - ../../../../components/volsync
+  dependsOn:
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
   path: ./kubernetes/apps/security/trivy/app
   postBuild:
     substitute:
