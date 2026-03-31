@@ -11,5 +11,5 @@ components:
 resources:
   - ./namespace.yaml
   - ./authentik/ks.yaml
-  - ./trivy/ks.yaml
+  # - ./trivy/ks.yaml
   # - ./oauth2proxy/ks.yaml
