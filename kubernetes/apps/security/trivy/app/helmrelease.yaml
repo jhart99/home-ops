@@ -1,0 +1,34 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: trivy-operator
+spec:
+  interval: 5m
+  chartRef:
+    kind: OCIRepository
+    name: trivy
+  # https://github.com/aquasecurity/trivy-operator/blob/v0.12.0/deploy/helm/values.yaml
+  values:
+    operator:
+      replicas: 1
+      scanJobsConcurrentLimit: 1
+      scanJobTTL: 10s
+      builtInTrivyServer: true
+      vulnerabilityScannerScanOnlyCurrentRevisions: true
+      configAuditScannerScanOnlyCurrentRevisions: true
+
+    trivy:
+      ignoreUnfixed: true
+      mode: ClientServer
+      storageClassName: local-path
+
+      slow: true
+      resources:
+        requests:
+          cpu: 100m
+        limits:
+          cpu: 500m
+
+    serviceMonitor:
+      enabled: false
