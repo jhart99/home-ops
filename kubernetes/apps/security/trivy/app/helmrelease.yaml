@@ -10,30 +10,149 @@ spec:
     name: trivy
   # https://github.com/aquasecurity/trivy-operator/blob/v0.12.0/deploy/helm/values.yaml
   values:
+    # ============================================
+    # Pod Security Context (root level - for operator deployment)
+    # Required for restricted PSS namespace
+    # NOTE: These settings apply to the trivy-operator deployment pod
+    # ============================================
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 10000
+      runAsGroup: 10000
+      fsGroup: 10000
+      seccompProfile:
+        type: RuntimeDefault
+
+    # ============================================
+    # Container Security Context (root level - for operator container)
+    # Required for restricted PSS namespace
+    # NOTE: These settings apply to the trivy-operator container
+    # ============================================
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 10000
+      runAsGroup: 10000
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    # ============================================
+    # Operator Configuration
+    # ============================================
     operator:
+      # Resource limits for the operator itself
+      resources:
+        requests:
+          cpu: 200m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+      # Replicas for HA
       replicas: 1
-      scanJobsConcurrentLimit: 1
-      scanJobTTL: 10s
-      builtInTrivyServer: true
-      vulnerabilityScannerScanOnlyCurrentRevisions: true
-      configAuditScannerScanOnlyCurrentRevisions: true
 
+      # ----------------------------------------
+      # Scan frequency settings (reduce cluster load)
+      # ----------------------------------------
+      # Max concurrent scan jobs (default: 10)
+      scanJobsConcurrentLimit: 3
+      # Max concurrent node collector jobs (default: 1)
+      scanNodeCollectorLimit: 1
+      # Delay between retrying failed scans (default: 30s)
+      scanJobsRetryDelay: 60s
+      # How long reports are valid before re-scanning (default: 24h)
+      scannerReportTTL: "72h"
+      # Cluster SBOM cache TTL (default: 120h)
+      cacheReportTTL: "168h"
+
+    # ============================================
+    # Trivy Operator Configuration
+    # ============================================
     trivy:
+      # Ignore vulnerabilities without available fixes to reduce noise
       ignoreUnfixed: true
-      mode: ClientServer
-      storageClassName: ceph-block
 
-      slow: true
+      # Severity threshold for vulnerability detection
+      severity: CRITICAL,HIGH,MEDIUM
+
+      # Resource limits for Trivy scanner jobs
       resources:
         requests:
           cpu: 100m
+          memory: 256Mi
         limits:
           cpu: 500m
+          memory: 512Mi
+      storageClassName: ceph-block
 
+    # ============================================
+    # Scan Job Configuration (trivyOperator section)
+    # ============================================
+    trivyOperator:
+      # Pod security context for scan jobs
+      scanJobPodTemplatePodSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
+        seccompProfile:
+          type: RuntimeDefault
+      # Container security context for scan jobs
+      scanJobPodTemplateContainerSecurityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        runAsGroup: 10000
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+
+    # ============================================
+    # Compliance and RBAC Scanning
+    # ============================================
+    compliance:
+      enabled: true
+      # Run compliance scans once daily at midnight (default: every 6 hours)
+      cron: "0 0 * * *"
+
+    rbacAssessment:
+      enabled: true
+
+    infraAssessment:
+      enabled: true
+
+    configAudit:
+      enabled: true
+
+    exposedSecretReport:
+      enabled: true
+
+    # ============================================
+    # Vulnerability Report Configuration
+    # ============================================
+    vulnerabilityReports:
+      scanner: Trivy
+
+    # ============================================
+    # Service Monitor Configuration
+    # ============================================
     serviceMonitor:
-      enabled: false
+      enabled: true
+      # Add label to match Prometheus ServiceMonitor selector
+      additionalLabels:
+        prometheus: kube-prometheus-stack
+      interval: 30s
+      scrapeTimeout: 10s
 
     nodeCollector:
+      # dropping some mounts for Talos
       volumeMounts:
         - {"mountPath":"/var/lib/etcd","name":"var-lib-etcd","readOnly":true}
         - {"mountPath":"/var/lib/kubelet","name":"var-lib-kubelet","readOnly":true}
