@@ -1,4 +1,4 @@
-
+---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -15,6 +15,29 @@ spec:
   postBuild:
     substitute:
       APP: trivy
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  interval: 30m
+  timeout: 5m
+  wait: false
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: trivy-dashboard
+  namespace: flux-system
+spec:
+  targetNamespace: security
+  path: ./kubernetes/apps/security/trivy/dashboard
+  postBuild:
+    substitute:
+      APP: trivy-dashboard
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
