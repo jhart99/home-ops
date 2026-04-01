@@ -11,5 +11,5 @@ spec:
       sectionName: https
   rules:
     - backendRefs:
-        - name: trivy-operator-dashboard
+        - name: trivy-dashboard-trivy-operator-dashboard
           port: 8900
