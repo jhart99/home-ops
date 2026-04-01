@@ -12,4 +12,4 @@ spec:
   rules:
     - backendRefs:
         - name: trivy-operator-dashboard
-          port: http
+          port: 8900
