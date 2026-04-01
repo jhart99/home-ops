@@ -9,7 +9,6 @@ spec:
   chartRef:
     kind: OCIRepository
     name: trivy-dashboard
-    namespace: flux-system
   maxHistory: 2
   values:
     gitHub:
