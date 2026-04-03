@@ -4,6 +4,9 @@ KUBECONFIG = "{{config_root}}/kubeconfig"
 SOPS_AGE_KEY_FILE = "{{config_root}}/age.key"
 TALOSCONFIG = "{{config_root}}/talos/clusterconfig/talosconfig"
 
+[plugins]
+krew = "https://github.com/soupglasses/mise-krew"
+
 [tools]
 "python" = "3.14.3"
 "pipx:makejinja" = "2.8.2"
@@ -25,4 +28,5 @@ TALOSCONFIG = "{{config_root}}/talos/clusterconfig/talosconfig"
 "aqua:siderolabs/talos" = "1.12.6"
 "aqua:yannh/kubeconform" = "0.7.0"
 "github:cilium/hubble" = "1.18.6"
+"krew:tree" = "latest"
 gemini = "latest"
