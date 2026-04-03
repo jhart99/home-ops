@@ -3,7 +3,7 @@ kind: RenovateJob
 metadata:
   name: github
 spec:
-  discoveryFilter:
+  discoveryFilters:
     - jhart99/home-ops
   extraEnv:
     - name: LOG_LEVEL
