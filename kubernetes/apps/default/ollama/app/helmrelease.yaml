@@ -73,6 +73,10 @@ spec:
             port: *port
 
     persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /home/ubuntu
       models:
         type: emptyDir
         globalMounts:
