@@ -39,7 +39,8 @@ spec:
                 cpu: 50m
                 memory: 256Mi
               limits:
-                memory: 1Gi
+                cpu: 1000m
+                memory: 2Gi
 
     service:
       app:
