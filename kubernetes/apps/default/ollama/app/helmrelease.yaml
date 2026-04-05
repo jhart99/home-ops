@@ -79,6 +79,7 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /home/ubuntu
+          - path: /tmp
       models:
         type: emptyDir
         globalMounts:
