@@ -52,7 +52,7 @@ apps/<namespace>/<app-name>/
 | `flux-system` | Flux operator and instance |
 | `default` | User applications |
 
-See [`apps/README.md`](apps/README.md) for the full app inventory.
+See [`apps/README.md`](apps/README.md) and [`apps/default/README.md`](apps/default/README.md) for the full app inventory.
 
 ## Reusable Components
 
