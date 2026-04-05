@@ -6,8 +6,8 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 
 | Component | Details |
 |-----------|---------|
-| OS | Talos Linux v1.12.5 |
-| Kubernetes | v1.35.2 |
+| OS | Talos Linux v1.12.6 |
+| Kubernetes | v1.35.3 |
 | CNI | Cilium (eBPF, WireGuard encryption) |
 | GitOps | FluxCD |
 | Secrets | SOPS + age |
@@ -27,7 +27,7 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 | talos-cp-2 | 192.168.1.12 | NVMe | Mellanox NIC, MTU 9000 |
 | talos-cp-3 | 192.168.1.13 | NVMe | Mellanox NIC, MTU 9000 |
 
-**5 Worker Nodes**
+**6 Worker Nodes**
 
 | Node | IP | Disk | Notes |
 |------|----|------|-------|
@@ -36,6 +36,7 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 | talos-worker-3 | 192.168.1.16 | eMMC | ARM (Raspberry Pi-class) |
 | talos-worker-4 | 192.168.1.17 | eMMC | ARM (Raspberry Pi-class) |
 | talos-worker-5 | 192.168.1.18 | NVMe | ARM64, NVIDIA GPU, Mellanox NIC (DGX Spark) |
+| talos-worker-6 | 192.168.1.19 | SSD | x86 (General Purpose) |
 
 **Networks**: Pod CIDR `10.42.0.0/16`, Service CIDR `10.43.0.0/16`. Control plane and worker-5 use VLANs 10 (`192.168.2.x`) and 100 (`192.168.100.x`) with jumbo frames (MTU 9000).
 
@@ -55,6 +56,8 @@ See sub-directory READMEs for more detail:
 - [`kubernetes/`](kubernetes/README.md)
 - [`talos/`](talos/README.md)
 - [`bootstrap/`](bootstrap/README.md)
+- [`scripts/`](scripts/README.md)
+- [`.taskfiles/`](.taskfiles/README.md)
 
 ## Dev Environment
 

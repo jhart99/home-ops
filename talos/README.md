@@ -17,8 +17,8 @@ Talos Linux node configuration managed with [talhelper](https://budimanjojo.gith
 ## Versions
 
 Current versions are pinned in `talenv.yaml` and automatically updated by Renovate:
-- **Talos**: v1.12.5
-- **Kubernetes**: v1.35.2
+- **Talos**: v1.12.6
+- **Kubernetes**: v1.35.3
 
 ## Node Summary
 
@@ -32,6 +32,7 @@ Current versions are pinned in `talenv.yaml` and automatically updated by Renova
 | talos-worker-3 | worker | 192.168.1.16 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
 | talos-worker-4 | worker | 192.168.1.17 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
 | talos-worker-5 | worker | 192.168.1.18 | ARM64 | /dev/nvme0n1 | NVIDIA GPU (DGX Spark), Mellanox NIC |
+| talos-worker-6 | worker | 192.168.1.19 | x86 | /dev/sda | General Purpose SSD |
 
 **External LB**: `192.168.1.75`, **Internal VIP**: `192.168.1.5` (control plane HA)
 
