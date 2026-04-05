@@ -13,9 +13,6 @@ spec:
     grafanaDashboard:
       enabled: true
       mode: GrafanaOperator
-      grafanaOperator:
-        matchLabels:
-          dashboards: grafana
     service:
       registry:
         hostPort: 29999
