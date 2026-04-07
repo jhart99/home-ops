@@ -12,7 +12,7 @@ spec:
       value: '["pnpm run bundle"]'
     - name: RENOVATE_PLATFORM_COMMIT
       value: "true"
-  image: ghcr.io/renovatebot/renovate:43.106.0
+  image: ghcr.io/renovatebot/renovate:43.109.0
   provider:
     name: forgejo
     endpoint: https://forgejo.rnatr.com/api/v1
