@@ -24,7 +24,7 @@ spec:
           app:
             image:
               repository: ghcr.io/sujiba/pihole-unbound-hyperlocal
-              tag: 2026.02.0
+              tag: 2026.04.0
             env:
               FTLCONF_dns_listeningMode: all
               FTLCONF_dns_dnssec: 'false'
