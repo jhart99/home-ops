@@ -11,7 +11,7 @@ spec:
     - name: RENOVATE_ALLOWED_COMMANDS
       value: '["pnpm run bundle"]'
     - name: RENOVATE_PLATFORM_COMMIT
-      value: "true"
+      value: "enabled"
   image: ghcr.io/renovatebot/renovate:43.110.4
   provider:
     name: forgejo
