@@ -11,6 +11,12 @@ spec:
   interval: 1h
   # All values at https://code.forgejo.org/forgejo-helm/forgejo-helm
   values:
+    image:
+      registry: code.forgejo.org
+      repository: forgejo/forgejo
+      tag: 14.0.4-rootless
+      digest: sha256:bca6943cdd8a50f5befaf1d654bec32c9a3b6da400d23a77a829bd41f88a7263
+      rootless: true
     service:
       ssh:
         type: LoadBalancer
@@ -26,14 +32,6 @@ spec:
       enabled: true
       serviceMonitor:
         enabled: true
-
-    # databases
-    redis-cluster:
-      enabled: false
-    postgresql-ha:
-      enabled: false
-    postgresql:
-      enabled: false
 
     gitea:
       admin:
@@ -63,6 +61,16 @@ spec:
           REQUIRE_SIGNIN_VIEW: true
         webhook:
           ALLOWED_HOST_LIST: "*.${SECRET_DOMAIN}, *.cluster.local"
+      queue:
+        TYPE: redis
+        CONN_STR: redis://forgejo-dragonfly:6379/0?
+      cache:
+        ADAPTER: redis
+        HOST: redis://forgejo-dragonfly:6379/1
+      session:
+        PROVIDER: redis
+        PROVIDER_CONFIG: redis://forgejo-dragonfly:6379/2
+
     httpRoute:
       enabled: true
       hostnames: [ "forgejo.${SECRET_DOMAIN}" ]
