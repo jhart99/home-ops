@@ -21,6 +21,7 @@ spec:
       allowPrivilegeEscalation: false
       readOnlyRootFilesystem: true
       capabilities: { drop: ["ALL"] }
+      runAsNonRoot: true
       seccompProfile:
         type: RuntimeDefault
     service:
