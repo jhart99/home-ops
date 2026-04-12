@@ -39,13 +39,17 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 32Mi
               limits:
+                cpu: 100m
                 memory: 64Mi
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
         runAsUser: 65534
         runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
     service:
       app:
         ports:
