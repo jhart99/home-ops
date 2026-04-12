@@ -42,13 +42,35 @@ spec:
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
-              capabilities: { add: ["NET_ADMIN", "NET_RAW"], drop: ["ALL"] }
+              capabilities:
+                add:
+                  - "NET_ADMIN"
+                  - "NET_RAW"
+                  - "SYS_MODULE"
+                drop:
+                  - "ALL"
+              sysctls:
+                - name: net.ipv4.ip_forward
+                  value: 1
+                - name: net.ipv4.conf.all.src_valid_mark
+                  value: 1
             resources:
               requests:
                 cpu: 10m
+                memory: 128Mi
               limits:
+                cpu: 1000m
                 memory: 256Mi
 
+    defaultPodOptions:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     service:
       app:
         forceRename: "{{ .Release.Name }}"
