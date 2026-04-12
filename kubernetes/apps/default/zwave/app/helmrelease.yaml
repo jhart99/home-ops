@@ -10,9 +10,6 @@ spec:
     name: zwave
   interval: 1h
   values:
-    defaultPodOptions:
-      nodeSelector:
-        feature.node.kubernetes.io/zooz-zwave: "true"
     controllers:
       zwave:
         containers:
@@ -45,10 +42,23 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 128Mi
                 rnatr.com/zwave: 1
               limits:
+                cpu: 1000m
                 memory: 512Mi
                 rnatr.com/zwave: 1
+    defaultPodOptions:
+      nodeSelector:
+        feature.node.kubernetes.io/zooz-zwave: "true"
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
     service:
       app:
         ports:
