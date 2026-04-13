@@ -23,7 +23,7 @@ spec:
     certificates:
       enabled: true
       issuer:
-        name: none
+        name: null
         type: issuer
 
     # Indexer configuration
