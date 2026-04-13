@@ -98,6 +98,7 @@ spec:
                 protocol: TCP
               - port: 514
                 protocol: UDP
+      nodeSelector: { kubernetes.io/arch: amd64 }
       # Indexer credentials for filebeat
       indexerCred:
         existingSecret: wazuh-secret
