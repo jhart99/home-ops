@@ -31,7 +31,7 @@ spec:
       enabled: true
       replicas: 1  # Start with single replica
       storageSize: 50Gi
-      storageClass: ceph-rbd
+      storageClass: ceph-block
       resources:
         requests:
           cpu: 500m
@@ -104,7 +104,7 @@ spec:
       master:
         enabled: true
         storageSize: 50Gi
-        storageClass: ceph-rbd
+        storageClass: ceph-block
         extraEnvVars:
           - name: INDEXER_USERNAME
             value: "admin"
