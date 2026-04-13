@@ -23,7 +23,7 @@ spec:
     certificates:
       enabled: true
       issuer:
-        name: rnatr-internal-ca  # Creates self-signed issuer for internal certs
+        name: none
         type: issuer
 
     # Indexer configuration
