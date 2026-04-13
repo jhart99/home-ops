@@ -44,6 +44,7 @@ spec:
       # Sysctl set at Talos node level (machine-sysctls.yaml)
       sysctlImage:
         enabled: false
+      nodeSelector: { kubernetes.io/arch: amd64 }
       # Add missing action_groups.yml (chart bug)
       additionalConfigs:
         action_groups.yml: |
@@ -62,6 +63,7 @@ spec:
         limits:
           cpu: 1000m
           memory: 1Gi
+      nodeSelector: { kubernetes.io/arch: amd64 }
       cred:
         existingSecret: wazuh-secret
       ingress:
@@ -111,6 +113,7 @@ spec:
               secretKeyRef:
                 name: wazuh-secret
                 key: AUTHD_PASS
+        nodeSelector: { kubernetes.io/arch: amd64 }
         resources:
           requests:
             cpu: 500m
