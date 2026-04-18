@@ -45,6 +45,15 @@ spec:
       sysctlImage:
         enabled: false
       nodeSelector: { kubernetes.io/arch: amd64 }
+      livenessProbe:
+        periodSeconds: 20
+        timeoutSeconds: 5
+        failureThreshold: 10
+        successThreshold: 1
+        initialDelaySeconds: 10
+        scheme: HTTPS
+    tcpSocket:
+      port: 9200
       # Add missing action_groups.yml (chart bug)
       additionalConfigs:
         action_groups.yml: |
