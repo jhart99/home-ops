@@ -84,20 +84,7 @@ spec:
       loadBalancer:
         enabled: true
         annotations:
-          io.cilium/lb-ipam-ips: "10.100.0.29"
-      # Allow external agents to connect
-      networkPolicy:
-        extraIngress:
-          - from:
-              - ipBlock:
-                  cidr: 0.0.0.0/0
-            ports:
-              - port: 1515
-                protocol: TCP
-              - port: 1514
-                protocol: TCP
-              - port: 514
-                protocol: UDP
+          io.cilium/lb-ipam-ips: "192.168.30.29"
       nodeSelector: { kubernetes.io/arch: amd64 }
       # Indexer credentials for filebeat
       indexerCred:
