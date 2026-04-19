@@ -59,7 +59,7 @@ spec:
           RETRY_BACKOFF: 3
         repository.signing:
           FORMAT: ssh
-          SIGNING_KEY: /data/git/.ssh-signing/ed25519.pub
+          SIGNING_KEY: /data/git/.ssh-signing/key.pub
           SIGNING_NAME: Forgejo Instance Signing
           SIGNING_EMAIL: forgejo@rnatr.com
           INITIAL_COMMIT: pubkey
