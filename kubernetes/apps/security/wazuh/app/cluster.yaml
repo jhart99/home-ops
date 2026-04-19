@@ -22,7 +22,6 @@ spec:
     - component: nodes
       replicas: 3
       diskSize: "5Gi"
-      nodeSelector:
       resources:
         requests:
           memory: "2Gi"
