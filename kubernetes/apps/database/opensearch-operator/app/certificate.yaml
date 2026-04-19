@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: opensearch-operator-cert
+spec:
+  # This is the name of the Secret that cert-manager will create/update
+  secretName: opensearch-operator-tls-secret
+  duration: 2160h # 90 days
+  renewBefore: 360h # 15 days
+  subject:
+    organizations:
+      - my-org
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - opensearch-operator-opensearch-operator-webhook-service.database.svc
+    - opensearch-operator-opensearch-operator-webhook-service.database.svc.cluster.local
+  issuerRef:
+    name: rnatr-internal-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
