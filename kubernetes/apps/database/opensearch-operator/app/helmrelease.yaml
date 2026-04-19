@@ -20,6 +20,7 @@ spec:
     manager:
       securityContext:
         allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
       resources:
         limits:
           cpu: 1000m
