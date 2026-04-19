@@ -16,12 +16,7 @@ spec:
     nodeSelector:
       kubernetes.io/arch: amd64
     securityContext:
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities: { drop: ["ALL"] }
       runAsNonRoot: true
-      seccompProfile:
-        type: RuntimeDefault
     manager:
       securityContext:
         allowPrivilegeEscalation: false
