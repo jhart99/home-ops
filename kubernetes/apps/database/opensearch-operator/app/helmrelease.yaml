@@ -40,6 +40,5 @@ spec:
       enabled: true
       port: 9443
       failurePolicy: Fail
-      secretName: opensearch-operator-tls-secret
       certManager:
-        enabled: false
+        enabled: true
