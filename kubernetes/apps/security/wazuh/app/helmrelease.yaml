@@ -40,7 +40,7 @@ spec:
 
     externalIndexer:
       enabled: true
-      host: https://wazuh-indexer.wazuh.svc.cluster.local
+      host: https://wazuh-indexer.security.svc.cluster.local
       port: 9200
 
     indexer:
