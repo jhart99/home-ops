@@ -177,6 +177,8 @@ spec:
                   - ALL
               readOnlyRootFilesystem: true
 
+    defaultPodOptions:
+      nodeSelector: { kubernetes.io/arch: amd64 }
     persistence:
       config:
         type: configMap
