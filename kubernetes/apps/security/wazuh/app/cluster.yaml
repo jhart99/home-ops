@@ -1,0 +1,49 @@
+---
+apiVersion: opensearch.org/v1
+kind: OpenSearchCluster
+metadata:
+  name: wazuh-indexer
+spec:
+  general:
+    serviceName: wazuh-indexer
+    version: "3"
+  dashboards:
+    enable: true
+    version: "3"
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  nodePools:
+    - component: nodes
+      replicas: 3
+      diskSize: "5Gi"
+      nodeSelector:
+      resources:
+        requests:
+          memory: "2Gi"
+          cpu: "500m"
+        limits:
+          memory: "2Gi"
+          cpu: "500m"
+      roles:
+        - "cluster_manager"
+        - "data"
+  security:
+    tls:
+      transport: # Configuration of the transport endpoint
+        enabled: true # Enable TLS for transport (default: true if transport config exists)
+        generate: true # Have the operator generate and sign certificates
+        perNode: true # Separate certificate per node
+        # How long generated certificates are valid (default: 8760h = 1 year)
+        duration: "760h"
+      http: # Configuration of the HTTP endpoint
+        enabled: true # Enable TLS for HTTP (default: true if http config exists, false to disable)
+        generate: true # Have the Operator generate and sign certificates
+        customFQDN: "opensearch.rnatr.com" # Optional: Custom FQDN for the certificate
+        # How long generated certificates are valid (default: 8760h = 1 year)
+        duration: "760h"

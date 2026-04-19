@@ -1,0 +1,9 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: wazuh
+spec:
+  interval: 30m
+  url: https://morgoved.github.io/wazuh-helm/
+  timeout: 3m

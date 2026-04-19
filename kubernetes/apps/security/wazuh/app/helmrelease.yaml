@@ -1,0 +1,243 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: wazuh
+spec:
+  interval: 15m
+  chart:
+    spec:
+      chart: wazuh
+      version: 1.0.22
+      sourceRef:
+        kind: HelmRepository
+        name: wazuh
+  values:
+    nodeSelector:
+      kubernetes.io/arch: amd64
+
+
+    cert-manager:
+      enabled: false
+    certificates:
+      ## @param certificates.enabled deploy all certificates and issuer configuration with certmanager if enabled
+      enabled: true
+      requestPolicy:
+        enabled: false
+      ## Parameters for the issuer.
+      ##
+      issuer:
+        ## @param certificates.issuer.name of the issuer used for signing the certificates. If this is null
+        ## a new selfsigned issuer will be created with the chart.
+        ##
+        name: null
+        ## @param certificates.issuer.type defines the type of the issuer, possible values are issuer and
+        ## ClusterIssuer.
+        ##
+        type: issuer
+      duration: 2160h # 90d
+      renewBefore: 360h # 15d
+
+    externalIndexer:
+      enabled: true
+      host: https://wazuh-indexer.wazuh.svc.cluster.local
+      port: 9200
+
+    indexer:
+      enabled: false
+
+    dashboard:
+      enabled: true
+      replicas: 1
+      images:
+        repository: wazuh/wazuh-dashboard
+        tag: 4.14.1@sha256:91c8d793746f5565903cf1cf262ba8e299047bf460340d2c6531e7b8c90523eb
+      resources:
+        requests:
+          cpu: 500m
+          memory: 512Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+      livenessProbe: &probe
+        periodSeconds: 20
+        timeoutSeconds: 5
+        failureThreshold: 10
+        successThreshold: 1
+        initialDelaySeconds: 10
+        httpGet:
+          path: /api/status
+          port: 5601
+      readinessProbe: *probe
+      service:
+        type: ClusterIP
+        httpPort: 5601
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      cred:
+        existingSecret: wazuh-dashboard-secret
+      basicAuth:
+        enabled: true
+        order: 4
+        challenge: true
+
+    wazuh:
+      enabled: true
+      syslog_enable: true
+      key: "c98b62a9b6169ac5f67dae55ae4a9088"
+      images:
+        repository: wazuh/wazuh-manager
+        tag: 4.14.1@sha256:5a065930682d728e3939a3a34b7c9bc28d55b22d3d93c2fe3cc19cf76d67e8e8
+        pullPolicy: IfNotPresent
+      service:
+        port: 1516
+      nodeSelector: { kubernetes.io/arch: amd64 }
+      env:
+        FILEBEAT_SSL_VERIFICATION_MODE: full
+      apiCred:
+        existingSecret: wazuh-api-secret
+      initContainer:
+        image: alpine
+        resources:
+          requests:
+            cpu: 250m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+      master:
+        enabled: true
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        service:
+          type: ClusterIP
+          annotations: {}
+          ports:
+            - name: registration
+              protocol: TCP
+              port: 1515
+              targetPort: 1515
+            - name: api
+              protocol: TCP
+              port: 55000
+              targetPort: 55000
+        securityContext:
+          capabilities:
+            add: ["SYS_CHROOT"]
+        pvc:
+          extraLabels: {}
+        storageSize: 50Gi
+        storageClass: ceph-block
+      worker:
+        enabled: true
+        replicas: 2
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+        service:
+          type: ClusterIP
+          annotations: {}
+          ports:
+            - name: agents-events
+              protocol: TCP
+              port: 1514
+              targetPort: 1514
+        securityContext:
+          capabilities:
+            add: ["SYS_CHROOT"]
+        storageSize: 50Gi
+        storageClass: ceph-block
+    agent:
+      enabled: true
+      service:
+        port: 5000
+        type: ClusterIP
+
+      images:
+        repository: wazuh/wazuh-agent
+        tag: 4.14.1@sha256:085aac688d372f6243a679b87ca98135be37b12bb7733c7b5f92041517e6800e
+      securityContext:
+        privileged: true
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+
+      joinManager:
+        managerHost: ""
+        apiPort: "55000"
+        agentsEvents: "1514"
+        workerHost: ""
+        scheme: https
+        wazuh:
+          group: default
+
+      apiCred:
+        existingSecret: "wazuh-api-secret"
+      volumes:
+        - name: var-run
+          hostPath:
+            path: /var/run
+        - name: dev
+          hostPath:
+            path: /dev
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: etc
+          hostPath:
+            path: /etc
+        - name: boot
+          hostPath:
+            path: /boot
+        - name: usr
+          hostPath:
+            path: /usr
+        - name: modules
+          hostPath:
+            path: /lib/modules
+        - name: log
+          hostPath:
+            path: /var/log
+
+      volumeMounts:
+        - mountPath: /var/run
+          name: var-run
+        - mountPath: /host/dev
+          name: dev
+        - mountPath: /host/sys
+          name: sys
+          readOnly: true
+        - mountPath: /host/proc
+          name: proc
+          readOnly: true
+        - mountPath: /host/etc
+          name: etc
+          readOnly: true
+        - mountPath: /host/boot
+          name: boot
+          readOnly: true
+        - mountPath: /host/usr
+          name: usr
+          readOnly: true
+        - mountPath: /host/lib/modules
+          name: modules
+          readOnly: true
+        - mountPath: /host/var/log
+          name: log
+          readOnly: true
