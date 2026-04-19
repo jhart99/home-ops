@@ -149,7 +149,7 @@ spec:
                 cd /persistent && forgejo-runner register \
                   --instance http://forgejo-http.default.svc.cluster.local:3000 \
                   --token "${RUNNER_TOKEN}" \
-                  --name k8s-runner \
+                  --name "${RUNNER_NAME}" \
                   --labels "default:k8spod:/config/podspec-default.yaml" \
                   --no-interactive
             envFrom:
