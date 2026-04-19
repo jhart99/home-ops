@@ -40,6 +40,11 @@ spec:
       serviceMonitor:
         enabled: true
 
+    signing:
+      enabled: true
+      ssh:
+        existingSecret: forgejo-signing-secret
+
     gitea:
       admin:
         existingSecret: forgejo-admin-secret
