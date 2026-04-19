@@ -32,6 +32,20 @@ runner:
   # If it's empty when execute `daemon`, will use labels in `.runner` file.
   labels: []
 
+cache:
+  # Enable cache server to use actions/cache.
+  enabled: true
+  # The directory to store the cache data.
+  # If it's empty, the cache data will be stored in $HOME/.cache/actcache.
+  dir: "/cache"
+  # The host of the cache server.
+  # It's not for the address to listen, but the address to connect from job containers.
+  # So 0.0.0.0 is a bad choice, leave it empty to detect automatically.
+  host: ""
+  # The port of the cache server.
+  # 0 means to use a random available port.
+  port: 0
+
 container:
   # Specifies the network to which the container will connect.
   # Could be host, bridge or the name of a custom network.
@@ -67,4 +81,4 @@ container:
 host:
   # The parent directory of a job's working directory.
   # If it's empty, $HOME/.cache/act/ will be used.
-  workdir_parent:
+  workdir_parent: /cache/act

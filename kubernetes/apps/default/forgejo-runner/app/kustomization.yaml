@@ -6,5 +6,11 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
+configMapGenerator:
+  - name: forgejo-runner-configmap
+    files:
+      - ./resources/config.yaml
+configurations:
+  - ./resources/kustomizeconfig.yaml
 generatorOptions:
   disableNameSuffixHash: true
