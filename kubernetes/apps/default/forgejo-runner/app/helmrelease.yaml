@@ -82,10 +82,10 @@ spec:
             command:
               - "sh"
               - "-c"
-              - "while ! nc -z localhost 2376 </dev/null; do echo 'waiting for docker daemon...'; sleep 5; done; forgejo-runner --config /config/config.yaml daemon"
+              - "while ! nc -z daemon 2376 </dev/null; do echo 'waiting for docker daemon...'; sleep 5; done; forgejo-runner --config /config/config.yaml daemon"
             env:
               - name: DOCKER_HOST
-                value: tcp://localhost:2376
+                value: tcp://daemon:2376
               - name: DOCKER_CERT_PATH
                 value: /certs/client
               - name: DOCKER_TLS_VERIFY
