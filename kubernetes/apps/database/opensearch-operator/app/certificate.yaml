@@ -19,8 +19,8 @@ spec:
     - server auth
     - client auth
   dnsNames:
-    - opensearch-operator-opensearch-operator-webhook-service.database.svc
-    - opensearch-operator-opensearch-operator-webhook-service.database.svc.cluster.local
+    - opensearch-operator-webhook-service.database.svc
+    - opensearch-operator-webhook-service.database.svc.cluster.local
   issuerRef:
     name: rnatr-internal-ca
     kind: ClusterIssuer
