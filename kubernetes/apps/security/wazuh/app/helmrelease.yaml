@@ -45,6 +45,8 @@ spec:
 
     indexer:
       enabled: false
+      cred:
+        existingSecret: indexer-cred
 
     dashboard:
       enabled: true
@@ -173,7 +175,7 @@ spec:
           memory: 64Mi
         limits:
           cpu: 100m
-          memory: 128Mi
+          memory: 256Mi
 
       joinManager:
         managerHost: ""

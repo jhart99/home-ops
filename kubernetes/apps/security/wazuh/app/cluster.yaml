@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=
 apiVersion: opensearch.org/v1
 kind: OpenSearchCluster
 metadata:
@@ -33,6 +34,9 @@ spec:
         - "cluster_manager"
         - "data"
   security:
+    config:
+      adminCredentialsSecret:
+        name: wazuh-indexer-admin-secret
     tls:
       transport: # Configuration of the transport endpoint
         enabled: true # Enable TLS for transport (default: true if transport config exists)
