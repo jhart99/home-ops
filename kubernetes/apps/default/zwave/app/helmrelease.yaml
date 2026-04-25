@@ -20,12 +20,12 @@ spec:
             env:
               TZ: America/New_York
               PORT: &port 80
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                  - ALL
+            # securityContext:
+            #   allowPrivilegeEscalation: false
+            #   readOnlyRootFilesystem: true
+            #   capabilities:
+            #     drop:
+            #       - ALL
             probes:
               liveness: &probes
                 enabled: true
@@ -51,14 +51,14 @@ spec:
     defaultPodOptions:
       nodeSelector:
         feature.node.kubernetes.io/zooz-zwave: "true"
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        runAsNonRoot: true
-        fsGroupChangePolicy: OnRootMismatch
-        seccompProfile:
-          type: RuntimeDefault
+      # securityContext:
+      #   runAsUser: 1000
+      #   runAsGroup: 1000
+      #   fsGroup: 1000
+      #   runAsNonRoot: true
+      #   fsGroupChangePolicy: OnRootMismatch
+      #   seccompProfile:
+      #     type: RuntimeDefault
     service:
       app:
         ports:
