@@ -27,5 +27,7 @@ spec:
   values:
     resources:
       gpus:
-        enabled: false
+        enabled: true
+      computeDomains:
+        enabled: true
     nvidiaDriverRoot: '/usr/local'
