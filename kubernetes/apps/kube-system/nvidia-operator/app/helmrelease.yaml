@@ -27,6 +27,10 @@ spec:
   values:
     driver:
       enabled: false
+    hostPaths:
+      driverInstallDir: "/usr/local/"
+    nfd:
+      enabled: false
     toolkit:
       enabled: false
       # env:
@@ -38,5 +42,3 @@ spec:
       #     value: nvidia
       #   - name: CONTAINERD_SET_AS_DEFAULT
       #     value: "true"
-    hostPaths:
-      driverInstallDir: "/usr/local/"
