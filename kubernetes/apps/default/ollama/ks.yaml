@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/default/ollama/app
   dependsOn:
-    - name: nvidia-device-plugin
+    - name: nvidia-operator
       namespace: kube-system
   postBuild:
     substituteFrom:
