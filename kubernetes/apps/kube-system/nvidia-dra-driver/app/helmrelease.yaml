@@ -28,3 +28,4 @@ spec:
     resources:
       gpus:
         enabled: false
+    nvidiaDriverRoot: '/usr/local'
