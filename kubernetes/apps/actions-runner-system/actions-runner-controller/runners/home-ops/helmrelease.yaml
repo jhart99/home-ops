@@ -52,5 +52,6 @@ spec:
               kind: Role
               metadata:
                 name: home-ops-runner-gha-rs-manager
-                annotations:
-                  trivy.aquasecurity.github.io/ignore-avd: "AVD-KSV-0050,AVD-KSV-0113,AVD-KSV-0048"
+                # Swapped from annotations to labels
+                labels:
+                  trivy-skip-scan: "true"

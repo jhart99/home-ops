@@ -113,6 +113,8 @@ spec:
             - ALL
         seccompProfile:
           type: RuntimeDefault
+      # to ignore specific resources when ignore lists do not function
+      skipResourceByLabels: "trivy-skip-scan"
 
     # ============================================
     # Compliance and RBAC Scanning
