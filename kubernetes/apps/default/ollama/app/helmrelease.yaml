@@ -80,7 +80,9 @@ spec:
         globalMounts:
           - path: /home/ubuntu
           - path: /tmp
-      models:
-        type: emptyDir
+      library:
+        type: nfs
+        server: pve.jonathanrosshart.com
+        path: /pool/share/fileshare/models
         globalMounts:
           - path: /models
