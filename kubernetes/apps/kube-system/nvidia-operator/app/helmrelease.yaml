@@ -39,4 +39,4 @@ spec:
       #   - name: CONTAINERD_SET_AS_DEFAULT
       #     value: "true"
     hostPaths:
-      driverInstallDir: "/usr/local/glibc/usr/lib"
+      driverInstallDir: "/usr/local/"
