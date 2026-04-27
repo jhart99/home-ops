@@ -310,7 +310,7 @@ nodes:
     installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: false
-    talosImageURL: factory.talos.dev/installer/5760b263114485faae3827cd3decc98005f432c68c7b7d60b9bc9b989709ce47
+    talosImageURL: factory.talos.dev/installer/d7ace2998426c6b73fe450e0166c49d8b8870aff89cb41cf7687635836149cb7
     controlPlane: false
     kernelModules:
       - name: nvidia
@@ -319,12 +319,6 @@ nodes:
       - name: nvidia_modeset
       - name: mlx5-core
     patches:
-      - # Load kernel modules
-        |-
-        machine:
-          kernel:
-            modules:
-              - name: mlx5-core
       - # Network configuration
         |-
         ---
