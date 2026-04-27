@@ -31,3 +31,4 @@ spec:
       computeDomains:
         enabled: true
     nvidiaDriverRoot: '/usr/local'
+    gpuResourcesEnabledOverride: true
