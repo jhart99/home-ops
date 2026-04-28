@@ -27,8 +27,7 @@ spec:
   values:
     resources:
       gpus:
-        enabled: true
+        enabled: false
       computeDomains:
         enabled: true
     nvidiaDriverRoot: '/usr/local'
-    gpuResourcesEnabledOverride: true
