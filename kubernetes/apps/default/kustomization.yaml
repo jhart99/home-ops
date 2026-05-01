@@ -8,6 +8,7 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./atuin/ks.yaml
   - ./echo/ks.yaml
   - ./echo-basicauth/ks.yaml
   - ./echo-oidcauth/ks.yaml
