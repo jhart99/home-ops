@@ -141,5 +141,3 @@ spec:
         enabled: true
     postgresql:
       enabled: false
-    redis:
-      enabled: true
