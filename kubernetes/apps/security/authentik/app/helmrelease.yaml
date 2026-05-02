@@ -92,6 +92,10 @@ spec:
           memory: 512Mi
         limits:
           memory: 2Gi
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containerSecurityContext:
         runAsNonRoot: true
         readOnlyRootFilesystem: true
@@ -119,6 +123,10 @@ spec:
         enabled: true
         serviceMonitor:
           enabled: true
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containerSecurityContext:
         runAsNonRoot: true
         readOnlyRootFilesystem: true
