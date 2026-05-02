@@ -48,7 +48,9 @@ spec:
             resources:
               requests:
                 cpu: 10m
+                memory: 128Mi
               limits:
+                cpu: 1000m
                 memory: 1Gi
     defaultPodOptions:
       securityContext:
@@ -57,6 +59,9 @@ spec:
         runAsGroup: 1000
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
     service:
       app:
         ports:
