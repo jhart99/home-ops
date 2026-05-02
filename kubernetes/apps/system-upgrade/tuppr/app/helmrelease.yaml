@@ -10,7 +10,13 @@ spec:
     name: tuppr
   interval: 1h
   values:
+    image:
+      repository: ghcr.io/home-operations/tuppr
+      tag: 0.1.11@sha256:4b6a5f9149732689d1561782087a9a2391de1df2f140ff27d7e00f2dd169e369
     replicaCount: 2
     monitoring:
       serviceMonitor:
         enabled: true
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
