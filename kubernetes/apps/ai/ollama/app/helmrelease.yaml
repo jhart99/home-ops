@@ -50,12 +50,12 @@ spec:
               requests:
                 cpu: 200m
                 memory: 2Gi
-                nvidia.com/gpu: "1"
+                # nvidia.com/gpu: "1"
                 ephemeral-storage: "30Gi"
               limits:
                 cpu: 2000m
                 memory: 88Gi
-                nvidia.com/gpu: "1"
+                # nvidia.com/gpu: "1"
                 ephemeral-storage: "100Gi"
 
     defaultPodOptions:
