@@ -6,7 +6,7 @@ metadata:
   name: ollama
 spec:
   interval: 1h
-  path: ./kubernetes/apps/default/ollama/app
+  path: ./kubernetes/apps/ai/ollama/app
   dependsOn:
     - name: nvidia-operator
       namespace: kube-system
@@ -19,5 +19,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: ai
   wait: false

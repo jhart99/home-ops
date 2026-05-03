@@ -1,3 +1,5 @@
+.env
+.qwen/
 # Secrets
 *.pub
 *.key

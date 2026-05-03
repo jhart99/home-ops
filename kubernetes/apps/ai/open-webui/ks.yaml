@@ -6,9 +6,10 @@ metadata:
   name: open-webui
 spec:
   interval: 1h
-  path: ./kubernetes/apps/default/open-webui/app
+  path: ./kubernetes/apps/ai/open-webui/app
   dependsOn:
     - name: ollama
+      namespace: ai
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync
@@ -27,5 +28,5 @@ spec:
     kind: GitRepository
     name: flux-system
     namespace: flux-system
-  targetNamespace: default
+  targetNamespace: ai
   wait: false
