@@ -58,7 +58,6 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 4G
-                nvidia.com/gpu: "1"
             probes:
               liveness: &probes
                 enabled: true
