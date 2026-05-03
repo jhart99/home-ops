@@ -24,6 +24,16 @@ spec:
               ENABLE_OLLAMA_API: "true"
               WEBUI_AUTH: "true"
               DATA_DIR: /data
+              # Required for OIDC
+              OAUTH_CLIENT_ID: kwXD1uXbBGa53v3uKvITLrqaMB0rWohYWl1wyhmp
+              OPENID_PROVIDER_URL: https://auth.${SECRET_DOMAIN}/.well-known/openid-configuration
+              ENABLE_OAUTH_SIGNUP: true
+              OAUTH_PROVIDER_NAME: Authentik
+              OAUTH_SCOPES: "openid email profile"
+              OPENID_REDIRECT_URI: https://open-webui.${SECRET_DOMAIN}/oauth/oidc/callback
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
@@ -36,7 +46,7 @@ spec:
                   periodSeconds: 5
             securityContext:
               allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
+              # readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
