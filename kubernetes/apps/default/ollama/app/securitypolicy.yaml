@@ -15,4 +15,4 @@ spec:
       name: ollama-apikey
     extractFrom:
     - headers:
-      - x-api-key
+      - "Authorization"
