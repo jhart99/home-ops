@@ -54,7 +54,7 @@ spec:
                 ephemeral-storage: "30Gi"
               limits:
                 cpu: 2000m
-                memory: 8Gi
+                memory: 88Gi
                 nvidia.com/gpu: "1"
                 ephemeral-storage: "100Gi"
 
