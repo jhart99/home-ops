@@ -26,7 +26,7 @@ spec:
               DATA_DIR: /data
               # Required for OIDC
               OAUTH_CLIENT_ID: kwXD1uXbBGa53v3uKvITLrqaMB0rWohYWl1wyhmp
-              OPENID_PROVIDER_URL: https://auth.${SECRET_DOMAIN}/.well-known/openid-configuration
+              OPENID_PROVIDER_URL: https://auth.${SECRET_DOMAIN}/application/o/open-webui/.well-known/openid-configuration
               ENABLE_OAUTH_SIGNUP: true
               OAUTH_PROVIDER_NAME: Authentik
               OAUTH_SCOPES: "openid email profile"
@@ -46,7 +46,7 @@ spec:
                   periodSeconds: 5
             securityContext:
               allowPrivilegeEscalation: false
-              # readOnlyRootFilesystem: true
+              readOnlyRootFilesystem: true
               capabilities: {drop: ["ALL"]}
             resources:
               requests:
@@ -91,8 +91,10 @@ spec:
             main:
               - path: /data
                 subPath: data
-              - path: /static
-                subPath: static
+              - path: /app/backend
+                subPath: backend
+              - path: /root
+                subPath: root
       tmpfs:
         type: emptyDir
         advancedMounts:
