@@ -91,6 +91,8 @@ spec:
             app:
               - path: /data
                 subPath: data
+              - path: /app/backend/data
+                subPath: cachedata
               - path: /root
                 subPath: root
       tmpfs:
