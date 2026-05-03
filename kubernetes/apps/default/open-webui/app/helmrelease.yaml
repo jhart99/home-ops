@@ -88,7 +88,7 @@ spec:
         existingClaim: "{{ .Release.Name }}"
         advancedMounts:
           open-webui:
-            main:
+            app:
               - path: /data
                 subPath: data
               - path: /app/backend
@@ -99,6 +99,6 @@ spec:
         type: emptyDir
         advancedMounts:
           open-webui:
-            main:
+            app:
               - path: /tmp
                 subPath: tmp
