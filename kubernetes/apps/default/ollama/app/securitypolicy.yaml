@@ -1,0 +1,18 @@
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ollama-apikey-policy
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: ollama
+  apiKeyAuth:
+    credentialRefs:
+    - group: ""
+      kind: Secret
+      name: ollama-apikey
+    extractFrom:
+    - headers:
+      - x-api-key
