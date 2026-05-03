@@ -74,7 +74,19 @@ spec:
                 port: *port
 
     persistence:
-      data:
+      config:
         existingClaim: "{{ .Release.Name }}"
-        globalMounts:
-          - path: /data
+        advancedMounts:
+          open-webui:
+            main:
+              - path: /data
+                subPath: data
+              - path: /static
+                subPath: static
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          open-webui:
+            main:
+              - path: /tmp
+                subPath: tmp
