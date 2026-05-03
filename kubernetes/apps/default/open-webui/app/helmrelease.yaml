@@ -24,6 +24,7 @@ spec:
               ENABLE_OLLAMA_API: "true"
               WEBUI_AUTH: "true"
               DATA_DIR: /data
+              USER_AGENT: "OpenWebUI/0.9.2"
               # Required for OIDC
               OAUTH_CLIENT_ID: kwXD1uXbBGa53v3uKvITLrqaMB0rWohYWl1wyhmp
               OPENID_PROVIDER_URL: https://auth.${SECRET_DOMAIN}/application/o/open-webui/.well-known/openid-configuration
