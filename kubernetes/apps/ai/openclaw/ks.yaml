@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/kustomize.toolkit.fluxcd.io/kustomization_v1.json
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: openclaw
+spec:
+  interval: 1h
+  path: ./kubernetes/apps/ai/openclaw/app
+  dependsOn:
+    - name: ollama
+      namespace: ai
+    - name: rook-ceph-cluster
+      namespace: rook-ceph
+    - name: volsync
+      namespace: volsync-system
+  components:
+    - ../../../../components/volsync
+  postBuild:
+    substitute:
+      APP: open-webui
+      VOLSYNC_CAPACITY: 5Gi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+    namespace: flux-system
+  targetNamespace: ai
+  wait: false

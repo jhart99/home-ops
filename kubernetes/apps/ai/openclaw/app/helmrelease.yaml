@@ -1,0 +1,147 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: openclaw
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: openclaw
+  interval: 1h
+  values:
+    defaultPodOptions:
+      automountServiceAccountToken: true
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+    controllers:
+      openclaw:
+        containers:
+          app:
+            image:
+              repository: ghcr.io/openclaw/openclaw
+              tag: 2026.5.6@sha256:2ca86d6296fe2ae7111dac14843551340a4c5099e01566253b62c4d3e0a337fc
+            env:
+              OPENCLAW_DISABLE_BONJOUR: "1"
+              NODE_OPTIONS: "--max-old-space-size=4096"
+            probes:
+              liveness:
+                enabled: false
+              readiness:
+                enabled: false
+              startup:
+                enabled: false
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 100m
+                memory: 3Gi
+              limits:
+                memory: 4Gi
+
+    service:
+      app:
+        ports:
+          http:
+            port: &port 18789
+          json-rpc:
+            port: 8080
+
+    route:
+      app:
+        hostnames:
+          - "openclaw.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: *port
+
+    persistence:
+      config:
+        existingClaim: "{{ .Release.Name }}"
+        advancedMounts:
+          openclaw:
+            app:
+              - path: /home/node
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+
+    serviceAccount:
+      openclaw: {}
+
+    rbac:
+      roles:
+        openclaw-read:
+          type: ClusterRole
+          rules:
+            - apiGroups: [""]
+              resources:
+                - pods
+                - nodes
+                - services
+                - namespaces
+                - configmaps
+                - persistentvolumes
+                - persistentvolumeclaims
+                - endpoints
+                - resourcequotas
+                - limitranges
+                - serviceaccounts
+                - events
+              verbs: ["get", "list", "watch"]
+            - apiGroups: [""]
+              resources: ["pods/log"]
+              verbs: ["get", "list"]
+            - apiGroups: ["apps"]
+              resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["batch"]
+              resources: ["jobs", "cronjobs"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["networking.k8s.io"]
+              resources: ["ingresses", "networkpolicies"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["storage.k8s.io"]
+              resources: ["storageclasses"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["metrics.k8s.io"]
+              resources: ["nodes", "pods"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["helm.toolkit.fluxcd.io"]
+              resources: ["helmreleases"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["kustomize.toolkit.fluxcd.io"]
+              resources: ["kustomizations"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: ["source.toolkit.fluxcd.io"]
+              resources:
+                - gitrepositories
+                - helmrepositories
+                - helmcharts
+                - ocirepositories
+              verbs: ["get", "list", "watch"]
+      bindings:
+        openclaw-read:
+          type: ClusterRoleBinding
+          roleRef:
+            identifier: openclaw-read
+          subjects:
+            - identifier: openclaw
+              serviceAccount: openclaw
