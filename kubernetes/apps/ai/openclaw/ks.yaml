@@ -18,7 +18,7 @@ spec:
     - ../../../../components/volsync
   postBuild:
     substitute:
-      APP: open-webui
+      APP: openclaw
       VOLSYNC_CAPACITY: 5Gi
     substituteFrom:
       - name: cluster-secrets
