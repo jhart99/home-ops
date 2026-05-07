@@ -27,7 +27,7 @@ spec:
           app:
             image:
               repository: ghcr.io/openclaw/openclaw
-              tag: 2026.5.6@sha256:2ca86d6296fe2ae7111dac14843551340a4c5099e01566253b62c4d3e0a337fc
+              tag: 2026.5.7@sha256:1af3f457a2d5a1d210f4d95634fa5da6e23f9c0ac7b52ef4bc38e2ecf09704fd
             env:
               OPENCLAW_DISABLE_BONJOUR: "1"
               NODE_OPTIONS: "--max-old-space-size=4096"
