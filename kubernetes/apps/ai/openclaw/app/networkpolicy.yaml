@@ -17,7 +17,7 @@ spec:
             gateway.envoyproxy.io/owning-gateway-namespace: network
       toPorts:
         - ports:
-            - port: "18789"
+            - port: "18791"
               protocol: TCP
   egress:
     # DNS resolution
