@@ -8,11 +8,13 @@ spec:
     matchLabels:
       app.kubernetes.io/name: openclaw
   ingress:
-    - fromEntities:
-        - ingress
+    - fromEndpoints:
+        - matchLabels:
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
+            gateway.envoyproxy.io/owning-gateway-namespace: network
       toPorts:
         - ports:
-            - port: http
+            - port: "18789"
               protocol: TCP
   egress:
     # DNS resolution
