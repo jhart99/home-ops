@@ -9,7 +9,9 @@ spec:
       app.kubernetes.io/name: openclaw
   ingress:
     - fromEndpoints:
-        - {}
+      - matchLabels:
+          k8s:io.kubernetes.pod.namespace: network
+          name: envoy
   egress:
     # DNS resolution
     - toEndpoints:
