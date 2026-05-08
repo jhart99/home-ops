@@ -55,7 +55,7 @@ spec:
       app:
         ports:
           http:
-            port: &port 18791
+            port: &port 18789
 
     route:
       app:

@@ -14,7 +14,7 @@ spec:
             gateway.envoyproxy.io/owning-gateway-namespace: network
       toPorts:
         - ports:
-            - port: "18791"
+            - port: "18789"
               protocol: TCP
 ---
 apiVersion: cilium.io/v2
