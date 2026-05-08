@@ -9,13 +9,7 @@ spec:
       app.kubernetes.io/name: openclaw
   ingress:
     - fromEndpoints:
-        - matchLabels:
-            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
-            gateway.envoyproxy.io/owning-gateway-namespace: network
-      toPorts:
-        - ports:
-            - port: "18789"
-              protocol: TCP
+        - {}
   egress:
     # DNS resolution
     - toEndpoints:
@@ -28,13 +22,7 @@ spec:
               protocol: UDP
     # Ollama LLM backend
     - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ai
-            app.kubernetes.io/name: ollama
-      toPorts:
-        - ports:
-            - port: "11434"
-              protocol: TCP
+        - {}
     # kube-apiserver (required for ServiceAccount RBAC to work)
     - toEntities:
         - kube-apiserver
