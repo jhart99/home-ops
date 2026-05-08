@@ -1,11 +1,8 @@
 ---
-# Deny all ingress and egress by default; allow only what is explicitly listed below.
-# Openclaw is untrusted: ingress only from the internal gateway, egress only to
-# DNS, Ollama (LLM backend), and the kube-apiserver (required for RBAC/cluster inspection).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: openclaw
+  name: openclaw-ingress
 spec:
   endpointSelector:
     matchLabels:
@@ -19,6 +16,15 @@ spec:
         - ports:
             - port: "18791"
               protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openclaw-egress
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: openclaw
   egress:
     # DNS resolution
     - toEndpoints:
