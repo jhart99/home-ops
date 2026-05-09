@@ -165,6 +165,10 @@ spec:
     alpnProtocols:
       - h2
       - http/1.1
+    ecdhCurves:
+      - X25519MLKEM768
+      - X25519
+      - P-256
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
