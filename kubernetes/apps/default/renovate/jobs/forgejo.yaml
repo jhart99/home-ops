@@ -5,6 +5,8 @@ kind: RenovateJob
 metadata:
   name: forgejo
 spec:
+  discoveryFilters:
+    - "delf/*"
   extraEnv:
     - name: LOG_LEVEL
       value: debug
