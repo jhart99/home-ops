@@ -23,10 +23,6 @@ spec:
       parentRefs:
         - name: envoy-internal
           namespace: network
-    valkey:
-      enabled: true
-      dataStorage:
-        enabled: true
     webhook:
       enabled: true
       route:
