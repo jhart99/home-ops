@@ -6,3 +6,5 @@ resources:
   - ./helmrelease.yaml
   # - ./networkpolicy.yaml
   - ./ocirepository.yaml
+  - ./secret.sops.yaml
+  - ./securitypolicy.yaml
