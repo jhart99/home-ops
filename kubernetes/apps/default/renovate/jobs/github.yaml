@@ -13,7 +13,9 @@ spec:
     - name: RENOVATE_PLATFORM_COMMIT
       value: "enabled"
   image: ghcr.io/renovatebot/renovate:43.170.16
-  parallelism: 5
+  parallelism: 1
+  persistence:
+    enabled: false
   provider:
     name: github
     endpoint: https://api.github.com

@@ -15,6 +15,8 @@ spec:
     - name: RENOVATE_PLATFORM_COMMIT
       value: "enabled"
   image: ghcr.io/renovatebot/renovate:43.170.16
+  persistence:
+    enabled: false
   provider:
     name: forgejo
     endpoint: https://forgejo.rnatr.com/api/v1
