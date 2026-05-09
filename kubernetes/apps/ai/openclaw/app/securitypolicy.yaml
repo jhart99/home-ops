@@ -13,7 +13,7 @@ spec:
       issuer: "https://auth.${SECRET_DOMAIN}/application/o/openclaw"
     clientID: "4EiLeO0O5q2rvO4RaG1VnGGlhuYx3tMjoqoXXZMk"
     clientSecret:
-      name: echo-auth-client-secret
+      name: openclaw-client-secret
     redirectURL: "https://openclaw.${SECRET_DOMAIN}/oauth2/callback"
     cookieDomain: "${SECRET_DOMAIN}"
     cookieNames:
