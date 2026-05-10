@@ -17,8 +17,6 @@ spec:
             image:
               repository: forgejo.${SECRET_DOMAIN}/${SECRET_ACCOUNT}/${SECRET_DOMAIN}
               tag: latest
-            imagePullSecrets:
-              - name: forgejo-blog-key
             probes:
               liveness: &probes
                 enabled: true
@@ -41,6 +39,9 @@ spec:
                 cpu: 10m
               limits:
                 memory: 64Mi
+        pod:
+          imagePullSecrets:
+            - name: forgejo-blog-key
     defaultPodOptions:
       securityContext:
         runAsNonRoot: true
