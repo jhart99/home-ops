@@ -246,7 +246,7 @@ spec:
     route:
       app:
         hostnames:
-          - hermes.${SECRET_DOMAIN}}
+          - hermes.${SECRET_DOMAIN}
         parentRefs:
           - name: envoy-internal
             namespace: network
