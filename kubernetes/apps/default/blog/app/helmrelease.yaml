@@ -64,10 +64,7 @@ spec:
               - identifier: app
                 port: *port
     persistence:
-      tmpfs:
+      cache:
         type: emptyDir
-        advancedMounts:
-          cache:
-            app:
-              - path: /var/cache
-                subPath: cache
+        globalMounts:
+          - path: /var/cache
