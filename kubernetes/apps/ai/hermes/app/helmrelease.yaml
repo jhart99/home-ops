@@ -29,8 +29,6 @@ spec:
                 set -euo pipefail
                 mkdir -p /opt/data
                 cp /run/config/config.yaml /opt/data/config.yaml
-                cp /run/config/env /opt/data/.env
-                chmod 600 /opt/data/.env
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -279,15 +277,6 @@ spec:
             init:
               - path: /run/config/config.yaml
                 subPath: config.yaml
-      config:
-        type: secret
-        name: hermes-secret
-        defaultMode: 0o400
-        advancedMounts:
-          hermes:
-            init:
-              - path: /run/config/env
-                subPath: env
       tmp:
         type: emptyDir
         globalMounts:
