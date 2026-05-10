@@ -63,3 +63,11 @@ spec:
           - backendRefs:
               - identifier: app
                 port: *port
+    persistence:
+      tmpfs:
+        type: emptyDir
+        advancedMounts:
+          cache:
+            app:
+              - path: /var/cache
+                subPath: cache
