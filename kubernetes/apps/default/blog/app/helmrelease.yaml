@@ -17,6 +17,8 @@ spec:
             image:
               repository: forgejo.${SECRET_DOMAIN}/${SECRET_ACCOUNT}/${SECRET_DOMAIN}
               tag: latest
+            imagePullSecrets:
+              - name: forgejo-blog-key
             probes:
               liveness: &probes
                 enabled: true
