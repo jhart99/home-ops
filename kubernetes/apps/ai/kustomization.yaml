@@ -8,7 +8,7 @@ components:
 
 resources:
   - ./namespace.yaml
-  # - ./hermes/ks.yaml
+  - ./hermes/ks.yaml
   - ./ollama/ks.yaml
   - ./open-webui/ks.yaml
   - ./openclaw/ks.yaml

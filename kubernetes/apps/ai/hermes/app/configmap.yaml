@@ -1,0 +1,64 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hermes-configmap
+data:
+  config.yaml: |-
+    custom_providers:
+      - name: ollama
+        base_url: http://ollama.ai.svc.cluster.local:11434/v1
+        key_env: OLLAMA_API_KEY
+    model:
+      default: qwen3.6:35b
+      provider: custom:ollama
+    model_aliases:
+      gemma:
+        model: gemma4:e2b
+        provider: custom:ollama
+      qwen:
+        model: qwen3.6:35b
+        provider: custom:ollama
+    fallback_providers:
+      - provider: custom:ollama
+        model: gemma4:e2b
+    terminal:
+      backend: docker
+      docker_image: nikolaik/python-nodejs:python3.11-nodejs20
+      cwd: /opt/data/workspace
+      timeout: 180
+      persistent_shell: true
+    memory:
+      auto_migrate: true
+      auto_summarize:
+        threshold: 50
+    compression:
+      enabled: true
+    streaming:
+      enabled: false
+    security:
+      redact_secrets: true
+    privacy:
+      redact_pii: true
+    agent:
+      max_turns: 90
+      gateway_timeout: 1800
+      restart_drain_timeout: 60
+      api_max_retries: 2
+      reasoning_effort: medium
+    # platforms:
+    #   matrix:
+    #     enabled: true
+    # matrix:
+    #   require_mention: false
+    #   auto_thread: false
+    #   dm_mention_threads: false
+    # display:
+    #   platforms:
+    #     matrix:
+    #       tool_progress: "off"
+    # mcp_servers:
+    #   homelab:
+    #     url: http://vmcp-mcp-gateway-internal.ai.svc.cluster.local:4483/mcp
+    # web:
+    #   search_backend: searxng

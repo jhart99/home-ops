@@ -15,20 +15,157 @@ spec:
         strategy: Recreate
         annotations:
           reloader.stakater.com/auto: "true"
+        replicas: 1
+        type: deployment
+        initContainers:
+          init:
+            image:
+              repository: docker.io/library/alpine
+              tag: "3.23"
+            command:
+              - sh
+              - -c
+              - |
+                set -euo pipefail
+                mkdir -p /opt/data
+                cp /run/config/config.yaml /opt/data/config.yaml
+                cp /run/config/env /opt/data/.env
+                chmod 600 /opt/data/.env
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsGroup: 1000
+              runAsUser: 1000
+          install-tools:
+            image:
+              repository: nousresearch/hermes-agent
+              tag: v2026.5.7@sha256:9462082533e603fc6ba4259c51d7722dcd8cbb0f348488ceedc35d06fa8f9324
+            command:
+              - /bin/sh
+              - -c
+              - |
+                set -e
+                mkdir -p /opt/data/.local/bin /opt/data/.local/go
+
+                if [ ! -L /opt/data/.local/bin/hermes ]; then
+                  ln -sf /opt/hermes/.venv/bin/hermes /opt/data/.local/bin/hermes
+                fi
+
+                if [ ! -f /opt/data/.local/bin/gh ]; then
+                  cd /tmp
+                  curl -fsSL https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz -o gh.tar.gz
+                  tar xzf gh.tar.gz
+                  cp gh_2.61.0_linux_amd64/bin/gh /opt/data/.local/bin/
+                  rm -rf gh.tar.gz gh_2.61.0_linux_amd64
+                fi
+
+                if [ ! -f /opt/data/.local/bin/docker ]; then
+                  cd /tmp
+                  curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-29.4.0.tgz -o docker.tgz
+                  tar xzf docker.tgz --strip-components=1 -C /opt/data/.local/bin/ docker/docker
+                  rm -f docker.tgz
+                fi
+
+                if [ ! -f /opt/data/.local/go/bin/go ]; then
+                  cd /tmp
+                  curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -o go.tar.gz
+                  tar xzf go.tar.gz
+                  mv go /opt/data/.local/
+                  rm -rf go.tar.gz
+                fi
+
+                if [ ! -f /opt/data/.local/homebrew/bin/brew ]; then
+                  export HOMEBREW_PREFIX=/opt/data/.local/homebrew
+                  mkdir -p $HOMEBREW_PREFIX
+                  git clone --depth 1 https://github.com/Homebrew/brew $HOMEBREW_PREFIX
+                fi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsGroup: 1000
+              runAsUser: 1000
+          daemon:
+            image:
+              repository: docker
+              tag: 29.4.3-dind@sha256:685b91dca8eab7de1dce1c303dbb7a763e4082d6a60db10968adf3295fbd2495
+            restartPolicy: Always
+            env:
+              DOCKER_TLS_CERTDIR: /certs
+            securityContext:
+              allowPrivilegeEscalation: true
+              privileged: true
+              runAsGroup: 0
+              runAsUser: 0
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 3
+                  periodSeconds: 20
+                  timeoutSeconds: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 3
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 60
+                  periodSeconds: 2
+                  timeoutSeconds: 3
         containers:
           app:
             image:
               repository: nousresearch/hermes-agent
-              tag: latest@sha256:9e691d0faa45adbc91c673eba23db8f6f21785578f36dd21d2f5c6b196fffc21
+              tag: v2026.5.7@sha256:9462082533e603fc6ba4259c51d7722dcd8cbb0f348488ceedc35d06fa8f9324
             args:
               - gateway
               - run
             env:
+              API_SERVER_ENABLED: "true"
+              API_SERVER_HOST: 0.0.0.0
+              DOCKER_CERT_PATH: /certs/client
+              DOCKER_HOST: tcp://localhost:2376
+              DOCKER_TLS_VERIFY: "1"
+              GOPATH: /opt/data/go
+              HERMES_DASHBOARD: "1"
+              HERMES_GID: "1000"
+              HERMES_HOME: /opt/data
+              HERMES_UID: "1000"
               HOME: /opt/data
+              HOMEBREW_CELLAR: /opt/data/.local/homebrew/Cellar
+              HOMEBREW_PREFIX: /opt/data/.local/homebrew
+              HOMEBREW_REPOSITORY: /opt/data/.local/homebrew
+              #MATRIX_ENCRYPTION: "true"
+              PATH: /opt/data/.local/bin:/opt/data/.local/go/bin:/opt/data/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+              PIP_BREAK_SYSTEM_PACKAGES: "1"
+              #SEARXNG_URL: http://searxng.selfhosted.svc.cluster.local:8080
+              TERM: xterm-256color
               TZ: &tz America/New_York
             envFrom:
               - secretRef:
-                  name: hermes-secret
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: false
@@ -36,19 +173,25 @@ spec:
                 enabled: false
               startup:
                 enabled: false
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: false
-              capabilities: { drop: ["ALL"] }
             resources:
               requests:
-                cpu: 100m
-                memory: 1Gi
+                cpu: 500m
+                memory: 2Gi
               limits:
-                memory: 3Gi
-      codeserver:
-        strategy: Recreate
-        containers:
+                cpu: 4
+                memory: 16Gi
+            securityContext:
+              allowPrivilegeEscalation: true
+              capabilities:
+                add:
+                  - CHOWN
+                  - SETGID
+                  - SETUID
+                drop:
+                  - ALL
+              readOnlyRootFilesystem: false
+              runAsGroup: 0
+              runAsUser: 0
           codeserver:
             image:
               repository: ghcr.io/coder/code-server
@@ -72,114 +215,218 @@ spec:
                 cpu: 10m
               limits:
                 memory: 1Gi
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
 
     defaultPodOptions:
+      shareProcessNamespace: true
       securityContext:
-        runAsUser: 1001
-        runAsGroup: 1001
-        fsGroup: 1001
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile: { type: RuntimeDefault }
 
     service:
-      codeserver:
-        controller: codeserver
+      app:
+        controller: hermes
+        ipFamilies:
+          - IPv4
         ports:
-          http:
+          codeserver:
             port: 12321
+          dashboard:
+            port: 9119
+          gateway:
+            port: 8642
 
     route:
-      codeserver:
+      app:
+        hostnames:
+          - hermes.${SECRET_DOMAIN}}
         parentRefs:
           - name: envoy-internal
             namespace: network
-            sectionName: https
-        hostnames:
-          - hermes.${SECRET_DOMAIN}
         rules:
           - backendRefs:
-              - identifier: codeserver
-                port: http
+              - identifier: app
+                port: 9119
+      codeserver:
+        hostnames:
+          - hermes-code.${SECRET_DOMAIN}
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 12321
 
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
         globalMounts:
           - path: /opt/data
+      config-yaml:
+        type: configMap
+        name: hermes-configmap
+        defaultMode: 0o755
+        advancedMounts:
+          hermes:
+            init:
+              - path: /run/config/config.yaml
+                subPath: config.yaml
+      config:
+        type: secret
+        name: hermes-secret
+        defaultMode: 0o400
+        advancedMounts:
+          hermes:
+            init:
+              - path: /run/config/env
+                subPath: env
       tmp:
         type: emptyDir
+        globalMounts:
+          - path: /tmp
+      certs:
+        type: emptyDir
+        globalMounts:
+          - path: /certs
 
     rbac:
       roles:
         hermes-read-all:
           type: ClusterRole
           rules:
-            - apiGroups: [""]
-              resources: ["pods", "nodes", "services", "namespaces", "configmaps", "persistentvolumes", "persistentvolumeclaims", "endpoints", "resourcequotas", "limitranges", "serviceaccounts", "events"]  # Added events
-              verbs: ["get", "list", "watch"]
-            - apiGroups: [""]
-              resources: ["pods/log"]
-              verbs: ["get", "list"]
-            - apiGroups: ["apps"]
-              resources: ["deployments", "daemonsets", "statefulsets", "replicasets"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["batch"]
-              resources: ["jobs", "cronjobs"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["networking.k8s.io"]
-              resources: ["ingresses", "networkpolicies"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["storage.k8s.io"]
-              resources: ["storageclasses"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["rbac.authorization.k8s.io"]
-              resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["metrics.k8s.io"]
-              resources: ["nodes", "pods"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["helm.toolkit.fluxcd.io"]
-              resources: ["helmreleases"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["kustomize.toolkit.fluxcd.io"]
-              resources: ["kustomizations"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["external-secrets.io"]
-              resources: ["externalsecrets"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["volsync.backube"]
-              resources: ["replicationsources", "replicationdestinations"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["postgresql.cnpg.io"]
-              resources: ["clusters", "backups", "scheduledbackups"]
-              verbs: ["get", "list", "watch"]
-            - apiGroups: ["autoscaling.k8s.io"]
-              resources: ["verticalpodautoscalers"]
-              verbs: ["get", "list", "watch"]
-        hermes-cluster-ops:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+                - pods/log
+                - nodes
+                - services
+                - namespaces
+                - configmaps
+                - persistentvolumes
+                - persistentvolumeclaims
+                - endpoints
+                - resourcequotas
+                - limitranges
+                - serviceaccounts
+                - events
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "apps"
+              resources:
+                - deployments
+                - daemonsets
+                - statefulsets
+                - replicasets
+                - controllerrevisions
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "batch"
+              resources:
+                - "jobs"
+                - "cronjobs"
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "networking.k8s.io"
+              resources:
+                - "ingresses"
+                - "ingressclasses"
+                - "networkpolicies"
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "storage.k8s.io"
+              resources:
+                - storageclasses
+                - csinodes
+                - csidrivers
+                - volumeattachments
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "helm.toolkit.fluxcd.io"
+              resources:
+                - "helmreleases"
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "kustomize.toolkit.fluxcd.io"
+              resources:
+                - "kustomizations"
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "source.toolkit.fluxcd.io"
+              resources:
+                - gitrepositories
+                - helmrepositories
+                - ocirepositories
+                - buckets
+                - helmcharts
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+            - apiGroups:
+                - "external-secrets.io"
+              resources:
+                - externalsecrets
+                - secretstores
+                - clustersecretstores
+              verbs:
+                - "get"
+                - "list"
+                - "watch"
+        hermes-pod-delete:
           type: ClusterRole
           rules:
-            - apiGroups: ["helm.toolkit.fluxcd.io"]
-              resources: ["helmreleases"]
-              verbs: ["patch", "update"]
-            - apiGroups: [""]
-              resources: ["persistentvolumes"]
-              verbs: ["delete", "patch"]
-        hermes-write-restricted:
+            - apiGroups:
+                - ""
+              resources:
+                - "pods"
+              verbs:
+                - "delete"
+        hermes-exec-deploy:
           type: Role
           rules:
-            - apiGroups: [""]
-              resources: ["pods"]
-              verbs: ["delete"]
-            - apiGroups: ["batch"]
-              resources: ["jobs"]
-              verbs: ["delete"]
-            - apiGroups: [""]
-              resources: ["pods/exec"]
-              verbs: ["create"]
-            - apiGroups: ["apps"]
-              resources: ["deployments"]
-              verbs: ["patch", "update"]
+            - apiGroups:
+                - ""
+              resources:
+                - "pods/exec"
+              verbs:
+                - "create"
+            - apiGroups:
+                - "apps"
+              resources:
+                - "deployments"
+              verbs:
+                - "patch"
+                - "update"
       bindings:
         hermes-read-all:
           type: ClusterRoleBinding
@@ -188,19 +435,20 @@ spec:
           subjects:
             - identifier: hermes
               serviceAccount: hermes
-        hermes-cluster-ops:
+        hermes-pod-delete:
           type: ClusterRoleBinding
           roleRef:
-            identifier: hermes-cluster-ops
+            identifier: hermes-pod-delete
           subjects:
             - identifier: hermes
               serviceAccount: hermes
-        hermes-write-restricted:
+        hermes-exec-deploy:
           type: RoleBinding
           roleRef:
-            identifier: hermes-write-restricted
+            identifier: hermes-exec-deploy
           subjects:
             - identifier: hermes
               serviceAccount: hermes
+              namespace: ai
     serviceAccount:
       hermes: {}
