@@ -65,7 +65,7 @@ spec:
               - identifier: app
                 port: *port
     persistence:
-      cache:
+      tmpfd:
         type: emptyDir
         globalMounts:
-          - path: /var/cache/nginx
+          - path: /tmp
