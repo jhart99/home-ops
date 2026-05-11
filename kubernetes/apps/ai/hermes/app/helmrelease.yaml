@@ -191,34 +191,36 @@ spec:
               readOnlyRootFilesystem: false
               runAsGroup: 0
               runAsUser: 0
-          codeserver:
-            image:
-              repository: ghcr.io/coder/code-server
-              tag: 4.118.0@sha256:4aff9947c113487113201da811564fade1af5f23038b4d683998d024eebbac92
-            env:
-              TZ: *tz
-            args:
-              [
-                "--auth",
-                "none",
-                "--user-data-dir",
-                "/opt/data/.vscode",
-                "--extensions-dir",
-                "/opt/data/.vscode",
-                "--port",
-                "12321",
-                "/opt/data",
-              ]
-            resources:
-              requests:
-                cpu: 10m
-              limits:
-                memory: 1Gi
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
+          # codeserver:
+          #   image:
+          #     repository: ghcr.io/coder/code-server
+          #     tag: 4.118.0@sha256:4aff9947c113487113201da811564fade1af5f23038b4d683998d024eebbac92
+          #   env:
+          #     TZ: *tz
+          #   args:
+          #     [
+          #       "--auth",
+          #       "none",
+          #       "--user-data-dir",
+          #       "/opt/data/.vscode",
+          #       "--extensions-dir",
+          #       "/opt/data/.vscode",
+          #       "--port",
+          #       "12321",
+          #       "/opt/data",
+          #     ]
+          #   resources:
+          #     requests:
+          #       cpu: 10m
+          #     limits:
+          #       memory: 1Gi
+          #   securityContext:
+          #     allowPrivilegeEscalation: false
+          #     capabilities:
+          #       drop:
+          #         - ALL
+          #     runAsGroup: 1000
+          #     runAsUser: 1000
 
     defaultPodOptions:
       shareProcessNamespace: true
@@ -235,8 +237,8 @@ spec:
         ipFamilies:
           - IPv4
         ports:
-          codeserver:
-            port: 12321
+          # codeserver:
+          #   port: 12321
           dashboard:
             port: 9119
           gateway:
@@ -253,16 +255,16 @@ spec:
           - backendRefs:
               - identifier: app
                 port: 9119
-      codeserver:
-        hostnames:
-          - hermes-code.${SECRET_DOMAIN}
-        parentRefs:
-          - name: envoy-internal
-            namespace: network
-        rules:
-          - backendRefs:
-              - identifier: app
-                port: 12321
+      # codeserver:
+      #   hostnames:
+      #     - hermes-code.${SECRET_DOMAIN}
+      #   parentRefs:
+      #     - name: envoy-internal
+      #       namespace: network
+      #   rules:
+      #     - backendRefs:
+      #         - identifier: app
+      #           port: 12321
 
     persistence:
       data:
