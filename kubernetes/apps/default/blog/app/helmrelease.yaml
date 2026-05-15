@@ -16,8 +16,8 @@ spec:
           app:
             image:
               repository: forgejo.${SECRET_DOMAIN}/${SECRET_ACCOUNT}/${SECRET_DOMAIN}
-              tag: latest
-              digest: sha256:f147e34a42f48605a6ead4f41818bcf331f6f0068152c8aa47a3354bcdca87af
+              tag: 1.1.0
+              digest: sha256:894343817763c0182af4c8a0f6633cee9b68e59aed529b9f20ff30d385df5d9c
             probes:
               liveness: &probes
                 enabled: true
