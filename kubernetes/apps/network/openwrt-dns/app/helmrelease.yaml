@@ -11,6 +11,7 @@ spec:
   interval: 1h
   values:
     fullnameOverride: *app
+    nodeSelector: { kubernetes.io/arch: amd64 }
     provider:
       name: webhook
       webhook:
