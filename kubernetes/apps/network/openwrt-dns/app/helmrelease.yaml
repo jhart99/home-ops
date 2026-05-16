@@ -21,11 +21,11 @@ spec:
           enabled: false
         env:
           - name: SHUTDOWN_TIMEOUT_SECONDS
-            value: "5"
+            value: "600"
           - name: LOG_LEVEL
-            value: info
+            value: debug
           - name: LOG_STACK_TRACE
-            value: "true"
+            value: "false"
           - name: LOG_ENCODING
             value: json
           - name: ROUTER_HEALTHCHECK_INTERVAL
@@ -44,7 +44,7 @@ spec:
           - name: PROVIDER_OPENWRT_LUCIRPC_SSL
             value: "true"
           - name: PROVIDER_OPENWRT_LUCIRPC_RPC_ID
-            value: "1"
+            value: "3"
           - name: PROVIDER_OPENWRT_LUCIRPC_TIMEOUT
             value: "15"
           - name: PROVIDER_OPENWRT_LUCIRPC_INSECURE_SKIP_VERIFY
