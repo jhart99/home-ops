@@ -19,9 +19,24 @@ spec:
           tag: v0.1.0
         serviceMonitor:
           enabled: false
-        envFrom:
-          - secretRef:
-              name: openwrt-dns-secret
+        env:
+          - name: LOG_LEVEL
+            value: debug
+          - name: PROVIDER_OPENWRT_LUCIRPC_HOSTNAME
+            valueFrom:
+              secretKeyRef:
+                name: &secret openwrt-dns-secret
+                key: PROVIDER_OPENWRT_LUCIRPC_HOSTNAME
+          - name: PROVIDER_OPENWRT_LUCIRPC_AUTH_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: *secret
+                key: PROVIDER_OPENWRT_LUCIRPC_AUTH_USERNAME
+          - name: PROVIDER_OPENWRT_LUCIRPC_AUTH_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: *secret
+                key: PROVIDER_OPENWRT_LUCIRPC_AUTH_PASSWORD
         livenessProbe:
           httpGet:
             path: /ping
@@ -34,6 +49,8 @@ spec:
             port: 8888
           initialDelaySeconds: 10
           timeoutSeconds: 5
+        service:
+          port: 8888
     triggerLoopOnEvent: true
     policy: sync
     sources:
