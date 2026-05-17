@@ -10,6 +10,7 @@ spec:
     name: hermes
   interval: 1h
   values:
+    nodeSelector: { kubernetes.io/arch: amd64 }
     controllers:
       hermes:
         strategy: Recreate
