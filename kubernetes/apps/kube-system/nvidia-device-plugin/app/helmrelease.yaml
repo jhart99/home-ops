@@ -21,7 +21,7 @@ spec:
           version: v1
           flags:
             migStrategy: none
-            nvidiaDriverRoot: "/"
+            nvidiaDriverRoot: "/usr/local"
           sharing:
             timeSlicing:
               renameByDefault: false
