@@ -137,7 +137,7 @@ spec:
             image:
               repository: ghcr.io/jhart99/jhart99-hermes-agent
               tag: latest
-              digest: sha256:690e5ea9020ff1ea79a5f9ca2951a3b8735f33b59008a95f007965e6c14dcc1b
+              digest: sha256:c31a014fafa96413fd131f470db95213f4c5766afc4be2285292dc46c4441fba
             args:
               - gateway
               - run
