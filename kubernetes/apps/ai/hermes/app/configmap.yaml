@@ -46,17 +46,17 @@ data:
       restart_drain_timeout: 60
       api_max_retries: 2
       reasoning_effort: medium
-    # platforms:
-    #   matrix:
-    #     enabled: true
-    # matrix:
-    #   require_mention: false
-    #   auto_thread: false
-    #   dm_mention_threads: false
-    # display:
-    #   platforms:
-    #     matrix:
-    #       tool_progress: "off"
+    platforms:
+      matrix:
+        enabled: true
+    matrix:
+      require_mention: false
+      auto_thread: false
+      dm_mention_threads: false
+    display:
+      platforms:
+        matrix:
+          tool_progress: "off"
     # mcp_servers:
     #   homelab:
     #     url: http://vmcp-mcp-gateway-internal.ai.svc.cluster.local:4483/mcp

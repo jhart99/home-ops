@@ -36,56 +36,56 @@ spec:
                   - ALL
               runAsGroup: 10000
               runAsUser: 10000
-          install-tools:
-            image:
-              repository: nousresearch/hermes-agent
-              tag: v2026.5.16@sha256:b6e41c155d6bfce5ad83c5d0fec670086db8a43250e4511c9474134be5482d33
-            command:
-              - /bin/sh
-              - -c
-              - |
-                set -e
-                mkdir -p /opt/data/.local/bin /opt/data/.local/go
+          # install-tools:
+          #   image:
+          #     repository: nousresearch/hermes-agent
+          #     tag: v2026.5.16@sha256:b6e41c155d6bfce5ad83c5d0fec670086db8a43250e4511c9474134be5482d33
+          #   command:
+          #     - /bin/sh
+          #     - -c
+          #     - |
+          #       set -e
+          #       mkdir -p /opt/data/.local/bin /opt/data/.local/go
 
-                if [ ! -L /opt/data/.local/bin/hermes ]; then
-                  ln -sf /opt/hermes/.venv/bin/hermes /opt/data/.local/bin/hermes
-                fi
+          #       if [ ! -L /opt/data/.local/bin/hermes ]; then
+          #         ln -sf /opt/hermes/.venv/bin/hermes /opt/data/.local/bin/hermes
+          #       fi
 
-                if [ ! -f /opt/data/.local/bin/gh ]; then
-                  cd /tmp
-                  curl -fsSL https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz -o gh.tar.gz
-                  tar xzf gh.tar.gz
-                  cp gh_2.61.0_linux_amd64/bin/gh /opt/data/.local/bin/
-                  rm -rf gh.tar.gz gh_2.61.0_linux_amd64
-                fi
+          #       if [ ! -f /opt/data/.local/bin/gh ]; then
+          #         cd /tmp
+          #         curl -fsSL https://github.com/cli/cli/releases/download/v2.61.0/gh_2.61.0_linux_amd64.tar.gz -o gh.tar.gz
+          #         tar xzf gh.tar.gz
+          #         cp gh_2.61.0_linux_amd64/bin/gh /opt/data/.local/bin/
+          #         rm -rf gh.tar.gz gh_2.61.0_linux_amd64
+          #       fi
 
-                if [ ! -f /opt/data/.local/bin/docker ]; then
-                  cd /tmp
-                  curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-29.4.0.tgz -o docker.tgz
-                  tar xzf docker.tgz --strip-components=1 -C /opt/data/.local/bin/ docker/docker
-                  rm -f docker.tgz
-                fi
+          #       if [ ! -f /opt/data/.local/bin/docker ]; then
+          #         cd /tmp
+          #         curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-29.4.0.tgz -o docker.tgz
+          #         tar xzf docker.tgz --strip-components=1 -C /opt/data/.local/bin/ docker/docker
+          #         rm -f docker.tgz
+          #       fi
 
-                if [ ! -f /opt/data/.local/go/bin/go ]; then
-                  cd /tmp
-                  curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -o go.tar.gz
-                  tar xzf go.tar.gz
-                  mv go /opt/data/.local/
-                  rm -rf go.tar.gz
-                fi
+          #       if [ ! -f /opt/data/.local/go/bin/go ]; then
+          #         cd /tmp
+          #         curl -fsSL https://go.dev/dl/go1.23.5.linux-amd64.tar.gz -o go.tar.gz
+          #         tar xzf go.tar.gz
+          #         mv go /opt/data/.local/
+          #         rm -rf go.tar.gz
+          #       fi
 
-                if [ ! -f /opt/data/.local/homebrew/bin/brew ]; then
-                  export HOMEBREW_PREFIX=/opt/data/.local/homebrew
-                  mkdir -p $HOMEBREW_PREFIX
-                  git clone --depth 1 https://github.com/Homebrew/brew $HOMEBREW_PREFIX
-                fi
-            securityContext:
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-              runAsGroup: 10000
-              runAsUser: 10000
+          #       if [ ! -f /opt/data/.local/homebrew/bin/brew ]; then
+          #         export HOMEBREW_PREFIX=/opt/data/.local/homebrew
+          #         mkdir -p $HOMEBREW_PREFIX
+          #         git clone --depth 1 https://github.com/Homebrew/brew $HOMEBREW_PREFIX
+          #       fi
+          #   securityContext:
+          #     allowPrivilegeEscalation: false
+          #     capabilities:
+          #       drop:
+          #         - ALL
+          #     runAsGroup: 10000
+          #     runAsUser: 10000
           daemon:
             image:
               repository: docker
@@ -135,8 +135,7 @@ spec:
         containers:
           app:
             image:
-              repository: nousresearch/hermes-agent
-              tag: v2026.5.16@sha256:b6e41c155d6bfce5ad83c5d0fec670086db8a43250e4511c9474134be5482d33
+              repository: ghcr.io/jhart99/jhart99-hermes-agent:sha-e45a3d90aa6e275398e392e7c199509b1e22cde9
             args:
               - gateway
               - run
@@ -153,9 +152,9 @@ spec:
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
               HOME: /opt/data
-              HOMEBREW_CELLAR: /opt/data/.local/homebrew/Cellar
-              HOMEBREW_PREFIX: /opt/data/.local/homebrew
-              HOMEBREW_REPOSITORY: /opt/data/.local/homebrew
+              # HOMEBREW_CELLAR: /opt/data/.local/homebrew/Cellar
+              # HOMEBREW_PREFIX: /opt/data/.local/homebrew
+              # HOMEBREW_REPOSITORY: /opt/data/.local/homebrew
               #MATRIX_ENCRYPTION: "true"
               PATH: /opt/data/.local/bin:/opt/data/.local/go/bin:/opt/data/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               PIP_BREAK_SYSTEM_PACKAGES: "1"
