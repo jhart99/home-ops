@@ -1,0 +1,126 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: tuwunel
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: tuwunel
+  interval: 1h
+  values:
+    controllers:
+      conduwuit:
+        type: statefulset
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+                repository: ghcr.io/matrix-construct/tuwunel
+                tag: v1.6.2@sha256:43ca6a5c13841b4e40c99370ab1518b5692953ee3b661f91ee10d002249af375
+            env:
+              - name: CONDUWUIT_SERVER_NAME
+                value: ${SECRET_DOMAIN}
+              - name: TOKIO_WORKER_THREADS
+                value: "5"
+              - name: CONDUWUIT_ROCKSDB_PARALLELISM_THREADS
+                value: "4"
+              - name: CONDUWUIT_DATABASE_PATH
+                value: "/data/db"
+              - name: CONDUWUIT_DATABASE_BACKEND
+                value: "rocksdb"
+              - name: CONDUWUIT_ADDRESS
+                value: "0.0.0.0"
+              - name: CONDUWUIT_PORT
+                value: "8080"
+              - name: RUST_LOG
+                value: "info"
+              - name: CONDUWUIT_ALLOW_FEDERATION
+                value: "true"
+              - name: CONDUWUIT_ALLOW_REGISTRATION
+                value: "true"
+              - name: CONDUWUIT_TRUSTED_SERVERS
+                value: '["matrix.org"]'
+              - name: CONDUWUIT_WELL_KNOWN__CLIENT
+                value: https://matrix.${SECRET_DOMAIN}
+              - name: CONDUWUIT_WELL_KNOWN__SERVER
+                value: "matrix.${SECRET_DOMAIN}:443"
+              - name: CONDUWUIT_MAX_REQUEST_SIZE
+                value: "104857600"
+#              - name: CONDUWUIT_QUERY_OVER_TCP_ONLY
+#                value: "true"
+              - name: CONDUWUIT_IP_LOOKUP_STRATEGY
+                value: "5"
+            envFrom:
+              - secretRef:
+                  name: tuwunel-secret
+            resources:
+              requests:
+                memory: 512Mi
+              limits:
+                memory: 1Gi
+            probes:
+              liveness: &probes
+                enabled: false
+                custom: true
+                spec:
+                  httpGet:
+                    path: /_matrix/federation/v1/version
+                    port: http
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 3
+              readiness: *probes
+
+    service:
+      main:
+        ports:
+          http:
+            port: &port 80
+            protocol: TCP
+            targetPort: 8080
+    route:
+      matrix:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 404"]
+        hostnames:
+          - "matrix.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /_matrix
+            backendRefs:
+              - identifier: main
+                port: *port
+      app:
+        annotations:
+          gatus.home-operations.com/endpoint: |-
+            conditions: ["[STATUS] == 404"]
+        hostnames:
+          - "${SECRET_DOMAIN:-example.com}"
+        parentRefs:
+          - name: envoy-external
+            namespace: network
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /.well-known/matrix
+            backendRefs:
+              - identifier: main
+                port: *port
+    persistence:
+      data:
+        existingClaim: tuwunel
+        advancedMounts:
+          conduwuit:
+            app:
+              - path: /data
