@@ -135,7 +135,8 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/jhart99/jhart99-hermes-agent:sha-e45a3d90aa6e275398e392e7c199509b1e22cde9
+              repository: ghcr.io/jhart99/jhart99-hermes-agent
+              digest: sha-e45a3d90aa6e275398e392e7c199509b1e22cde9
             args:
               - gateway
               - run
