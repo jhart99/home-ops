@@ -16,7 +16,7 @@ spec:
     - ../../../../components/volsync
   postBuild:
     substitute:
-      APP: forgejo
+      APP: tuwunel
       VOLSYNC_CAPACITY: 5Gi
     substituteFrom:
       - name: cluster-secrets
