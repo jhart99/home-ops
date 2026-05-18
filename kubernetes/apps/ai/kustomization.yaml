@@ -11,4 +11,4 @@ resources:
   - ./hermes/ks.yaml
   - ./ollama/ks.yaml
   - ./open-webui/ks.yaml
-  - ./openclaw/ks.yaml
+  - ./searxng/ks.yaml
