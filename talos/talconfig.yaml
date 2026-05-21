@@ -4,10 +4,10 @@ clusterName: kubernetes
 talosVersion: "${talosVersion}"
 kubernetesVersion: "${kubernetesVersion}"
 
-endpoint: https://192.168.1.75:6443
+endpoint: https://192.168.1.5:6443
 additionalApiServerCertSans: &sans
   - "127.0.0.1"
-  - "192.168.1.75"
+  - "192.168.1.5"
   - "kube.rnatr.com"
 additionalMachineCertSans: *sans
 
@@ -21,7 +21,7 @@ cniConfig:
 nodes:
   - hostname: "talos-cp-1"
     ipAddress: "192.168.1.11"
-    installDisk: "/dev/sda"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
     talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
@@ -71,11 +71,6 @@ nodes:
         mtu: 9000
         ---
         apiVersion: v1alpha1
-        kind: Layer2VIPConfig
-        name: 192.168.2.5
-        link: net0.10
-        ---
-        apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
@@ -89,7 +84,7 @@ nodes:
 
   - hostname: "talos-cp-2"
     ipAddress: "192.168.1.12"
-    installDisk: "/dev/sda"
+    installDisk: "/dev/nvme1n1"
     machineSpec:
       secureboot: true
     talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
@@ -139,11 +134,6 @@ nodes:
         mtu: 9000
         ---
         apiVersion: v1alpha1
-        kind: Layer2VIPConfig
-        name: 192.168.2.5
-        link: net0.10
-        ---
-        apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
@@ -156,7 +146,7 @@ nodes:
         mtu: 9000
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
-    installDisk: "/dev/sda"
+    installDisk: "/dev/nvme0n1"
     machineSpec:
       secureboot: true
     talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
@@ -206,11 +196,6 @@ nodes:
         mtu: 9000
         ---
         apiVersion: v1alpha1
-        kind: Layer2VIPConfig
-        name: 192.168.2.5
-        link: net0.10
-        ---
-        apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
@@ -221,90 +206,6 @@ nodes:
           - gateway: 192.168.100.1
             metric: 3000
         mtu: 9000
-  - hostname: "talos-worker-1"
-    ipAddress: "192.168.1.14"
-    installDisk: "/dev/mmcblk0"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-    controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "2c:cf:67:7a:e5:0a"
-        dhcp: false
-        addresses:
-          - "192.168.1.14/24"
-        routes:
-          - gateway: "192.168.1.1"
-        mtu: 1500
-    patches:
-      - # Load kernel modules
-        |-
-        machine:
-          kubelet:
-            extraConfig:
-              systemReserved:
-                cpu: "50m"
-                memory: "100Mi"
-                ephemeral-storage: "1Gi"
-              kubeReserved:
-                cpu: "50m"
-                memory: "150Mi"
-                ephemeral-storage: "1Gi"
-              evictionHard:
-                memory.available: "100Mi"
-                nodefs.available: "10%"
-          # nodeTaints:
-          #   hardware-type: "edge": NoSchedule
-          #   network-bandwidth: "low": PreferNoSchedule
-  - hostname: "talos-worker-2"
-    ipAddress: "192.168.1.15"
-    installDisk: "/dev/mmcblk0"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-    controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "2c:cf:67:7a:e3:cb"
-        dhcp: false
-        addresses:
-          - "192.168.1.15/24"
-        routes:
-          - gateway: "192.168.1.1"
-        mtu: 1500
-  - hostname: "talos-worker-3"
-    ipAddress: "192.168.1.16"
-    installDisk: "/dev/mmcblk0"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-    controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "2c:cf:67:7a:e5:04"
-        dhcp: false
-        addresses:
-          - "192.168.1.16/24"
-        routes:
-          - gateway: "192.168.1.1"
-        mtu: 1500
-  - hostname: "talos-worker-4"
-    ipAddress: "192.168.1.17"
-    installDisk: "/dev/mmcblk0"
-    machineSpec:
-      secureboot: false
-    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
-    controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "2c:cf:67:7a:e4:2b"
-        dhcp: false
-        addresses:
-          - "192.168.1.17/24"
-        routes:
-          - gateway: "192.168.1.1"
-        mtu: 1500
   - hostname: "talos-worker-5"
     ipAddress: "192.168.1.18"
     installDisk: "/dev/nvme0n1"
