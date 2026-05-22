@@ -7,6 +7,12 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/rustfs/rustfs/app
+  postBuild:
+    substitute:
+      APP: rustfs
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
