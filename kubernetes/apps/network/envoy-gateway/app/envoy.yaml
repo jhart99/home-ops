@@ -70,9 +70,6 @@ spec:
         certificateRefs:
           - kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
-    - name: http3
-      protocol: UDP
-      port: 443
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
@@ -103,9 +100,6 @@ spec:
         certificateRefs:
           - kind: Secret
             name: ${SECRET_DOMAIN/./-}-production-tls
-    - name: http3
-      protocol: UDP
-      port: 443
     - name: syslog
       protocol: UDP  # No TLS at the gateway; raw TCP pass-through
       port: 5140
