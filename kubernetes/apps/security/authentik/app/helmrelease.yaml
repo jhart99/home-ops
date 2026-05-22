@@ -100,7 +100,7 @@ spec:
         runAsNonRoot: true
         readOnlyRootFilesystem: true
         allowPrivilegeEscalation: false
-        seccomProfile:
+        seccompProfile:
           type: RuntimeDefault
         capabilities:
           drop:
