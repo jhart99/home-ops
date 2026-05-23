@@ -13,8 +13,8 @@ spec:
       - name: AWS_RESPONSE_CHECKSUM_VALIDATION
         value: "when_required"
   configuration:
-    endpointURL: 'http://rustfs.rustfs.svc.cluster.local:9000'
-    destinationPath: s3://cnpg-backups/
+    endpointURL: 'https://s3.rnatr.com'
+    destinationPath: 's3://cnpg-backups/'
     s3Credentials:
       accessKeyId:
         name: authentik-s3-secret
@@ -23,9 +23,6 @@ spec:
         name: authentik-s3-secret
         key: S3_SECRET_KEY
     wal:
-      compression: bzip2
-      maxParallel: 8
+      compression: gzip
     data:
-      compression: bzip2
-      immediateCheckpoint: false
-      jobs: 4
+      compression: gzip
