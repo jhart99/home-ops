@@ -26,6 +26,7 @@ spec:
               RUSTFS_CONSOLE_ENABLE: "true"
               RUSTFS_BROWSER_REDIRECT_URL: "https://rustfs.${SECRET_DOMAIN}"
               RUSTFS_SERVER_DOMAINS: "s3.${SECRET_DOMAIN}"
+              RUSTFS_OBS_LOGGER_LEVEL: info
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
