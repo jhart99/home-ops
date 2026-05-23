@@ -14,7 +14,7 @@ spec:
         value: "when_required"
   configuration:
     endpointURL: 'http://rustfs.rustfs.svc.cluster.local:9000'
-    destinationPath: s3://cnpg-backups/authentik/
+    destinationPath: s3://cnpg-backups/
     s3Credentials:
       accessKeyId:
         name: authentik-s3-secret
