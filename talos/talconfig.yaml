@@ -253,11 +253,6 @@ nodes:
         mtu: 9000
         ---
         apiVersion: v1alpha1
-        kind: Layer2VIPConfig
-        name: 192.168.2.5
-        link: net0.10
-        ---
-        apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
