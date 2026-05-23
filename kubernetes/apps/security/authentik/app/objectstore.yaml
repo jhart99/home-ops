@@ -1,0 +1,25 @@
+---
+# yaml-language-server: $schema=https://github.com/datreeio/CRDs-catalog/raw/refs/heads/main/barmancloud.cnpg.io/objectstore_v1.json
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: authentik-cnpg-s3
+spec:
+  retentionPolicy: 30d
+  configuration:
+    endpointURL: 'http://rustfs.rustfs.svc.cluster.local:9000'
+    destinationPath: s3://cnpg-backups/authentik/
+    s3Credentials:
+      accessKeyId:
+        name: authentik-s3-secret
+        key: S3_ACCESS_KEY
+      secretAccessKey:
+        name: authentik-s3-secret
+        key: S3_SECRET_KEY
+    wal:
+      compression: bzip2
+      maxParallel: 8
+    data:
+      compression: bzip2
+      immediateCheckpoint: false
+      jobs: 4

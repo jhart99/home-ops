@@ -4,5 +4,7 @@ resources:
   - ./db.yaml
   - ./grafanadashboard.yaml
   - ./helmrelease.yaml
+  - ./objectstore.yaml
   - ./ocirepository.yaml
+  - ./scheduledbackup.yaml
   - ./secret.sops.yaml
