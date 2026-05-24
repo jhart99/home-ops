@@ -38,16 +38,3 @@ spec:
       - "https://wireguard.${SECRET_DOMAIN}"
     allowCredentials: true
     maxAge: "86400s" # Cache the preflight response for 24 hours
-  authorization:
-    defaultAction: Deny
-    rules:
-    - name: "allow"
-      action: Allow
-      principal:
-        jwt:
-          provider: authentik
-          claims:
-          - name: groups
-            valueType: StringArray
-            values:
-              - "superuser"
