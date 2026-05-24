@@ -18,10 +18,11 @@ spec:
       owner: immich
   monitoring:
     enablePodMonitor: true
-  backup:
-    # Volume snapshot backups
-    volumeSnapshot:
-       className: csi-ceph-blockpool
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: authentik-cnpg-s3
   postgresql:
     shared_preload_libraries:
       - vchord.so

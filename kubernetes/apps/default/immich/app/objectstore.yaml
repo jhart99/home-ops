@@ -1,0 +1,28 @@
+---
+# yaml-language-server: $schema=https://github.com/datreeio/CRDs-catalog/raw/refs/heads/main/barmancloud.cnpg.io/objectstore_v1.json
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: immich-cnpg-s3
+spec:
+  retentionPolicy: 30d
+  instanceSidecarConfiguration:
+    env:
+      - name: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: "when_required"
+      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+        value: "when_required"
+  configuration:
+    endpointURL: 'https://s3.rnatr.com'
+    destinationPath: 's3://cnpg-backups/'
+    s3Credentials:
+      accessKeyId:
+        name: immich-s3-secret
+        key: S3_ACCESS_KEY
+      secretAccessKey:
+        name: immich-s3-secret
+        key: S3_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
