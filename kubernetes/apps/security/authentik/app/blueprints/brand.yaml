@@ -10,7 +10,7 @@ entries:
   - model: authentik_blueprints.metaapplyblueprint
     attrs:
       identifiers:
-        name: melotic Authentication Flow
+        name: Default Authentication Flow
       required: true
   - model: authentik_blueprints.metaapplyblueprint
     attrs:
@@ -25,15 +25,14 @@ entries:
 
   - model: authentik_brands.brand
     identifiers:
-      domain: auth.${SECRET_DOMAIN}
+      domain: auth.rnatr.com
     state: present
     attrs:
-      domain: auth.${SECRET_DOMAIN}
+      domain: auth.rnatr.com
       default: false
       branding_title: melotic
       branding_logo: "zion.svg"
       branding_favicon: "zion.svg"
-      branding_default_flow_background: {}
 
       flow_authentication:
         !Find [authentik_flows.flow, [slug, default-authentication-flow]]
