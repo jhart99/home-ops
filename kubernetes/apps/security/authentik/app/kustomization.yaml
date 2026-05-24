@@ -8,3 +8,7 @@ resources:
   - ./ocirepository.yaml
   - ./scheduledbackup.yaml
   - ./secret.sops.yaml
+configMapGenerator:
+  - name: authentik-blueprints
+    files:
+      - brand.yaml=./blueprints/brand.yaml

@@ -66,6 +66,14 @@ spec:
         container_image_base: ghcr.io/goauthentik/%(type)s:%(version)s
       postgresql:
         enabled: false
+    blueprints:
+      configMaps:
+        - authentik-blueprints
+    prometheus:
+      rules:
+        enabled: true
+    postgresql:
+      enabled: false
     server:
       replicas: 1
       pdb:
@@ -136,8 +144,3 @@ spec:
         capabilities:
           drop:
             - ALL
-    prometheus:
-      rules:
-        enabled: true
-    postgresql:
-      enabled: false
