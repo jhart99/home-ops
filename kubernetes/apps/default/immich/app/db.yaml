@@ -22,7 +22,7 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: authentik-cnpg-s3
+        barmanObjectName: immich-cnpg-s3
   postgresql:
     shared_preload_libraries:
       - vchord.so
