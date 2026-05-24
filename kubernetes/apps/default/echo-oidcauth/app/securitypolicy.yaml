@@ -24,21 +24,21 @@ spec:
       - "profile"
       - "groups"
       - "offline_access"
-  # jwt:
-  #   providers:
-  #     - name: authentik
-  #       issuer: https://auth.${SECRET_DOMAIN}/application/o/echo-oidcauth/
-  #       remoteJWKS:
-  #         uri: https://auth.${SECRET_DOMAIN}/application/o/echo-oidcauth/jwks/
-  #       extractFrom:
-  #         cookies:
-  #           - "access-token"
-  #       claimToHeaders:
-  #         - claim: email
-  #           header: X-User-Email
-  #         - claim: name
-  #           header: X-User-Name
-  #         - claim: preferred_username
-  #           header: X-User-ID
-  #         - claim: groups
-  #           header: X-User-Groups
+  jwt:
+    providers:
+      - name: authentik
+        issuer: https://auth.${SECRET_DOMAIN}/application/o/echo-oidcauth/
+        remoteJWKS:
+          uri: https://auth.${SECRET_DOMAIN}/application/o/echo-oidcauth/jwks/
+        extractFrom:
+          cookies:
+            - "access-token"
+        claimToHeaders:
+          - claim: email
+            header: X-User-Email
+          - claim: name
+            header: X-User-Name
+          - claim: preferred_username
+            header: X-User-ID
+          - claim: groups
+            header: X-User-Groups
