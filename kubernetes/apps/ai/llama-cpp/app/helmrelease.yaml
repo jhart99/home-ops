@@ -129,7 +129,7 @@ spec:
                   timeoutSeconds: 5
             resources:
               claims:
-                - dgx-llama-cpp
+                - name: dgx-llama-cpp
               requests:
                 cpu: 200m
                 memory: 2Gi
