@@ -13,8 +13,6 @@ spec:
     controllers:
       llama-cpp:
         pod:
-          nodeSelector:
-            kubernetes.io/hostname: paris
           resourceClaims:
             - name: gpu
               resourceClaimTemplateName: dgx-template
