@@ -17,7 +17,7 @@ spec:
             kubernetes.io/hostname: paris
           resourceClaims:
             - name: gpu
-              resourceClaimTemplateName: llama-cpp-gpu
+              resourceClaimTemplateName: dgx-template
           securityContext:
             supplementalGroups:
               - 44
@@ -129,7 +129,7 @@ spec:
                   timeoutSeconds: 5
             resources:
               claims:
-                - name: dgx-llama-cpp
+                - name: gpu
               requests:
                 cpu: 200m
                 memory: 2Gi
@@ -142,9 +142,6 @@ spec:
               privileged: true
     defaultPodOptions:
       runtimeClassName: nvidia
-      resourceClaims:
-        - name: dgx-llama-cpp
-          resourceClaimTemplateName: dgx-template
     service:
       qwen:
         controller: llama-cpp
