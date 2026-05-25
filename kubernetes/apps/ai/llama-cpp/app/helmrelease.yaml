@@ -48,14 +48,10 @@ spec:
               - /tmp/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf
               - --mmproj
               - /tmp/mmproj-Abliterated-F16.gguf
-              - --spec-type
-              - draft-mtp
               - --spec-draft-n-max
               - "5"
-              - --host
-              - 0.0.0.0
-              - --port
-              - "8080"
+              - -fit
+              - off
               - -c
               - "262144"
               - -np
@@ -80,10 +76,8 @@ spec:
               - --reasoning
               - off
               - --alias
-              - dark-jarvis
-              - --alias
-              - dark-opus
-              - --no-webui
+              - dark-jarvis,dark-opus
+              - --no-ui
               - --no-warmup
             env:
               LLAMA_API_KEY:
@@ -130,11 +124,11 @@ spec:
                 - name: gpu
               requests:
                 cpu: 200m
-                memory: 2Gi
+                memory: 30Gi
                 ephemeral-storage: "30Gi"
               limits:
                 cpu: 2000m
-                memory: 88Gi
+                memory: 35Gi
                 ephemeral-storage: "100Gi"
             securityContext:
               privileged: true
