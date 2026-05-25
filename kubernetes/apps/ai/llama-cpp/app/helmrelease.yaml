@@ -128,20 +128,23 @@ spec:
                   periodSeconds: 10
                   timeoutSeconds: 5
             resources:
+              claims:
+                - dgx-llama-cpp
               requests:
                 cpu: 200m
                 memory: 2Gi
-                nvidia.com/gpu: "1"
                 ephemeral-storage: "30Gi"
               limits:
                 cpu: 2000m
                 memory: 88Gi
-                nvidia.com/gpu: "1"
                 ephemeral-storage: "100Gi"
             securityContext:
               privileged: true
     defaultPodOptions:
       runtimeClassName: nvidia
+      resourceClaims:
+        - name: dgx-llama-cpp
+          resourceClaimTemplateName: dgx-template
     service:
       qwen:
         controller: llama-cpp
