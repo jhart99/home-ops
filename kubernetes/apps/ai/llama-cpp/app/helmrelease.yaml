@@ -37,6 +37,7 @@ spec:
                 cp /models/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf /tmp
                 cp /models/mmproj-Abliterated-F16.gguf /tmp
                 cp /models/qwen36-dflash/model.safetensors /tmp
+                cp /models/chat_template.jinja /tmp
         containers:
           qwen:
             image:
@@ -47,15 +48,10 @@ spec:
               - /tmp/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf
               - --mmproj
               - /tmp/mmproj-Abliterated-F16.gguf
-              - --dflash
-              - --dflash-draft
-              - /tmp/model.safetensors
-              - --dflash-budget
-              - "22"
-              - --dflash-max-ctx
-              - "131072"
-              - --dflash-prefill-ubatch
-              - "192"
+              - --spec-type
+              - draft-mtp
+              - --spec-draft-n-max
+              - "5"
               - --host
               - 0.0.0.0
               - --port
@@ -70,17 +66,21 @@ spec:
               - q8_0
               - -ctv
               - q8_0
-              - --dflash-fa-window
-              - "16384"
-              - --dflash-fa-sink
-              - "16384"
               - --slot-prompt-similarity
               - "0.5"
               - --cache-reuse
               - "256"
+              - --cache-ram
+              - "16384"
+              - -bs
+              - --chat-template-file
+              - /tmp/chat_template.jinja
               - --jinja
+              - --no-prefill-assistant
               - --reasoning
-              - auto
+              - off
+              - --alias
+              - dark-jarvis
               - --alias
               - dark-opus
               - --no-webui
