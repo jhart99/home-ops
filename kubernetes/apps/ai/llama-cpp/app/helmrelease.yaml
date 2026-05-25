@@ -40,8 +40,8 @@ spec:
         containers:
           qwen:
             image:
-              repository: ghcr.io/jhart99/llamacpp-dgxgit/server
-              tag: 4a609e8833b72f0adfb066967a1359d290d556fff525e72ff72c758defd89d4d
+              repository: ghcr.io/jhart99/llama-cpp-dgx
+              tag: latest@sha256:9e98062978ffec1c8712f1408ebdd64f5757433f366c3f3005e9bd7cfe253966
             args:
               - /app/llama-server
               - -m
