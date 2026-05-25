@@ -34,7 +34,7 @@ spec:
               - /bin/sh
               - -ec
               - |
-                cp /models/Qwopus-27B-NVFP4-plain.gguf /tmp
+                cp /models/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf /tmp
                 cp /models/mmproj-Abliterated-F16.gguf /tmp
                 cp /models/qwen36-dflash/model.safetensors /tmp
         containers:
@@ -44,7 +44,7 @@ spec:
               tag: 4a609e8833b72f0adfb066967a1359d290d556fff525e72ff72c758defd89d4d
             args:
               - -m
-              - /tmp/Qwopus-27B-NVFP4-plain.gguf
+              - /tmp/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf
               - --mmproj
               - /tmp/mmproj-Abliterated-F16.gguf
               - --dflash
