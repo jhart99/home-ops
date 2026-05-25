@@ -140,6 +140,8 @@ spec:
                 ephemeral-storage: "100Gi"
             securityContext:
               privileged: true
+    defaultPodOptions:
+      runtimeClassName: nvidia
     service:
       qwen:
         controller: llama-cpp
