@@ -43,7 +43,6 @@ spec:
               repository: ghcr.io/jhart99/llama-cpp-dgx
               tag: latest@sha256:9e98062978ffec1c8712f1408ebdd64f5757433f366c3f3005e9bd7cfe253966
             args:
-              - /app/llama-server
               - -m
               - /tmp/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf
               - --mmproj
