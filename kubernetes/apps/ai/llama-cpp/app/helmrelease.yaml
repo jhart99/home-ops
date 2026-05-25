@@ -1,0 +1,160 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: llama-cpp
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: llama-cpp
+  interval: 1h
+  values:
+    controllers:
+      llama-cpp:
+        pod:
+          nodeSelector:
+            kubernetes.io/hostname: paris
+          resourceClaims:
+            - name: gpu
+              resourceClaimTemplateName: llama-cpp-gpu
+          securityContext:
+            supplementalGroups:
+              - 44
+              - 992
+        annotations:
+          reloader.stakater.com/auto: "true"
+        replicas: 1
+        strategy: Recreate
+        type: deployment
+        initContainers:
+          download-qwen:
+            image:
+              repository: ghcr.io/astral-sh/uv
+              tag: python3.14-alpine
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                cp /models/Qwopus-27B-NVFP4-plain.gguf /tmp
+                cp /models/mmproj-Abliterated-F16.gguf /tmp
+                cp /models/qwen36-dflash/model.safetensors /tmp
+        containers:
+          qwen:
+            image:
+              repository: ghcr.io/jhart99/llamacpp-dgxgit/server
+              tag: 4a609e8833b72f0adfb066967a1359d290d556fff525e72ff72c758defd89d4d
+            args:
+              - -m
+              - /tmp/Qwopus-27B-NVFP4-plain.gguf
+              - --mmproj
+              - /tmp/mmproj-Abliterated-F16.gguf
+              - --dflash
+              - --dflash-draft
+              - /tmp/model.safetensors
+              - --dflash-budget
+              - "22"
+              - --dflash-max-ctx
+              - "131072"
+              - --dflash-prefill-ubatch
+              - "192"
+              - --host
+              - 0.0.0.0
+              - --port
+              - "8080"
+              - -c
+              - "262144"
+              - -np
+              - "2"
+              - -ngl
+              - "99"
+              - -ctk
+              - q8_0
+              - -ctv
+              - q8_0
+              - --dflash-fa-window
+              - "16384"
+              - --dflash-fa-sink
+              - "16384"
+              - --slot-prompt-similarity
+              - "0.5"
+              - --cache-reuse
+              - "256"
+              - --jinja
+              - --reasoning
+              - auto
+              - --alias
+              - dark-opus
+              - --no-webui
+              - --no-warmup
+            env:
+              LLAMA_API_KEY:
+                valueFrom:
+                  secretKeyRef:
+                    name: llama-cpp-secret
+                    key: LLAMA_API_KEY
+              LLAMA_ARG_HOST: 0.0.0.0
+              LLAMA_ARG_PORT: "8080"
+              LLAMA_OFFLINE: "1"
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  failureThreshold: 3
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  failureThreshold: 3
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  failureThreshold: 60
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+            resources:
+              requests:
+                cpu: 200m
+                memory: 2Gi
+                nvidia.com/gpu: "1"
+                ephemeral-storage: "30Gi"
+              limits:
+                cpu: 2000m
+                memory: 88Gi
+                nvidia.com/gpu: "1"
+                ephemeral-storage: "100Gi"
+            securityContext:
+              privileged: true
+    service:
+      qwen:
+        controller: llama-cpp
+        ports:
+          http:
+            port: 8080
+            protocol: TCP
+    persistence:
+      tmp:
+        type: emptyDir
+        globalMounts:
+          - path: /tmp
+      library:
+        type: nfs
+        server: pve.jonathanrosshart.com
+        path: /pool/share/fileshare/models
+        globalMounts:
+          - path: /models
