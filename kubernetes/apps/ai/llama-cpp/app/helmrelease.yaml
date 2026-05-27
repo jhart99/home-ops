@@ -45,9 +45,11 @@ spec:
               tag: latest@sha256:9e98062978ffec1c8712f1408ebdd64f5757433f366c3f3005e9bd7cfe253966
             args:
               - -m
-              - /tmp/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf
+              - /tmp/Qwopus3.6-27B-v2-Abliterated-NVFP4.gguf
               - --mmproj
-              - /tmp/mmproj-Abliterated-F16.gguf
+              - /tmp/Qwopus3.6-27B-v2-Abliterated-mmproj-F16.gguf
+              - --spec-type
+              - draft-mtp
               - --spec-draft-n-max
               - "5"
               - -fit
@@ -69,9 +71,9 @@ spec:
               - --cache-ram
               - "16384"
               - -bs
+              - --jinja
               - --chat-template-file
               - /tmp/chat_template.jinja
-              - --jinja
               - --no-prefill-assistant
               - --reasoning
               - off
