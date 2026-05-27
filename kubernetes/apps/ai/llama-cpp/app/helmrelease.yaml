@@ -34,9 +34,8 @@ spec:
               - /bin/sh
               - -ec
               - |
-                cp /models/Qwopus3.6-27B-v1-Abliterated-NVFP4-plain.gguf /tmp
-                cp /models/mmproj-Abliterated-F16.gguf /tmp
-                cp /models/qwen36-dflash/model.safetensors /tmp
+                cp /models/Qwopus3.6-27B-v2-Abliterated-NVFP4.gguf /tmp
+                cp /models/Qwopus3.6-27B-v2-Abliterated-mmproj-F16.gguf /tmp
                 cp /models/chat_template.jinja /tmp
         containers:
           qwen:
