@@ -6,22 +6,12 @@ metadata:
 data:
   config.yaml: |-
     custom_providers:
-      - name: ollama
-        base_url: http://ollama.ai.svc.cluster.local:11434/v1
-        key_env: OLLAMA_API_KEY
+      - name: llama
+        base_url: http://llama-cpp.ai.svc.cluster.local:8080/v1
+        key_env: LLAMA_API_KEY
     model:
-      default: qwen3.6:35b
-      provider: custom:ollama
-    model_aliases:
-      gemma:
-        model: gemma4:e2b
-        provider: custom:ollama
-      qwen:
-        model: qwen3.6:35b
-        provider: custom:ollama
-    fallback_providers:
-      - provider: custom:ollama
-        model: gemma4:e2b
+      default: dark-jarvis
+      provider: custom:llama
     terminal:
       backend: docker
       docker_image: nikolaik/python-nodejs:python3.11-nodejs20
