@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/ai/hermes/app
   dependsOn:
-    - name: ollama
+    - name: llama-cpp
       namespace: ai
     - name: rook-ceph-cluster
       namespace: rook-ceph
