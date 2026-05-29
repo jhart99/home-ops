@@ -62,6 +62,16 @@ spec:
             - 192.168.1.0/24
         connections:
           requireMsgr2: true
+      placement:
+        mon:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: NotIn
+                  values:
+                  - talos-worker-5
       resources:
         osd:
           requests:
