@@ -6,6 +6,7 @@ spec:
   discoveryFilters:
     - jhart99/home-ops
     - jhart99/jhart99-hermes-agent
+    - jhart99/llama-cpp-dgx
   extraEnv:
     - name: LOG_LEVEL
       value: debug
