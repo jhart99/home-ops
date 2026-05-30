@@ -63,7 +63,7 @@ spec:
         connections:
           requireMsgr2: true
       placement:
-        mon:
+        all:
           nodeAffinity:
             requiredDuringSchedulingIgnoredDuringExecution:
               nodeSelectorTerms:
@@ -71,7 +71,7 @@ spec:
                 - key: kubernetes.io/hostname
                   operator: NotIn
                   values:
-                  - talos-worker-5
+                  - talos-worker-6
       resources:
         osd:
           requests:
