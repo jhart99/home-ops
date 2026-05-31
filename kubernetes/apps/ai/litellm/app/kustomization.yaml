@@ -5,6 +5,7 @@ resources:
   - ./cluster.yaml
   - ./db.yaml
   - ./helmrelease.yaml
+  - ./objectstore.yaml
   - ./ocirepository.yaml
   - ./scheduledbackup.yaml
   - ./s3-secret.sops.yaml

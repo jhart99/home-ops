@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://github.com/datreeio/CRDs-catalog/raw/refs/heads/main/barmancloud.cnpg.io/objectstore_v1.json
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: litellm-cnpg-s3
+spec:
+  retentionPolicy: 30d
+  configuration:
+    endpointURL: "https://s3.${SECRET_DOMAIN}"
+    destinationPath: "s3://cnpg-backups/"
+    s3Credentials:
+      accessKeyId:
+        name: litellm-s3-secret
+        key: S3_ACCESS_KEY
+      secretAccessKey:
+        name: litellm-s3-secret
+        key: S3_SECRET_KEY
+    wal:
+      compression: gzip
+    data:
+      compression: gzip
