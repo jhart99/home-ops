@@ -15,32 +15,29 @@ spec:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
-          export-model:
+          download-model:
             image:
-              repository: ghcr.io/astral-sh/uv
-              tag: 0.6.4-python3.12-bookworm-slim
+              repository: python
+              tag: 3.12-slim
             command:
               - /bin/sh
               - -ec
               - |
-                if [ ! -f /models/bge-m3/1/model.xml ]; then
-                  uv run --with "optimum-intel[openvino,onnx]" optimum-cli export openvino \
-                    --model BAAI/bge-m3 \
-                    --task feature-extraction \
-                    --weight-format int8 \
-                    /models/bge-m3/1
+                if [ ! -f /models/bge-m3/config.json ]; then
+                  pip install -U "huggingface_hub[cli]"
+                  huggingface-cli download BAAI/bge-m3 --local-dir /models/bge-m3
                 fi
             resources:
               requests:
-                cpu: 1000m
-                memory: 4Gi
+                cpu: 100m
+                memory: 256Mi
               limits:
-                memory: 8Gi
+                memory: 1Gi
         containers:
           app:
             image:
               repository: openvino/model_server
-              tag: latest
+              tag: latest-py
             args:
               - --model_name
               - bge-m3
@@ -52,6 +49,8 @@ spec:
               - "8000"
               - --target_device
               - GPU
+              - --task
+              - embeddings
             probes:
               liveness:
                 enabled: true
@@ -79,10 +78,10 @@ spec:
             resources:
               requests:
                 cpu: 200m
-                memory: 512Mi
+                memory: 2Gi
                 gpu.intel.com/i915: "1"
               limits:
-                memory: 2Gi
+                memory: 4Gi
                 gpu.intel.com/i915: "1"
     service:
       app:
