@@ -3,30 +3,52 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: openvino-bge-m3
+  name: openvino-qwen3-embedding
 spec:
   chartRef:
     kind: OCIRepository
-    name: openvino-bge-m3
+    name: openvino-qwen3-embedding
   interval: 1h
   values:
     controllers:
-      openvino-bge-m3:
+      openvino-qwen3-embedding:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
           download-model:
             image:
-              repository: python
-              tag: 3.12-slim
+              repository: openvino/model_server
+              tag: latest-py
             command:
-              - /bin/sh
-              - -ec
-              - |
-                if [ ! -f /models/bge-m3/config.json ]; then
-                  pip install -U huggingface_hub
-                  python3 -c 'from huggingface_hub import snapshot_download; snapshot_download(repo_id="BAAI/bge-m3", local_dir="/models/bge-m3")'
-                fi
+              - --pull
+              - --model_repository_path
+              - /models
+              - --source_model
+              - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
+              - --pooling
+              - LAST
+              - --target_device
+              - GPU
+              - --task
+              - embeddings
+            resources:
+              requests:
+                cpu: 100m
+                memory: 256Mi
+              limits:
+                memory: 1Gi
+          config-model:
+            image:
+              repository: openvino/model_server
+              tag: latest-py
+            command:
+              - --add_to_config
+              - --config_path
+              - /models/config.json
+              - --model_name
+              - Qwen3-Embedding-0.6B-int8-ov
+              - --model_path
+              - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
             resources:
               requests:
                 cpu: 100m
@@ -37,22 +59,12 @@ spec:
           app:
             image:
               repository: openvino/model_server
-              tag: latest-py
+              tag: latest-gpu
             args:
-              - --model_name
-              - bge-m3
-              - --model_path
-              - /models/bge-m3
-              - --model_repository_path
-              - /models
-              - --port
-              - "9000"
               - --rest_port
               - "8000"
-              - --target_device
-              - GPU
-              - --task
-              - embeddings
+              - --config_path
+              - /models/config.json
             probes:
               liveness:
                 enabled: true
