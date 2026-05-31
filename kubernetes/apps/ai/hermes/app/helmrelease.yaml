@@ -88,9 +88,6 @@ spec:
               repository: ghcr.io/jhart99/jhart99-hermes-agent
               tag: latest
               digest: sha256:2a79350cccb3d9acf6b33b2d40857a241c5c15a3b9403c98bcc14bb01437dd17
-            args:
-              - gateway
-              - run
             env:
               API_SERVER_ENABLED: "true"
               API_SERVER_HOST: 0.0.0.0
@@ -116,11 +113,32 @@ spec:
                   name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8642
+                  initialDelaySeconds: 30
+                  periodSeconds: 30
               readiness:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8642
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
               startup:
-                enabled: false
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /health
+                    port: 8642
+                  failureThreshold: 60
+                  periodSeconds: 5
             resources:
               requests:
                 cpu: 500m
