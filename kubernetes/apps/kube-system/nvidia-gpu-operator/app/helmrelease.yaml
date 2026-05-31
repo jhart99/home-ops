@@ -25,6 +25,10 @@ spec:
   uninstall:
     keepHistory: false
   values:
+    devicePlugin:
+      config:
+        name: time-sharing-config
+        default: ""
     driver:
       enabled: false
     hostPaths:
