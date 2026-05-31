@@ -130,6 +130,8 @@ spec:
                 memory: 16Gi
             securityContext:
               allowPrivilegeEscalation: true
+              runAsUser: 0
+              runAsGroup: 0
               capabilities:
                 add:
                   - CHOWN
