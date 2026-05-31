@@ -100,6 +100,7 @@ spec:
               GOPATH: /opt/data/go
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_TUI: "1"
+              HERMES_DASHBOARD_INSECURE: "1"
               HERMES_GID: "10000"
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
