@@ -35,24 +35,24 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 1Gi
-          config-model:
-            image:
-              repository: openvino/model_server
-              tag: latest-py
-            args:
-              - --add_to_config
-              - --config_path
-              - /models/config.json
-              - --model_name
-              - Qwen3-Embedding-0.6B-int8-ov
-              - --model_path
-              - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
-            resources:
-              requests:
-                cpu: 100m
-                memory: 256Mi
-              limits:
-                memory: 1Gi
+          # config-model:
+          #   image:
+          #     repository: openvino/model_server
+          #     tag: latest-py
+          #   args:
+          #     - --add_to_config
+          #     - --config_path
+          #     - /models/config.json
+          #     - --model_name
+          #     - Qwen3-Embedding-0.6B-int8-ov
+          #     - --model_path
+          #     - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
+          #   resources:
+          #     requests:
+          #       cpu: 100m
+          #       memory: 256Mi
+          #     limits:
+          #       memory: 1Gi
         containers:
           app:
             image:
