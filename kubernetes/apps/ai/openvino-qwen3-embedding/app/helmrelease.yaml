@@ -27,8 +27,6 @@ spec:
               - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
               - --pooling
               - LAST
-              - --target_device
-              - GPU
               - --task
               - embeddings
             resources:
@@ -59,12 +57,18 @@ spec:
           app:
             image:
               repository: openvino/model_server
-              tag: latest-gpu
+              tag: latest
             args:
+              - --model_path
+              - /model/OpenVINO/Qwen3-Embedding-0.6B-int8-ov
+              - --model_name
+              - qwen3-embedding
+              - --port
+              - "9000"
               - --rest_port
               - "8000"
-              - --config_path
-              - /models/config.json
+              - --task
+              - embeddings
             probes:
               liveness:
                 enabled: true
