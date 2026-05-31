@@ -1,0 +1,102 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: bge-m3
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: bge-m3
+  interval: 1h
+  values:
+    controllers:
+      bge-m3:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          export-model:
+            image:
+              repository: ghcr.io/astral-sh/uv
+              tag: 0.6.4-python3.12-bookworm-slim
+            command:
+              - /bin/sh
+              - -ec
+              - |
+                if [ ! -f /models/bge-m3/1/model.xml ]; then
+                  uvx --with "optimum-intel[openvino],onnx" optimum-cli export openvino \
+                    --model BAAI/bge-m3 \
+                    --task feature-extraction \
+                    --weight-format int8 \
+                    /models/bge-m3/1
+                fi
+            resources:
+              requests:
+                cpu: 1000m
+                memory: 4Gi
+              limits:
+                memory: 8Gi
+        containers:
+          app:
+            image:
+              repository: openvino/model_server
+              tag: latest
+            args:
+              - --model_name
+              - bge-m3
+              - --model_path
+              - /models/bge-m3
+              - --port
+              - "9000"
+              - --rest_port
+              - "8000"
+              - --target_device
+              - GPU
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /v1/config
+                    port: 8000
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /v1/config
+                    port: 8000
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /v1/config
+                    port: 8000
+                  failureThreshold: 60
+                  periodSeconds: 10
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+                gpu.intel.com/i915: "1"
+              limits:
+                memory: 2Gi
+                gpu.intel.com/i915: "1"
+    service:
+      app:
+        controller: openvino-bge-m3
+        ports:
+          http:
+            port: 8000
+          grpc:
+            port: 9000
+    persistence:
+      models:
+        type: nfs
+        server: pve.jonathanrosshart.com
+        path: /pool/share/fileshare/models
+        globalMounts:
+          - path: /models
+  - path: /models
