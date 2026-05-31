@@ -24,7 +24,7 @@ spec:
               - -ec
               - |
                 if [ ! -f /models/bge-m3/1/model.xml ]; then
-                  uvx --with "optimum-intel[openvino],onnx" optimum-cli export openvino \
+                  uv run --with "optimum-intel[openvino,onnx]" optimum-cli export openvino \
                     --model BAAI/bge-m3 \
                     --task feature-extraction \
                     --weight-format int8 \
