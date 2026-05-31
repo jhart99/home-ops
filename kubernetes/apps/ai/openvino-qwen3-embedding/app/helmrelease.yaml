@@ -99,7 +99,7 @@ spec:
                 gpu.intel.com/i915: "1"
     service:
       app:
-        controller: openvino-bge-m3
+        controller: openvino-qwen3-embedding
         ports:
           http:
             port: 8000
