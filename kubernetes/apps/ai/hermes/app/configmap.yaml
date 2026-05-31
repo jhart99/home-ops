@@ -15,7 +15,8 @@ data:
     terminal:
       backend: docker
       docker_image: nikolaik/python-nodejs:python3.11-nodejs20
-      cwd: /opt/data/workspace
+      docker_mount_cwd_to_workspace: true
+      docker_run_as_host_user: true
       timeout: 180
       persistent_shell: true
     memory:

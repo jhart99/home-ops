@@ -85,9 +85,9 @@ spec:
         containers:
           app:
             image:
-              repository: ghcr.io/jhart99/jhart99-hermes-agent
-              tag: v0.2.0
-              digest: sha256:cacd066bdaa72502c6f2dd0f1b4bc13e684fae6b14273f4daabee634dc05fdc0
+              repository: nousresearch/hermes-agent
+              tag: v2026.5.29.2
+              digest: sha256:2bba4ab37729ebdd864d4caf277b24fec4cd8bfc2855185fd9f4c90f9bf7bfa3
             args:
               - gateway
               - run
@@ -137,18 +137,10 @@ spec:
                 drop:
                   - ALL
               readOnlyRootFilesystem: false
-              runAsGroup: 0
-              runAsUser: 0
 
     defaultPodOptions:
       shareProcessNamespace: true
       nodeSelector: { kubernetes.io/arch: amd64 }
-      securityContext:
-        runAsUser: 10000
-        runAsGroup: 10000
-        fsGroup: 10000
-        fsGroupChangePolicy: OnRootMismatch
-        seccompProfile: { type: RuntimeDefault }
 
     service:
       app:
