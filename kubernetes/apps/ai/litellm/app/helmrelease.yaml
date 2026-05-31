@@ -18,7 +18,8 @@ spec:
           app:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.83.14-stable
+              tag: v1.86.2
+              digest: sha256:cae1ac3492d6d0bea69c26f4485381624e073eb753f3534ae7703a4204a4ce6b
             args:
               - --config=/app/config.yaml
             env:
@@ -55,6 +56,8 @@ spec:
                 memory: 256Mi
               limits:
                 memory: 2Gi
+    defaultPodOptions:
+      nodeSelector: { kubernetes.io/arch: amd64 }
     service:
       app:
         controller: litellm
