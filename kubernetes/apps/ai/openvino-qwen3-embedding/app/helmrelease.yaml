@@ -59,8 +59,10 @@ spec:
               repository: openvino/model_server
               tag: latest
             args:
-              - --model_path
-              - /model/OpenVINO/Qwen3-Embedding-0.6B-int8-ov
+              - --model_repository_path
+              - /models
+              - --source_model
+              - OpenVINO/Qwen3-Embedding-0.6B-int8-ov
               - --model_name
               - qwen3-embedding
               - --port
