@@ -7,7 +7,7 @@ model_list:
   - model_name: qwen3-embedding
     litellm_params:
       model: huggingface/qwen3-embedding
-      api_base: http://openvino-qwen3-embedding.ai.svc.cluster.local:8080/v1
+      api_base: http://openvino-qwen3-embedding.ai.svc.cluster.local:8000/v1
     model_info:
       id: qwen3-embedding
       mode: embedding
