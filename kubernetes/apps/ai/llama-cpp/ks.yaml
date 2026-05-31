@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/ai/llama-cpp/app
   dependsOn:
-    - name: nvidia-operator
+    - name: nvidia-gpu-operator
       namespace: kube-system
   postBuild:
     substituteFrom:
