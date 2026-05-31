@@ -139,7 +139,6 @@ spec:
               readOnlyRootFilesystem: false
 
     defaultPodOptions:
-      shareProcessNamespace: true
       nodeSelector: { kubernetes.io/arch: amd64 }
 
     service:
