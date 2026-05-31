@@ -3,15 +3,15 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: bge-m3
+  name: openvino-bge-m3
 spec:
   chartRef:
     kind: OCIRepository
-    name: bge-m3
+    name: openvino-bge-m3
   interval: 1h
   values:
     controllers:
-      bge-m3:
+      openvino-bge-m3:
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -99,4 +99,3 @@ spec:
         path: /pool/share/fileshare/models
         globalMounts:
           - path: /models
-  - path: /models
