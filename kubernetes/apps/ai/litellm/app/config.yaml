@@ -1,6 +1,6 @@
 model_list:
   - model_name: qwen
     litellm_params:
-      model: dark-jarvis
+      model: huggingface/dark-jarvis
       api_base: http://llama-cpp.ai.svc.cluster.local:8080/v1
       api_key: "os.environ/LLAMA_API_KEY"
