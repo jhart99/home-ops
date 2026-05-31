@@ -6,8 +6,9 @@ model_list:
       api_key: "os.environ/LLAMA_API_KEY"
   - model_name: qwen3-embedding
     litellm_params:
-      model: huggingface/qwen3-embedding
-      api_base: http://openvino-qwen3-embedding.ai.svc.cluster.local:8000/v3/embeddings
+      model: openai/qwen3-embedding
+      api_base: http://openvino-qwen3-embedding.ai.svc.cluster.local:8000/v3
+      api_key: "os.environ/LLAMA_API_KEY"
     model_info:
       id: qwen3-embedding
       mode: embedding
