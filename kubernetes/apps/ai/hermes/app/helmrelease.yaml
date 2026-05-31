@@ -85,9 +85,9 @@ spec:
         containers:
           app:
             image:
-              repository: nousresearch/hermes-agent
-              tag: v2026.5.29.2
-              digest: sha256:2bba4ab37729ebdd864d4caf277b24fec4cd8bfc2855185fd9f4c90f9bf7bfa3
+              repository: ghcr.io/jhart99/jhart99-hermes-agent
+              tag: latest
+              digest: sha256:2a79350cccb3d9acf6b33b2d40857a241c5c15a3b9403c98bcc14bb01437dd17
             args:
               - gateway
               - run
@@ -105,7 +105,7 @@ spec:
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
               HOME: /opt/data
-              # MATRIX_ENCRYPTION: "true"
+              MATRIX_ENCRYPTION: "true"
               PATH: /opt/data/.local/bin:/opt/data/.local/go/bin:/opt/data/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               SEARXNG_URL: http://searxng.ai.svc.cluster.local:8080
