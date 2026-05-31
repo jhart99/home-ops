@@ -3,10 +3,10 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: openvino-bge-m3
+  name: openvino-qwen3-embedding
 spec:
   interval: 1h
-  path: ./kubernetes/apps/ai/openvino-bge-m3/app
+  path: ./kubernetes/apps/ai/openvino-qwen3-embedding/app
   prune: true
   sourceRef:
     kind: GitRepository

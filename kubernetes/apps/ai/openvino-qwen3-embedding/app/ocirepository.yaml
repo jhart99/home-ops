@@ -3,7 +3,7 @@
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository
 metadata:
-  name: openvino-bge-m3
+  name: openvino-qwen3-embedding
 spec:
   interval: 15m
   layerSelector:

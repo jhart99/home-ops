@@ -9,7 +9,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./hermes/ks.yaml
-  - ./openvino-bge-m3/ks.yaml
+  - ./openvino-qwen3-embedding/ks.yaml
   - ./llama-cpp/ks.yaml
   - ./litellm/ks.yaml
   # - ./ollama/ks.yaml
