@@ -43,6 +43,8 @@ spec:
               - bge-m3
               - --model_path
               - /models/bge-m3
+              - --model_repository_path
+              - /models
               - --port
               - "9000"
               - --rest_port
