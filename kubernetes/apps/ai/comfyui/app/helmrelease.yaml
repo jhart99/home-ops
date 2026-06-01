@@ -28,8 +28,8 @@ spec:
                 if [ ! -d /comfyui/custom_nodes/ComfyUI-Manager ]; then
                   git clone https://github.com/ltdrdata/ComfyUI-Manager.git /comfyui/custom_nodes/ComfyUI-Manager
                 fi
-                if [ ! -d /comfyui/custom_nodes/comfyui-dashboard ]; then
-                  git clone https://github.com/talesofai/comfyui-dashboard.git /comfyui/custom_nodes/comfyui-dashboard
+                if [ ! -d /comfyui/custom_nodes/comfyui-browser ]; then
+                  git clone https://github.com/talesofai/comfyui-browser.git /comfyui/custom_nodes/comfyui-browser
                 fi
         containers:
           app:
