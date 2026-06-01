@@ -35,7 +35,7 @@ spec:
           app:
             image:
               repository: yanwk/comfyui-boot
-              tag: cu124@sha256:0d96d93427181313415c328e3529a674251df0924151bc8f8c0da27038e833f4
+              tag: cu124-slim@sha256:0deb9ac5a9464fc089f5a6672ee58d223f4e84fae2a205cebfe7abc6d316c1cf
             env:
               CLI_ARGS: "--listen 0.0.0.0 --port 8188 --user-directory /comfyui"
             probes:
