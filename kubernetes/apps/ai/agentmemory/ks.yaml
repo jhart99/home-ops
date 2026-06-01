@@ -3,14 +3,12 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: hermes
+  name: agentmemory
 spec:
   interval: 1h
-  path: ./kubernetes/apps/ai/hermes/app
+  path: ./kubernetes/apps/ai/agentmemory/app
   dependsOn:
-    - name: llama-cpp
-      namespace: ai
-    - name: agentmemory
+    - name: openvino-qwen3-embedding
       namespace: ai
     - name: rook-ceph-cluster
       namespace: rook-ceph
@@ -20,7 +18,7 @@ spec:
     - ../../../../components/volsync
   postBuild:
     substitute:
-      APP: hermes
+      APP: agentmemory
       VOLSYNC_CAPACITY: 5Gi
     substituteFrom:
       - name: cluster-secrets
