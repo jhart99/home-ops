@@ -16,7 +16,9 @@ spec:
           reloader.stakater.com/auto: "true"
         initContainers:
           install-custom-nodes:
-            image: alpine/git
+            image:
+              repository: alpine/git
+              tag: latest
             command:
               - sh
               - -c
