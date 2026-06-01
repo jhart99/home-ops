@@ -123,3 +123,14 @@ spec:
             port: 3111
           viewer:
             port: 3113
+    route:
+      app:
+        hostnames:
+          - "agentmemory.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 3113
