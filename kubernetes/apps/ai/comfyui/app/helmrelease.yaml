@@ -1,0 +1,105 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: comfyui
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: comfyui
+  interval: 1h
+  values:
+    controllers:
+      comfyui:
+        annotations:
+          reloader.stakater.com/auto: "true"
+        initContainers:
+          install-custom-nodes:
+            image: alpine/git
+            command:
+              - sh
+              - -c
+              - |
+                set -e
+                mkdir -p /root/ComfyUI/custom_nodes
+                if [ ! -d /root/ComfyUI/custom_nodes/ComfyUI-Manager ]; then
+                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /root/ComfyUI/custom_nodes/ComfyUI-Manager
+                fi
+                if [ ! -d /root/ComfyUI/custom_nodes/comfyui-dashboard ]; then
+                  git clone https://github.com/talesofai/comfyui-dashboard.git /root/ComfyUI/custom_nodes/comfyui-dashboard
+                fi
+        containers:
+          app:
+            image:
+              repository: yanwk/comfyui-boot
+              tag: cu124@sha256:0d96d93427181313415c328e3529a674251df0924151bc8f8c0da27038e833f4
+            env:
+              CLI_ARGS: "--listen 0.0.0.0 --port 8188"
+            probes:
+              liveness:
+                enabled: true
+              readiness:
+                enabled: true
+              startup:
+                enabled: true
+                spec:
+                  failureThreshold: 60
+                  periodSeconds: 5
+            resources:
+              requests:
+                cpu: 100m
+                memory: 4Gi
+                nvidia.com/gpu: "1"
+              limits:
+                memory: 16Gi
+                nvidia.com/gpu: "1"
+
+    defaultPodOptions:
+      runtimeClassName: nvidia
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+
+    service:
+      app:
+        ports:
+          http:
+            port: 8188
+
+    route:
+      app:
+        hostnames:
+          - "comfyui.${SECRET_DOMAIN}"
+        parentRefs:
+          - name: envoy-internal
+            namespace: network
+        rules:
+          - backendRefs:
+              - identifier: app
+                port: 8188
+
+    persistence:
+      config:
+        existingClaim: comfyui
+        globalMounts:
+          - path: /root/ComfyUI/
+      output:
+        type: emptyDir
+        globalMounts:
+          - path: /root/ComfyUI/output
+      data:
+        type: emptyDir
+        globalMounts:
+          - path: /root/ComfyUI/input
+      models:
+        type: nfs
+        server: pve.jonathanrosshart.com
+        path: /pool/share/fileshare/models
+        globalMounts:
+          - path: /models
