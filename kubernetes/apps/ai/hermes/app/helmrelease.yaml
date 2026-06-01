@@ -97,7 +97,7 @@ spec:
               DOCKER_CERT_PATH: /certs/client
               DOCKER_HOST: tcp://localhost:2376
               DOCKER_TLS_VERIFY: "1"
-              AGENT_MEMORY_URL: http://agentmemory.ai.svc.cluster.local:3111
+              AGENTMEMORY_URL: http://agentmemory.ai.svc.cluster.local:3111
               GOPATH: /opt/data/go
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_TUI: "1"
@@ -206,6 +206,11 @@ spec:
             init:
               - path: /run/config/config.yaml
                 subPath: config.yaml
+      plugin-agentmemory:
+        type: configMap
+        name: hermes-agentmemory-plugin
+        globalMounts:
+          - path: /opt/hermes/plugins/agentmemory
       tmp:
         type: emptyDir
         globalMounts:
