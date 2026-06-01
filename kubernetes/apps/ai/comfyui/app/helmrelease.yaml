@@ -24,12 +24,12 @@ spec:
               - -c
               - |
                 set -e
-                mkdir -p /root/ComfyUI/custom_nodes
-                if [ ! -d /root/ComfyUI/custom_nodes/ComfyUI-Manager ]; then
-                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /root/ComfyUI/custom_nodes/ComfyUI-Manager
+                mkdir -p /comfyui/custom_nodes
+                if [ ! -d /comfyui/custom_nodes/ComfyUI-Manager ]; then
+                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /comfyui/custom_nodes/ComfyUI-Manager
                 fi
-                if [ ! -d /root/ComfyUI/custom_nodes/comfyui-dashboard ]; then
-                  git clone https://github.com/talesofai/comfyui-dashboard.git /root/ComfyUI/custom_nodes/comfyui-dashboard
+                if [ ! -d /comfyui/custom_nodes/comfyui-dashboard ]; then
+                  git clone https://github.com/talesofai/comfyui-dashboard.git /comfyui/custom_nodes/comfyui-dashboard
                 fi
         containers:
           app:
@@ -37,7 +37,7 @@ spec:
               repository: yanwk/comfyui-boot
               tag: cu124@sha256:0d96d93427181313415c328e3529a674251df0924151bc8f8c0da27038e833f4
             env:
-              CLI_ARGS: "--listen 0.0.0.0 --port 8188"
+              CLI_ARGS: "--listen 0.0.0.0 --port 8188 --user-directory /comfyui"
             probes:
               liveness:
                 enabled: true
@@ -63,7 +63,7 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
         fsGroup: 1000
-        runAsNonRoot: false
+        runAsNonRoot: true
         fsGroupChangePolicy: OnRootMismatch
         seccompProfile:
           type: RuntimeDefault
@@ -90,15 +90,15 @@ spec:
       config:
         existingClaim: comfyui
         globalMounts:
-          - path: /root/ComfyUI/
+          - path: /comfyui
       output:
         type: emptyDir
         globalMounts:
-          - path: /root/ComfyUI/output
+          - path: /comfyui/output
       data:
         type: emptyDir
         globalMounts:
-          - path: /root/ComfyUI/input
+          - path: /comfyui/input
       models:
         type: nfs
         server: pve.jonathanrosshart.com
