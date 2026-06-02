@@ -93,7 +93,7 @@ spec:
         existingClaim: comfyui
         globalMounts:
           - path: /opt/ComfyUi/user
-      custom_nodes:
+      customnodes:
         type: emptyDir
         globalMounts:
           - path: /opt/ComfyUI/custom_nodes
