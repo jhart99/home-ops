@@ -24,12 +24,12 @@ spec:
               - -c
               - |
                 set -e
-                mkdir -p /comfyui/custom_nodes
-                if [ ! -d /comfyui/custom_nodes/ComfyUI-Manager ]; then
-                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /comfyui/custom_nodes/ComfyUI-Manager
+                mkdir -p /opt/ComfyUI/custom_nodes
+                if [ ! -d /opt/ComfyUI/custom_nodes/ComfyUI-Manager ]; then
+                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/ComfyUI/custom_nodes/ComfyUI-Manager
                 fi
-                if [ ! -d /comfyui/custom_nodes/comfyui-browser ]; then
-                  git clone https://github.com/talesofai/comfyui-browser.git /comfyui/custom_nodes/comfyui-browser
+                if [ ! -d /opt/ComfyUI/custom_nodes/comfyui-browser ]; then
+                  git clone https://github.com/talesofai/comfyui-browser.git /opt/ComfyUI/custom_nodes/comfyui-browser
                 fi
         containers:
           app:
@@ -37,7 +37,7 @@ spec:
               repository: ghcr.io/jhart99/sparkyui
               tag: latest
             env:
-              CLI_ARGS: "--listen 0.0.0.0 --port 8188 --user-directory /comfyui"
+              CLI_ARGS: "--listen 0.0.0.0 --port 8188"
             probes:
               liveness:
                 enabled: true
@@ -61,6 +61,14 @@ spec:
       runtimeClassName: nvidia
       nodeSelector:
         kubernetes.io/arch: arm64
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
 
     service:
       app:
@@ -84,18 +92,22 @@ spec:
       config:
         existingClaim: comfyui
         globalMounts:
-          - path: /comfyui
+          - path: /opt/ComfyUi/user
+      custom_nodes:
+        type: emptyDir
+        globalMounts:
+          - path: /opt/ComfyUI/custom_nodes
+      input:
+        type: emptyDir
+        globalMounts:
+          - path: /opt/ComfyUI/input
       output:
         type: emptyDir
         globalMounts:
-          - path: /comfyui/output
-      data:
-        type: emptyDir
-        globalMounts:
-          - path: /comfyui/input
+          - path: /opt/ComfyUI/output
       models:
         type: nfs
         server: pve.jonathanrosshart.com
         path: /pool/share/fileshare/models
         globalMounts:
-          - path: /models
+          - path: /opt/ComfyUI/models
