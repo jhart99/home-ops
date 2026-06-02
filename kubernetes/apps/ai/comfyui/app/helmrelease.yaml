@@ -37,7 +37,10 @@ spec:
               repository: ghcr.io/jhart99/sparkyui
               tag: latest
             env:
-              CLI_ARGS: "--listen 0.0.0.0 --port 8188"
+              COMFYUI_FLAGS: "--listen 0.0.0.0 --port 8188"
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
             probes:
               liveness:
                 enabled: true
@@ -92,7 +95,7 @@ spec:
       config:
         existingClaim: comfyui
         globalMounts:
-          - path: /opt/ComfyUi/user
+          - path: /opt/ComfyUI/user
       customnodes:
         type: emptyDir
         globalMounts:
