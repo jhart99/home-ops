@@ -34,8 +34,8 @@ spec:
         containers:
           app:
             image:
-              repository: yanwk/comfyui-boot
-              tag: cu124-slim@sha256:0deb9ac5a9464fc089f5a6672ee58d223f4e84fae2a205cebfe7abc6d316c1cf
+              repository: ghcr.io/jhart99/sparkyui
+              tag: latest
             env:
               CLI_ARGS: "--listen 0.0.0.0 --port 8188 --user-directory /comfyui"
             probes:
