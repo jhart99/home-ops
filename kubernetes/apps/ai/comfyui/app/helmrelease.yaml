@@ -61,14 +61,6 @@ spec:
       runtimeClassName: nvidia
       nodeSelector:
         kubernetes.io/arch: arm64
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        runAsNonRoot: true
-        fsGroupChangePolicy: OnRootMismatch
-        seccompProfile:
-          type: RuntimeDefault
 
     service:
       app:
