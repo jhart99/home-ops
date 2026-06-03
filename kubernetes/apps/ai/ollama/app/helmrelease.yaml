@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: ollama/ollama
-              tag: 0.30.0
+              tag: 0.30.2
             env:
               OLLAMA_MODELS: /models
               OLLAMA_HOST: 0.0.0.0:11434
