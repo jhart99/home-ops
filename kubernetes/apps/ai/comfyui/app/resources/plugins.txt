@@ -1,0 +1,13 @@
+https://github.com/ltdrdata/ComfyUI-Manager.git /opt/ComfyUI/custom_nodes/ComfyUI-Manager
+https://github.com/talesofai/comfyui-browser.git /opt/ComfyUI/custom_nodes/comfyui-browser
+# https://github.com/victorchall/comfyui_webcamcapture.git /opt/ComfyUI/custom_nodes/comfyui_webcamcapture
+# https://github.com/flybirdxx/ComfyUI-Qwen-TTS.git /opt/ComfyUI/custom_nodes/ComfyUI-Qwen-TTS
+# https://github.com/billwuhao/ComfyUI_parakeet-tdt.git /opt/ComfyUI/custom_nodes/ComfyUI_parakeet-tdt
+# https://github.com/stavsap/comfyui-ollama.git /opt/ComfyUI/custom_nodes/comfyui-ollama
+# https://github.com/billwuhao/ComfyUI_ACE-Step.git /opt/ComfyUI/custom_nodes/ComfyUI_ACE-Step
+# https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git /opt/ComfyUI/custom_nodes/ComfyUI-VideoHelperSuite
+# https://github.com/AIFSH/ComfyUI-Hallo.git /opt/ComfyUI/custom_nodes/ComfyUI-Hallo
+# https://github.com/kijai/ComfyUI-LivePortraitKJ.git /opt/ComfyUI/custom_nodes/ComfyUI-LivePortraitKJ
+# https://codeberg.org/Gourieff/comfyui-reactor-node.git /opt/ComfyUI/custom_nodes/comfyui-reactor-node
+# https://github.com/kijai/ComfyUI-KJNodes.git /opt/ComfyUI/custom_nodes/ComfyUI-KJNodes
+https://github.com/cubiq/ComfyUI_essentials.git /opt/ComfyUI/custom_nodes/ComfyUI_essentials

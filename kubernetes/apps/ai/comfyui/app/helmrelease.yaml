@@ -23,19 +23,41 @@ spec:
               - sh
               - -c
               - |
-                set -e
-                mkdir -p /opt/ComfyUI/custom_nodes
-                if [ ! -d /opt/ComfyUI/custom_nodes/ComfyUI-Manager ]; then
-                  git clone https://github.com/ltdrdata/ComfyUI-Manager.git /opt/ComfyUI/custom_nodes/ComfyUI-Manager
+                #!/bin/sh
+                CONFIG_FILE=${CONFIG_FILE:-"/etc/comfyui/plugins.txt"}
+
+                if [ ! -f "$CONFIG_FILE" ]; then
+                  echo "Error: Configuration file not found at $CONFIG_FILE"
+                  exit 1
                 fi
-                if [ ! -d /opt/ComfyUI/custom_nodes/comfyui-browser ]; then
-                  git clone https://github.com/talesofai/comfyui-browser.git /opt/ComfyUI/custom_nodes/comfyui-browser
-                fi
+
+                while read -r repo dest; do
+                    # Skip empty lines or lines starting with '#'
+                    case "$repo" in
+                        ""|\#*) continue ;;
+                    esac
+
+                    echo "Processing: $repo -> $dest"
+
+                    if [ -d "$dest/.git" ]; then
+                        echo "Updating existing repository at $dest..."
+                        cd "$dest" || continue
+                        git fetch --all
+                        git reset --hard origin/HEAD
+                        git clean -fd
+                        cd - > /dev/null
+                    else
+                        echo "Cloning new repository into $dest..."
+                        mkdir -p "$dest"
+                        git clone "$repo" "$dest"
+                    fi
+                done < "$CONFIG_FILE"
         containers:
           app:
             image:
               repository: ghcr.io/jhart99/sparkyui
               tag: latest
+              digest: sha256:3f5722964401f6317b6bf540f25d4c8152432810f525fd9ffc64e8bbd05bb99a
             env:
               COMFYUI_FLAGS: "--listen 0.0.0.0 --port 8188"
             envFrom:
@@ -96,6 +118,12 @@ spec:
         existingClaim: comfyui
         globalMounts:
           - path: /opt/ComfyUI/user
+      plugin-file:
+        type: configMap
+        name: "{{ .Release.Name }}-configmap"
+        globalMounts:
+          - path: /etc/comfyui/plugins.txt
+            subPath: plugins.txt
       customnodes:
         type: emptyDir
         globalMounts:

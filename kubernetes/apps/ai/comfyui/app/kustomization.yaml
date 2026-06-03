@@ -5,3 +5,11 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
+configMapGenerator:
+  - name: comfyui-configmap
+    files:
+      - plugins.txt=./resources/plugins.txt
+generatorOptions:
+  disableNameSuffixHash: true
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
