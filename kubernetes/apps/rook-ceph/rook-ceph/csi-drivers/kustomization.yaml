@@ -1,3 +1,3 @@
 resources:
-  - ./ocirepository.yaml
+  - ./helmrepository.yaml
   - ./helmrelease.yaml
