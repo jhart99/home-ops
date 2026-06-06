@@ -22,12 +22,14 @@ spec:
         cephFs:
           kernelMountOptions: ms_mode=prefer-crc
         # Liveness is usually enabled by default in the operator's driver spec
-    # Deploy default drivers
+    # Deploy default drivers with old names for compatibility
     drivers:
       rbd:
         enabled: true
+        name: rook-ceph.rbd.csi.ceph.com
       cephfs:
         enabled: true
+        name: rook-ceph.cephfs.csi.ceph.com
     # readAffinity was in the cluster spec, but if we want it global:
     # readAffinity:
     #   enabled: true
