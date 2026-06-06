@@ -21,6 +21,10 @@ spec:
       driverSpecDefaults:
         cephFs:
           kernelMountOptions: ms_mode=prefer-crc
+        controllerPlugin:
+          privileged: true
+        nodePlugin:
+          privileged: true
         # Liveness is usually enabled by default in the operator's driver spec
     # Deploy default drivers with old names for compatibility
     drivers:
