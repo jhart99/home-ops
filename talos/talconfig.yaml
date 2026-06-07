@@ -4,15 +4,15 @@ clusterName: kubernetes
 talosVersion: "${talosVersion}"
 kubernetesVersion: "${kubernetesVersion}"
 
-endpoint: https://192.168.1.5:6443
+endpoint: https://[2001:470:e246:1::100]:6443
 additionalApiServerCertSans: &sans
   - "127.0.0.1"
-  - "192.168.1.5"
+  - "2001:470:e246:1::100"
   - "kube.rnatr.com"
 additionalMachineCertSans: *sans
 
-clusterPodNets: ["10.42.0.0/16"]
-clusterSvcNets: ["10.43.0.0/16"]
+clusterPodNets: ["2001:470:e246:1000::/52"]
+clusterSvcNets: ["fd00:10:96::/108"]
 
 # Disable built-in CNI to use Cilium
 cniConfig:
@@ -53,9 +53,11 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.11/24
-        mtu: 9000
+          - address: 2001:470:e246:1::11/64
+        mtu: 1480
         routes:
           - gateway: 192.168.1.1
+          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
@@ -72,6 +74,42 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
+        name: net0.30
+        vlanID: 30
+        parent: net0
+        addresses:
+          - address: fd00:30::11/64
+        routes:
+          - gateway: fd00:30::1/64
+            metric: 3000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.40
+        vlanID: 40
+        parent: net0
+        addresses:
+          - address: fd00:40::11/64
+        routes:
+          - gateway: fd00:40::1/64
+            metric: 4000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.50
+        vlanID: 50
+        parent: net0
+        addresses:
+          - address: fd00:50::11/64
+        routes:
+          - gateway: fd00:50::1/64
+            metric: 5000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
         name: net0.100
         vlanID: 100
         parent: net0
@@ -79,7 +117,7 @@ nodes:
           - address: 192.168.100.11/24
         routes:
           - gateway: 192.168.100.1
-            metric: 3000
+            metric: 2001
         mtu: 9000
 
   - hostname: "talos-cp-2"
@@ -116,9 +154,11 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.12/24
-        mtu: 9000
+          - address: 2001:470:e246:1::12/64
+        mtu: 1480
         routes:
           - gateway: 192.168.1.1
+          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
@@ -135,6 +175,42 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
+        name: net0.30
+        vlanID: 30
+        parent: net0
+        addresses:
+          - address: fd00:30::12/64
+        routes:
+          - gateway: fd00:30::1/64
+            metric: 3000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.40
+        vlanID: 40
+        parent: net0
+        addresses:
+          - address: fd00:40::12/64
+        routes:
+          - gateway: fd00:40::1/64
+            metric: 4000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.50
+        vlanID: 50
+        parent: net0
+        addresses:
+          - address: fd00:50::12/64
+        routes:
+          - gateway: fd00:50::1/64
+            metric: 5000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
         name: net0.100
         vlanID: 100
         parent: net0
@@ -142,7 +218,7 @@ nodes:
           - address: 192.168.100.12/24
         routes:
           - gateway: 192.168.100.1
-            metric: 3000
+            metric: 2001
         mtu: 9000
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
@@ -178,9 +254,11 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.13/24
-        mtu: 9000
+          - address: 2001:470:e246:1::13/64
+        mtu: 1480
         routes:
           - gateway: 192.168.1.1
+          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
@@ -197,6 +275,42 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
+        name: net0.30
+        vlanID: 30
+        parent: net0
+        addresses:
+          - address: fd00:30::13/64
+        routes:
+          - gateway: fd00:30::1/64
+            metric: 3000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.40
+        vlanID: 40
+        parent: net0
+        addresses:
+          - address: fd00:40::13/64
+        routes:
+          - gateway: fd00:40::1/64
+            metric: 4000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.50
+        vlanID: 50
+        parent: net0
+        addresses:
+          - address: fd00:50::13/64
+        routes:
+          - gateway: fd00:50::1/64
+            metric: 5000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
         name: net0.100
         vlanID: 100
         parent: net0
@@ -204,13 +318,13 @@ nodes:
           - address: 192.168.100.13/24
         routes:
           - gateway: 192.168.100.1
-            metric: 3000
+            metric: 2001
         mtu: 9000
   - hostname: "talos-worker-5"
     ipAddress: "192.168.1.18"
     installDisk: "/dev/nvme0n1"
     machineSpec:
-      secureboot: false
+      secureboot: true
     talosImageURL: factory.talos.dev/installer/d7ace2998426c6b73fe450e0166c49d8b8870aff89cb41cf7687635836149cb7
     controlPlane: false
     kernelModules:
@@ -235,9 +349,11 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.18/24
-        mtu: 9000
+          - address: 2001:470:e246:1::18/64
+        mtu: 1480
         routes:
           - gateway: 192.168.1.1
+          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
@@ -254,6 +370,42 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
+        name: net0.30
+        vlanID: 30
+        parent: net0
+        addresses:
+          - address: fd00:30::18/64
+        routes:
+          - gateway: fd00:30::1/64
+            metric: 3000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.40
+        vlanID: 40
+        parent: net0
+        addresses:
+          - address: fd00:40::18/64
+        routes:
+          - gateway: fd00:40::1/64
+            metric: 4000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.50
+        vlanID: 50
+        parent: net0
+        addresses:
+          - address: fd00:50::18/64
+        routes:
+          - gateway: fd00:50::1/64
+            metric: 5000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
         name: net0.100
         vlanID: 100
         parent: net0
@@ -261,7 +413,7 @@ nodes:
           - address: 192.168.100.18/24
         routes:
           - gateway: 192.168.100.1
-            metric: 3000
+            metric: 2001
         mtu: 9000
   - hostname: "talos-worker-6"
     ipAddress: "192.168.1.19"
@@ -270,14 +422,87 @@ nodes:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:9d:08:34"
-        dhcp: false
+    patches:
+      - # Network configuration
+        |-
+        ---
+        apiVersion: v1alpha1
+        kind: LinkAliasConfig
+        name: net0  # <--- This is the common name Multus will look for
+        selector:
+          # Match this specific node's hardware by MAC
+          match: "mac(link.permanent_addr) == 'bc:24:11:9d:08:34'"
+        ---
+        apiVersion: v1alpha1
+        kind: LinkConfig
+        name: net0
         addresses:
-          - "192.168.1.19/24"
+          - address: 192.168.1.19/24
+          - address: 2001:470:e246:1::19/64
+        mtu: 1480
         routes:
-          - gateway: "192.168.1.1"
+          - gateway: 192.168.1.1
+          - gateway: 2001:470:e246::1
+        up: true
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.10
+        vlanID: 10
+        parent: net0
+        addresses:
+          - address: 192.168.2.19/24
+        routes:
+          - gateway: 192.168.2.1
+            metric: 2000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.30
+        vlanID: 30
+        parent: net0
+        addresses:
+          - address: fd00:30::19/64
+        routes:
+          - gateway: fd00:30::1/64
+            metric: 3000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.40
+        vlanID: 40
+        parent: net0
+        addresses:
+          - address: fd00:40::19/64
+        routes:
+          - gateway: fd00:40::1/64
+            metric: 4000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.50
+        vlanID: 50
+        parent: net0
+        addresses:
+          - address: fd00:50::19/64
+        routes:
+          - gateway: fd00:50::1/64
+            metric: 5000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.100
+        vlanID: 100
+        parent: net0
+        addresses:
+          - address: 192.168.100.19/24
+        routes:
+          - gateway: 192.168.100.1
+            metric: 2001
         mtu: 9000
 
 # Global patches
