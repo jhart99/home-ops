@@ -10,6 +10,6 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./authentik/ks.yaml
+  # - ./authentik/ks.yaml
   # - ./trivy/ks.yaml
   # - ./wazuh/ks.yaml
