@@ -22,9 +22,7 @@ nodes:
   - hostname: "talos-cp-1"
     ipAddress: "192.168.1.11"
     installDisk: "/dev/nvme1n1"
-    machineSpec:
-      secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
+    talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules
@@ -85,9 +83,7 @@ nodes:
   - hostname: "talos-cp-2"
     ipAddress: "192.168.1.12"
     installDisk: "/dev/nvme1n1"
-    machineSpec:
-      secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
+    talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules
@@ -147,9 +143,7 @@ nodes:
   - hostname: "talos-cp-3"
     ipAddress: "192.168.1.13"
     installDisk: "/dev/nvme0n1"
-    machineSpec:
-      secureboot: true
-    talosImageURL: factory.talos.dev/installer-secureboot/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
+    talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
       - # Load kernel modules
@@ -294,5 +288,5 @@ controlPlane:
   patches:
     - "@./patches/controller/cluster.yaml"
     - "@./patches/controller/machine-features.yaml"
-    - "@./patches/controller/machine-diskencryption.yaml"
+    # - "@./patches/controller/machine-diskencryption.yaml"
 
