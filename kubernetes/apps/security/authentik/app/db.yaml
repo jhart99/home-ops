@@ -24,7 +24,7 @@ spec:
     recovery:
       source: backup-source
       recoveryTarget:
-        targetTime: "2026-06-06 01:00:00.00000+00"
+        targetTime: "2026-06-01 01:00:00.00000+00"
 
   # 3. Reference the original cluster's backup using the plugin
   externalClusters:
