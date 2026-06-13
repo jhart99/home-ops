@@ -20,6 +20,8 @@ spec:
     #   owner: immich
     recovery:
       source: backup-source
+      database: immich
+      owner: immich
   monitoring:
     enablePodMonitor: true
   plugins:
