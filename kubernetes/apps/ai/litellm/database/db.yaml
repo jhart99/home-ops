@@ -15,11 +15,11 @@ spec:
     storageClass: ceph-block
     size: 1Gi
   bootstrap:
-    initdb:
-      database: litellm
-      owner: litellm
-    # recovery:
-    #   source: backup-source
+    # initdb:
+    #   database: litellm
+    #   owner: litellm
+    recovery:
+      source: backup-source
   monitoring:
     enablePodMonitor: true
     customQueriesConfigMap:
