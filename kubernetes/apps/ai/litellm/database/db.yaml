@@ -2,6 +2,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: litellm-db
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: "enabled"
 spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   primaryUpdateStrategy: unsupervised
@@ -16,6 +18,8 @@ spec:
     initdb:
       database: litellm
       owner: litellm
+    # recovery:
+    #   source: backup-source
   monitoring:
     enablePodMonitor: true
     customQueriesConfigMap:
@@ -26,6 +30,14 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: litellm-cnpg-s3
+        serverName: litellm-cnpg-v1
+  externalClusters:
+    - name: backup-source
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: litellm-cnpg-s3
+          serverName: litellm-cnpg-v1
   postgresql:
     parameters:
       shared_buffers: 128MB
