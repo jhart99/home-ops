@@ -8,7 +8,7 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/default/immich/app
   dependsOn:
-    - name: immich-db-eieio
+    - name: immich-db
       namespace: default
     - name: rook-ceph-cluster
       namespace: rook-ceph
