@@ -47,7 +47,7 @@ spec:
     - apiVersion: postgresql.cnpg.io/v1
       kind: Cluster
       current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
-  path: ./kubernetes/apps/ai/litellm/database
+  path: ./kubernetes/apps/default/immich/database
   postBuild:
     substitute:
       APP: immich-db
