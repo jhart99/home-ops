@@ -13,11 +13,11 @@ spec:
     storageClass: ceph-block
     size: 20Gi
   bootstrap:
-    initdb:
-      database: immich
-      owner: immich
-    # recovery:
-    #   source: backup-source
+    # initdb:
+    #   database: immich
+    #   owner: immich
+    recovery:
+      source: backup-source
   monitoring:
     enablePodMonitor: true
   plugins:
