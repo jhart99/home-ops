@@ -19,7 +19,7 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: authentik-cnpg-s3
-        serverName: authentik-db-v4
+        serverName: authentik-db-v5
   bootstrap:
     recovery:
       source: backup-source
