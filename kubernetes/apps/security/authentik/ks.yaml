@@ -34,11 +34,12 @@ spec:
     - name: rustfs
       namespace: rustfs
   targetNamespace: security
-  healthChecks:
+  healthCheckExprs:
     - apiVersion: postgresql.cnpg.io/v1
       kind: Cluster
       name: authentik-db
       namespace: security
+      current: status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
   path: ./kubernetes/apps/security/authentik/database
   postBuild:
     substitute:
