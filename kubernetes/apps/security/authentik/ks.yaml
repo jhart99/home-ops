@@ -4,7 +4,7 @@ metadata:
   name: authentik
 spec:
   dependsOn:
-    - name: authentik-db-asdsadafs
+    - name: authentik-db
       namespace: security
   targetNamespace: security
   path: ./kubernetes/apps/security/authentik/app
