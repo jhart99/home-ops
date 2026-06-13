@@ -4,6 +4,8 @@ apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
   name: authentik-db
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: "enabled"
 spec:
   instances: 2
 
@@ -19,7 +21,7 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: authentik-cnpg-s3
-        serverName: authentik-db-v6
+        serverName: authentik-db-v7
   bootstrap:
     recovery:
       source: backup-source
