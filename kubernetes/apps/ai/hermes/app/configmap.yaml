@@ -6,12 +6,12 @@ metadata:
 data:
   config.yaml: |-
     custom_providers:
-      - name: llama
-        base_url: http://llama-cpp.ai.svc.cluster.local:8080/v1
-        key_env: LLAMA_API_KEY
+      - name: litellm
+        base_url: http://litellm.ai.svc.cluster.local:4000/v1
+        key_env: LITELLM_API_KEY
     model:
-      default: dark-jarvis
-      provider: custom:llama
+      default: qwen
+      provider: custom:litellm
     terminal:
       backend: docker
       docker_image: nikolaik/python-nodejs:python3.11-nodejs20
