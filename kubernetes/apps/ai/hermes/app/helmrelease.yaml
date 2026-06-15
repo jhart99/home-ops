@@ -28,7 +28,7 @@ spec:
               - |
                 set -euo pipefail
                 mkdir -p /opt/data
-                cp -n /run/config/config.yaml /opt/data/config.yaml
+                cp /run/config/config.yaml /opt/data/config.yaml
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
