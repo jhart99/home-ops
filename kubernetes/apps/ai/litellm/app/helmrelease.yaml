@@ -37,6 +37,7 @@ spec:
                   secretKeyRef:
                     name: llama-cpp-secret
                     key: LLAMA_API_KEY
+              STORE_MODEL_IN_DB: "True"
             envFrom:
               - secretRef:
                   name: litellm-secret
