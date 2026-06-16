@@ -7,7 +7,7 @@ data:
   config.yaml: |-
     custom_providers:
       - name: llamacpp
-        base_url: http://llamacpp.ai.svc.cluster.local:8080/v1
+        base_url: http://llama-cpp.ai.svc.cluster.local:8080/v1
         key_env: LLAMA_API_KEY
     model:
       default: dark-jarvis
@@ -53,3 +53,7 @@ data:
     #     url: http://vmcp-mcp-gateway-internal.ai.svc.cluster.local:4483/mcp
     web:
       search_backend: searxng
+    plugins:
+      enabled:
+      - agentmemory
+      disabled: []
