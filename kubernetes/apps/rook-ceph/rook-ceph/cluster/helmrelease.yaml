@@ -55,7 +55,7 @@ spec:
             enabled: true
       network:
         provider: host
-        ipFamily: IPv6
+        ipFamily: IPv4
         dualStack: true
         addressRanges:
           public:
@@ -66,16 +66,6 @@ spec:
             - fd00:50::/64
         connections:
           requireMsgr2: true
-      placement:
-        all:
-          tolerations:
-            - key: node-role.kubernetes.io/control-plane
-              operator: Exists
-              effect: NoSchedule
-            # Talos sometimes uses this legacy taint as well, good to include both
-            - key: node-role.kubernetes.io/master
-              operator: Exists
-              effect: NoSchedule
       resources:
         osd:
           requests:
