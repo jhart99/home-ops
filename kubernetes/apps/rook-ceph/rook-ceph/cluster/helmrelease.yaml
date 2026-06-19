@@ -66,6 +66,16 @@ spec:
             - fd00:50::/64
         connections:
           requireMsgr2: true
+      placement:
+        all:
+          tolerations:
+            - key: node-role.kubernetes.io/control-plane
+              operator: Exists
+              effect: NoSchedule
+            # ensure that ceph can still be scheduled when out of date
+            - key: tuppr.home-operations.com/outdated
+              operator: Exists
+              effect: PreferNoSchedule
       resources:
         osd:
           requests:
