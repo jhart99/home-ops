@@ -4,15 +4,19 @@ clusterName: kubernetes
 talosVersion: "${talosVersion}"
 kubernetesVersion: "${kubernetesVersion}"
 
-endpoint: https://[2001:470:e246:1::100]:6443
+endpoint: https://[2001:470:e246::100]:6443
 additionalApiServerCertSans: &sans
   - "127.0.0.1"
-  - "2001:470:e246:1::100"
+  - "2001:470:e246::100"
   - "kube.rnatr.com"
 additionalMachineCertSans: *sans
 
-clusterPodNets: ["2001:470:e246:1000::/52"]
-clusterSvcNets: ["fd00:10:96::/108"]
+clusterPodNets:
+  - "2001:470:e246:1000::/52"
+  - 10.42.0.0/16
+clusterSvcNets:
+  - "fd00:10:96::/108"
+  - 10.43.0.0/16
 
 # Disable built-in CNI to use Cilium
 cniConfig:
@@ -21,7 +25,7 @@ cniConfig:
 nodes:
   - hostname: "talos-cp-1"
     ipAddress: "192.168.1.11"
-    installDisk: "/dev/nvme1n1"
+    installDisk: "/dev/disk/by-id/nvme-eui.0025388c91511427"
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
@@ -43,7 +47,7 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: Layer2VIPConfig
-        name: 192.168.1.5
+        name: 2001:470:e246::100
         link: net0
         ---
         apiVersion: v1alpha1
@@ -51,17 +55,17 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.11/24
-          - address: 2001:470:e246:1::11/64
-        mtu: 1480
+          - address: 2001:470:e246::11/60
+        mtu: 9000
         routes:
           - gateway: 192.168.1.1
-          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.10
         vlanID: 10
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.2.11/24
@@ -74,42 +78,37 @@ nodes:
         kind: VLANConfig
         name: net0.30
         vlanID: 30
+        vlanMode: 802.1q
         parent: net0
         addresses:
-          - address: fd00:30::11/64
-        routes:
-          - gateway: fd00:30::1/64
-            metric: 3000
+          - address: 192.168.3.11/24
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.40
         vlanID: 40
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:40::11/64
-        routes:
-          - gateway: fd00:40::1/64
-            metric: 4000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.50
         vlanID: 50
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:50::11/64
-        routes:
-          - gateway: fd00:50::1/64
-            metric: 5000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.100.11/24
@@ -120,7 +119,7 @@ nodes:
 
   - hostname: "talos-cp-2"
     ipAddress: "192.168.1.12"
-    installDisk: "/dev/nvme1n1"
+    installDisk: "/dev/disk/by-id/nvme-eui.002538d921a1a1e3"
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
@@ -142,7 +141,7 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: Layer2VIPConfig
-        name: 192.168.1.5
+        name: 2001:470:e246::100
         link: net0
         ---
         apiVersion: v1alpha1
@@ -150,17 +149,17 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.12/24
-          - address: 2001:470:e246:1::12/64
-        mtu: 1480
+          - address: 2001:470:e246::12/60
+        mtu: 9000
         routes:
           - gateway: 192.168.1.1
-          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.10
         vlanID: 10
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.2.12/24
@@ -173,42 +172,37 @@ nodes:
         kind: VLANConfig
         name: net0.30
         vlanID: 30
+        vlanMode: 802.1q
         parent: net0
         addresses:
-          - address: fd00:30::12/64
-        routes:
-          - gateway: fd00:30::1/64
-            metric: 3000
+          - address: 192.168.3.12/24
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.40
         vlanID: 40
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:40::12/64
-        routes:
-          - gateway: fd00:40::1/64
-            metric: 4000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.50
         vlanID: 50
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:50::12/64
-        routes:
-          - gateway: fd00:50::1/64
-            metric: 5000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.100.12/24
@@ -240,7 +234,7 @@ nodes:
         ---
         apiVersion: v1alpha1
         kind: Layer2VIPConfig
-        name: 192.168.1.5
+        name: 2001:470:e246::100
         link: net0
         ---
         apiVersion: v1alpha1
@@ -248,17 +242,17 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.13/24
-          - address: 2001:470:e246:1::13/64
-        mtu: 1480
+          - address: 2001:470:e246::13/60
+        mtu: 9000
         routes:
           - gateway: 192.168.1.1
-          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.10
         vlanID: 10
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.2.13/24
@@ -271,42 +265,37 @@ nodes:
         kind: VLANConfig
         name: net0.30
         vlanID: 30
+        vlanMode: 802.1q
         parent: net0
         addresses:
-          - address: fd00:30::13/64
-        routes:
-          - gateway: fd00:30::1/64
-            metric: 3000
+          - address: 192.168.3.13/24
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.40
         vlanID: 40
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:40::13/64
-        routes:
-          - gateway: fd00:40::1/64
-            metric: 4000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.50
         vlanID: 50
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:50::13/64
-        routes:
-          - gateway: fd00:50::1/64
-            metric: 5000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.100.13/24
@@ -343,17 +332,17 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.18/24
-          - address: 2001:470:e246:1::18/64
-        mtu: 1480
+          - address: 2001:470:e246::18/60
+        mtu: 9000
         routes:
           - gateway: 192.168.1.1
-          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.10
         vlanID: 10
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.2.18/24
@@ -366,42 +355,37 @@ nodes:
         kind: VLANConfig
         name: net0.30
         vlanID: 30
+        vlanMode: 802.1q
         parent: net0
         addresses:
-          - address: fd00:30::18/64
-        routes:
-          - gateway: fd00:30::1/64
-            metric: 3000
+          - address: 192.168.3.18/24
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.40
         vlanID: 40
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:40::18/64
-        routes:
-          - gateway: fd00:40::1/64
-            metric: 4000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.50
         vlanID: 50
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:50::18/64
-        routes:
-          - gateway: fd00:50::1/64
-            metric: 5000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.100.18/24
@@ -432,17 +416,17 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.19/24
-          - address: 2001:470:e246:1::19/64
-        mtu: 1480
+          - address: 2001:470:e246::19/60
+        mtu: 9000
         routes:
           - gateway: 192.168.1.1
-          - gateway: 2001:470:e246::1
         up: true
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.10
         vlanID: 10
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.2.19/24
@@ -455,42 +439,37 @@ nodes:
         kind: VLANConfig
         name: net0.30
         vlanID: 30
+        vlanMode: 802.1q
         parent: net0
         addresses:
-          - address: fd00:30::19/64
-        routes:
-          - gateway: fd00:30::1/64
-            metric: 3000
+          - address: 192.168.3.19/24
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.40
         vlanID: 40
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:40::19/64
-        routes:
-          - gateway: fd00:40::1/64
-            metric: 4000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.50
         vlanID: 50
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: fd00:50::19/64
-        routes:
-          - gateway: fd00:50::1/64
-            metric: 5000
         mtu: 9000
         ---
         apiVersion: v1alpha1
         kind: VLANConfig
         name: net0.100
         vlanID: 100
+        vlanMode: 802.1q
         parent: net0
         addresses:
           - address: 192.168.100.19/24
