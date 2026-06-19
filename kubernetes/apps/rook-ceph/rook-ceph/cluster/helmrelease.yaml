@@ -58,8 +58,9 @@ spec:
         addressRanges:
           public:
             - 192.168.1.0/24
+            - fd00:40::/64
           cluster:
-            - 192.168.1.0/24
+            - fd00:50::/64
         connections:
           requireMsgr2: true
       resources:
