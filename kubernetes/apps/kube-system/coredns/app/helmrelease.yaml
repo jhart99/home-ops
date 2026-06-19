@@ -18,6 +18,11 @@ spec:
     service:
       name: kube-dns
       clusterIP: "fd00:10:96::10"
+      # ADDED: Explicitly define dual-stack/IPv6 configuration
+      ipFamilyPolicy: RequireDualStack
+      ipFamilies:
+        - IPv6
+        - IPv4
     replicaCount: 2
     servers:
       - zones:
@@ -48,7 +53,7 @@ spec:
           - name: reload
           - name: loadbalance
           - name: prometheus
-            parameters: 0.0.0.0:9153
+            parameters: "[::]:9153"
           - name: log
             configBlock: |-
               class error
