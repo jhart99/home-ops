@@ -17,7 +17,9 @@ spec:
       create: true
     service:
       name: kube-dns
-      clusterIP: "fd00:10:96::10"
+      clusterIPs:
+      - "fd00:10:96::10"
+      - "10.43.0.10"
       # ADDED: Explicitly define dual-stack/IPv6 configuration
       ipFamilyPolicy: RequireDualStack
       ipFamilies:
