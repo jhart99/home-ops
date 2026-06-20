@@ -1,4 +1,5 @@
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumloadbalancerippool_v2.json
 apiVersion: cilium.io/v2
 kind: CiliumLoadBalancerIPPool
 metadata:
@@ -8,7 +9,10 @@ spec:
   blocks:
     - cidr: "192.168.1.0/24"
     - cidr: "192.168.30.0/24"
+    - cidr: "fd00:10:96::/108"
+    - cidr: "2001:470:e246::/64"
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumpodippool_v2alpha1.json
 apiVersion: cilium.io/v2alpha1
 kind: CiliumPodIPPool
 metadata:
@@ -20,7 +24,12 @@ spec:
     # maskSize dictates how large of an IP chunk is dynamically assigned to a node
     # when a pod lands on it. A /28 gives the node 16 IPs at a time.
     maskSize: 28
+  ipv6:
+    cidrs:
+      - "2001:470:e247:1000::/52" # Example IPv6 Pod CIDR
+    maskSize: 112 # Typical mask size for IPv6 pod allocation
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliuml2announcementpolicy_v2alpha1.json
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy
 metadata:
@@ -68,6 +77,11 @@ spec:
       advertisements:
         matchLabels:
           advertise: bgp
+    - afi: ipv6
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: bgp
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgpclusterconfig_v2.json
 apiVersion: cilium.io/v2
@@ -85,6 +99,11 @@ spec:
         - name: unifi
           peerASN: 64512
           peerAddress: 192.168.1.1
+          peerConfigRef:
+            name: l3-bgp-peer-config
+        - name: unifi-ipv6
+          peerASN: 64512
+          peerAddress: 2001:470:e246::1 # Replace with your Unifi router's actual IPv6 interface address
           peerConfigRef:
             name: l3-bgp-peer-config
 ---
