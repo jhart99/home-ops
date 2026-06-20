@@ -18,6 +18,8 @@ spec:
     - --proactor_threads=2
     - --cluster_mode=emulated
     - --default_lua_flags=allow-undeclared-keys
+    - "--bind=::"
+    - "--admin_bind=::"
   resources:
     requests:
       cpu: 100m
