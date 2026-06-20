@@ -24,8 +24,9 @@ spec:
             env:
               TZ: ${TIMEZONE}
               PORT: &port 80
-              DISABLE_IPV6: true
+              DISABLE_IPV6: false
               EXPERIMENTAL_AWG: true
+              HOST: "::"
               INIT_ENABLED: true
               INIT_HOST: vpn.${SECRET_DOMAIN}
               INIT_PORT: 51820
