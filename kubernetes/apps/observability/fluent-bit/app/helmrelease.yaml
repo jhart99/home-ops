@@ -36,7 +36,7 @@ spec:
         [INPUT]
           Name     syslog
           Mode     tcp
-          Listen   0.0.0.0
+          Listen   ::
           Port     5140
           Parser   syslog-rfc3164
           Tag      syslog
@@ -44,7 +44,7 @@ spec:
         [INPUT]
           Name     syslog
           Mode     udp
-          Listen   0.0.0.0
+          Listen   ::
           Port     5140
           Parser   syslog-rfc3164
           Tag      openwrt.logs
