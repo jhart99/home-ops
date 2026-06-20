@@ -55,7 +55,7 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.11/24
-          - address: 2001:470:e246::11/60
+          - address: 2001:470:e246::11/64
         mtu: 9000
         routes:
           - gateway: 192.168.1.1
@@ -149,7 +149,7 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.12/24
-          - address: 2001:470:e246::12/60
+          - address: 2001:470:e246::12/64
         mtu: 9000
         routes:
           - gateway: 192.168.1.1
@@ -242,7 +242,7 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.13/24
-          - address: 2001:470:e246::13/60
+          - address: 2001:470:e246::13/64
         mtu: 9000
         routes:
           - gateway: 192.168.1.1
@@ -332,7 +332,7 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.18/24
-          - address: 2001:470:e246::18/60
+          - address: 2001:470:e246::18/64
         mtu: 9000
         routes:
           - gateway: 192.168.1.1
@@ -416,7 +416,7 @@ nodes:
         name: net0
         addresses:
           - address: 192.168.1.19/24
-          - address: 2001:470:e246::19/60
+          - address: 2001:470:e246::19/64
         mtu: 9000
         routes:
           - gateway: 192.168.1.1
