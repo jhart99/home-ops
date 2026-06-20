@@ -103,7 +103,7 @@ spec:
             name: l3-bgp-peer-config
         - name: unifi-ipv6
           peerASN: 64512
-          peerAddress: 2001:470:e246::1 # Replace with your Unifi router's actual IPv6 interface address
+          peerAddress: 2001:470:e246::1
           peerConfigRef:
             name: l3-bgp-peer-config
 ---
