@@ -6,6 +6,10 @@ metadata:
   name: litellm-cnpg-s3
 spec:
   retentionPolicy: 30d
+  instanceSidecarConfiguration:
+    env:
+      - name: BARMAN_S3_USE_PATH_STYLE
+        value: "true"
   configuration:
     endpointURL: "http://rustfs.rustfs.svc.cluster.local:9000"
     destinationPath: "s3://cnpg-backups/"
