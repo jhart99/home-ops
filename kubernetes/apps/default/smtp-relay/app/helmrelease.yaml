@@ -62,6 +62,7 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "smtp-relay.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.30
+        ipFamilyPolicy: PreferDualStack
         externalTrafficPolicy: Local
         ports:
           smtp:
