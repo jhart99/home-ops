@@ -5,7 +5,7 @@ cluster:
       $$patch: delete
   controllerManager:
     extraArgs:
-      bind-address: "::"
+      bind-address: 0.0.0.0
   coreDNS:
     disabled: true
   etcd:
@@ -14,12 +14,12 @@ cluster:
       election-timeout: "5000"
       heartbeat-interval: "500"
     advertisedSubnets:
-      - fd00:30::/64
+      - 192.168.1.0/24
   proxy:
     disabled: true
   scheduler:
     extraArgs:
-      bind-address: "::"
+      bind-address: 0.0.0.0
     config:
       apiVersion: kubescheduler.config.k8s.io/v1
       kind: KubeSchedulerConfiguration
