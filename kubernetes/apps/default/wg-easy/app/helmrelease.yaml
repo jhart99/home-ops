@@ -24,9 +24,8 @@ spec:
             env:
               TZ: ${TIMEZONE}
               PORT: &port 80
-              DISABLE_IPV6: false
+              DISABLE_IPV6: true
               EXPERIMENTAL_AWG: true
-              HOST: "::"
               INIT_ENABLED: true
               INIT_HOST: vpn.${SECRET_DOMAIN}
               INIT_PORT: 51820
@@ -73,7 +72,6 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "wg.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.10
-        ipFamilyPolicy: PreferDualStack
         ports:
           wg:
             port: 51820

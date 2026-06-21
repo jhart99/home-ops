@@ -25,7 +25,7 @@ spec:
               RUSTFS_CONSOLE_ADDRESS: ":9001"
               RUSTFS_CONSOLE_ENABLE: "true"
               RUSTFS_BROWSER_REDIRECT_URL: "https://rustfs.${SECRET_DOMAIN}"
-              RUSTFS_SERVER_DOMAINS: "s3.${SECRET_DOMAIN},rustfs.rustfs.svc.cluster.local:9000,rustfs.rustfs.svc.cluster.local,rustfs.rustfs.svc:9000,rustfs.rustfs.svc,rustfs.rustfs:9000,rustfs.rustfs"
+              RUSTFS_SERVER_DOMAINS: "s3.${SECRET_DOMAIN}"
               RUSTFS_OBS_LOGGER_LEVEL: info
             envFrom:
               - secretRef:

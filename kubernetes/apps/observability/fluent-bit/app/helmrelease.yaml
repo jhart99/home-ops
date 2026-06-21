@@ -19,7 +19,7 @@ spec:
           parsers_file /fluent-bit/etc/parsers.conf
           parsers_file /fluent-bit/etc/conf/custom_parsers.conf
           http_server on
-          http_listen ::
+          http_listen 0.0.0.0
           http_port {{ .Values.metricsPort }}
           health_check on
 
@@ -36,7 +36,7 @@ spec:
         [INPUT]
           Name     syslog
           Mode     tcp
-          Listen   ::
+          Listen   0.0.0.0
           Port     5140
           Parser   syslog-rfc3164
           Tag      syslog
@@ -44,7 +44,7 @@ spec:
         [INPUT]
           Name     syslog
           Mode     udp
-          Listen   ::
+          Listen   0.0.0.0
           Port     5140
           Parser   syslog-rfc3164
           Tag      openwrt.logs

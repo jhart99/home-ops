@@ -50,7 +50,6 @@ spec:
           gatus.home-operations.com/endpoint: |-
             group: services
           lbipam.cilium.io/ips: 192.168.30.129
-        ipFamilyPolicy: PreferDualStack
         externalTrafficPolicy: Local
         ports:
           mqtt:

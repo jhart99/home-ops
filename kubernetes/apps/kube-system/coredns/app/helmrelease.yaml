@@ -17,15 +17,7 @@ spec:
       create: true
     service:
       name: kube-dns
-      clusterIP: 10.43.0.10
-      clusterIPs:
-      - "10.43.0.10"
-      - "fd00:10:96::a"
-      # ADDED: Explicitly define dual-stack/IPv6 configuration
-      ipFamilyPolicy: RequireDualStack
-      ipFamilies:
-        - IPv4
-        - IPv6
+      clusterIP: "10.43.0.10"
     replicaCount: 2
     servers:
       - zones:
@@ -35,39 +27,28 @@ spec:
         port: 53
         plugins:
           - name: errors
-
           - name: health
             configBlock: |-
               lameduck 5s
-
           - name: ready
-
           - name: kubernetes
             parameters: cluster.local in-addr.arpa ip6.arpa
             configBlock: |-
               pods verified
               fallthrough in-addr.arpa ip6.arpa
-
           - name: autopath
-            parameters: '@kubernetes'
-
+            parameters: "@kubernetes"
           - name: forward
             parameters: . /etc/resolv.conf
-
           - name: cache
             configBlock: |-
               prefetch 20
               serve_stale
-
           - name: loop
-
           - name: reload
-
           - name: loadbalance
-
           - name: prometheus
             parameters: 0.0.0.0:9153
-
           - name: log
             configBlock: |-
               class error

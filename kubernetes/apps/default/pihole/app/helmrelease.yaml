@@ -101,7 +101,6 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "pihole-dns.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: 192.168.30.53
-        ipFamilyPolicy: PreferDualStack
         primary: true
         ports:
           http:

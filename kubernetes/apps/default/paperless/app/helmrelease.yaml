@@ -28,7 +28,6 @@ spec:
                   secretKeyRef:
                     name: paperless-secret
                     key: PAPERLESS_SECRET_KEY
-              PAPERLESS_BIND_ADDR: "[::]"
               PAPERLESS_URL: "https://paperless.${SECRET_DOMAIN}"
               PAPERLESS_PORT: &port 8000
               PAPERLESS_TIME_ZONE: "America/New_York"

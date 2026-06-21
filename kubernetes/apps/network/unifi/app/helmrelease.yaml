@@ -43,7 +43,6 @@ spec:
         annotations:
           external-dns.alpha.kubernetes.io/hostname: "unifi.${SECRET_DOMAIN}"
           lbipam.cilium.io/ips: *system_ip
-        ipFamilyPolicy: PreferDualStack
         externalTrafficPolicy: Local
         ports:
           https:

@@ -55,25 +55,13 @@ spec:
             enabled: true
       network:
         provider: host
-        ipFamily: IPv6
-        dualStack: false
         addressRanges:
           public:
-            - fd00:40::/64
+            - 192.168.1.0/24
           cluster:
-            - fd00:50::/64
+            - 192.168.1.0/24
         connections:
           requireMsgr2: true
-      placement:
-        all:
-          tolerations:
-            - key: node-role.kubernetes.io/control-plane
-              operator: Exists
-              effect: NoSchedule
-            # ensure that ceph can still be scheduled when out of date
-            - key: tuppr.home-operations.com/outdated
-              operator: Exists
-              effect: PreferNoSchedule
       resources:
         osd:
           requests:
@@ -87,6 +75,8 @@ spec:
         useAllDevices: false
         config:
           osdsPerDevice: "1"
+        # storage:
+        #   wipeDevicesFromOtherClusters: true
         nodes:
          - name: "talos-cp-1"
            devices:             # specific devices to use for storage can be specified for each node

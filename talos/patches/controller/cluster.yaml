@@ -14,7 +14,7 @@ cluster:
       election-timeout: "5000"
       heartbeat-interval: "500"
     advertisedSubnets:
-      - 192.168.3.0/24
+      - fd00:30::/64
   proxy:
     disabled: true
   scheduler:
