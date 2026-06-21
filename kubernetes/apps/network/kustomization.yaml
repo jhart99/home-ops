@@ -12,5 +12,6 @@ resources:
   - ./cloudflare-tunnel/ks.yaml
   - ./envoy-gateway/ks.yaml
   - ./k8s-gateway/ks.yaml
-  - ./openwrt-dns/ks.yaml
-  - ./unifi/ks.yaml
+  # - ./openwrt-dns/ks.yaml
+  # - ./unifi/ks.yaml
+  - ./unifi-dns/ks.yaml
