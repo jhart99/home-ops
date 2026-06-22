@@ -7,6 +7,12 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/network/unifi-dns/app
+  postBuild:
+    substitute:
+      APP: unifi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository

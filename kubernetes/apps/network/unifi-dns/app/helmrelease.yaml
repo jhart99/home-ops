@@ -19,7 +19,7 @@ spec:
           tag: 0.10.6@sha256:b35a7aac743ddbf7edff3266d8b0b0ac108dc0d56d692b322e51ec99f57b34c5
         env:
           - name: UNIFI_HOST
-            value: https://192.168.1.1
+            value: https://unifi.jonathanrosshart.com
           - name: UNIFI_API_KEY
             valueFrom:
               secretKeyRef:
