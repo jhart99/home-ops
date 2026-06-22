@@ -7,6 +7,12 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/observability/unpoller/app
+  postBuild:
+    substitute:
+      APP: authentik
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository
