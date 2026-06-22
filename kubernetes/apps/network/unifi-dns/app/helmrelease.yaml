@@ -20,6 +20,8 @@ spec:
         env:
           - name: UNIFI_HOST
             value: https://unifi.jonathanrosshart.com
+          - name: UNIFI_SITE
+            value: default
           - name: UNIFI_API_KEY
             valueFrom:
               secretKeyRef:
