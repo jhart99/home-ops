@@ -19,14 +19,21 @@ spec:
           tag: 0.10.6@sha256:b35a7aac743ddbf7edff3266d8b0b0ac108dc0d56d692b322e51ec99f57b34c5
         env:
           - name: UNIFI_HOST
-            value: https://unifi.jonathanrosshart.com
+            # value: https://unifi.jonathanrosshart.com
+            value: "https://api.ui.com"
+          - name: UNIFI_CONSOLE_ID
+            valueFrom:
+              secretKeyRef:
+                name: unifi-dns-secret
+                key: UNIFI_CONSOLE_ID
           - name: UNIFI_SITE
             value: default
           - name: UNIFI_API_KEY
             valueFrom:
               secretKeyRef:
                 name: &secret unifi-dns-secret
-                key: UNIFI_API_KEY
+                #key: UNIFI_API_KEY
+                key: UNIFI_CONSOLE_API_KEY
         livenessProbe:
           httpGet:
             path: /healthz
