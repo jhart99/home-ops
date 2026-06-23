@@ -12,7 +12,7 @@ spec:
     staticConfig:
       static:
         - pve.jonathanrosshart.com
-        - openwrt.jonathanrosshart.com
+        - unifi.jonathanrosshart.com
   metricRelabelings:
     - targetLabel: service
       replacement: blackbox-exporter-lan
