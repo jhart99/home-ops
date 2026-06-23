@@ -6,20 +6,7 @@ metadata:
 spec:
   allowFirstLastIPs: "No"
   blocks:
-    - cidr: "192.168.1.0/24"
     - cidr: "192.168.30.0/24"
----
-apiVersion: cilium.io/v2alpha1
-kind: CiliumPodIPPool
-metadata:
-  name: jupyter-vdi-pool
-spec:
-  ipv4:
-    cidrs:
-      - "192.168.40.0/24"
-    # maskSize dictates how large of an IP chunk is dynamically assigned to a node
-    # when a pod lands on it. A /28 gives the node 16 IPs at a time.
-    maskSize: 28
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumL2AnnouncementPolicy
@@ -30,9 +17,6 @@ spec:
   # NOTE: interfaces might need to be set if you have more than one active NIC on your hosts
   interfaces:
     - ^net0
-    - ^ethSel0
-  #   - ^eno[0-9]+
-  #   - ^eth[0-9]+
   nodeSelector:
     matchLabels:
       kubernetes.io/os: linux
@@ -53,8 +37,6 @@ spec:
       selector:
         matchExpressions:
           - {key: somekey, operator: NotIn, values: ["never-used-value"]}
-    # --- Announces Pod IPs to your physical network ---
-    - advertisementType: PodCIDR
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumbgppeerconfig_v2.json
 apiVersion: cilium.io/v2
@@ -80,7 +62,7 @@ spec:
       kubernetes.io/os: linux
   bgpInstances:
     - name: cilium
-      localASN: 64512
+      localASN: 64513
       peers:
         - name: unifi
           peerASN: 64512
