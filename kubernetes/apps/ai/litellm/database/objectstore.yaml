@@ -12,10 +12,8 @@ spec:
         value: "when_required"
       - name: AWS_RESPONSE_CHECKSUM_VALIDATION
         value: "when_required"
-      - name: BARMAN_S3_USE_PATH_STYLE
-        value: "true"
   configuration:
-    endpointURL: 'http://rustfs.rustfs.svc.cluster.local:9000'
+    endpointURL: 'https://s3.rnatr.com/'
     destinationPath: "s3://cnpg-backups/"
     s3Credentials:
       accessKeyId:
