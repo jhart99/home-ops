@@ -86,8 +86,8 @@ spec:
           app:
             image:
               repository: ghcr.io/jhart99/jhart99-hermes-agent
-              tag: v2026.6.5
-              digest: sha256:e9522976c5a60c800f6c798e08454e1b36f8ebf9b7c642c711603997ac34c6ff
+              tag: v2026.6.19
+              digest: sha256:896103611cb71de25577de46d5ee78fa3c78dee2b1bb3d765951aef59b3f74cb
             args:
               - gateway
               - run
