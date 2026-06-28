@@ -12,7 +12,7 @@ spec:
   values:
     image:
       repository: ghcr.io/home-operations/tuppr
-      tag: 0.2.7@sha256:bca79f9cfc4a75b318e160bd811948fa513327f178c32cf85713833be7a480e2
+      tag: 0.2.8@sha256:9785944f4ebf52ddaede37abdc9c55b106d427e408e0696955486351c74f33b0
     replicaCount: 2
     monitoring:
       serviceMonitor:
