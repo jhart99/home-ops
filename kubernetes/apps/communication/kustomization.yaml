@@ -8,4 +8,5 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./smtp-relay/ks.yaml
   - ./tuwunel/ks.yaml
