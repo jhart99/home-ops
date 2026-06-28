@@ -1,0 +1,98 @@
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bjw-s-labs/helm-charts/main/charts/other/app-template/schemas/helmrelease-helm-v2.schema.json
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: smtp-relay
+spec:
+  chartRef:
+    kind: OCIRepository
+    name: signal-cli
+  interval: 1h
+  values:
+    controllers:
+      signal-cli:
+        replicas: 2
+        strategy: RollingUpdate
+        annotations:
+          reloader.stakater.com/auto: "true"
+        containers:
+          app:
+            image:
+              repository: ghcr.io/asamk/signal-cli
+              tag: 0.14.5@sha256:b9ccf23800f16dbf12ac07d9079a43fca7199cb6033c4f25096e16ad4173869a
+            env:
+              TZ: "America/New_York"
+              SIGNAL_ACCOUNT:
+                valueFrom:
+                  secretKeyRef:
+                    name: signal-cli-secret
+                    key: SIGNAL_ACCOUNT
+            command: ["/bin/sh", "-c"]
+            args: ["/opt/signal-cli/bin/signal-cli --config=/var/lib/signal-cli --account $SIGNAL_ACCOUNT daemon --http 0.0.0.0:8080"]
+            probes:
+              liveness: &probes
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/check
+                    port: &port 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 30
+                  failureThreshold: 5
+              readiness: *probes
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /api/v1/check
+                    port: *port
+                  initialDelaySeconds: 10
+                  periodSeconds: 10
+                  failureThreshold: 30
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities:
+                drop:
+                  - ALL
+            resources:
+              requests:
+                cpu: 10m
+              limits:
+                memory: 512Mi
+            envFrom:
+              - secretRef:
+                  name: "{{ .Release.Name }}-secret"
+    defaultPodOptions:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values: ["amd64"]
+
+    service:
+      signal-cli:
+        controller: signal-cli
+        ports:
+          http:
+            port: *port
+    persistence:
+      signal-cli:
+        enabled: true
+        existingClaim: signal-cli
+        globalMounts:
+          - path: /var/lib/signal-cli
+      tmp:
+        type: emptyDir
