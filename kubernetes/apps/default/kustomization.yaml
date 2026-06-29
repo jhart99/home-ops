@@ -20,7 +20,7 @@ resources:
   - ./mosquitto/ks.yaml
   - ./paperless/ks.yaml
   - ./pihole/ks.yaml
-  - ./renovate/ks.yaml
+  # - ./renovate/ks.yaml
   - ./wg-easy/ks.yaml
   - ./whoami/ks.yaml
   - ./zigbee/ks.yaml
