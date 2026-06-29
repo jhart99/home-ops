@@ -23,6 +23,9 @@ spec:
       parentRefs:
         - name: envoy-internal
           namespace: network
+    valkey:
+      existingSecret: "renovate-secret"
+      existingSecretKey: "dragonfly-url"
     webhook:
       enabled: true
       route:
