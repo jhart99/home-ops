@@ -21,7 +21,7 @@ spec:
   authentication:
     passwordFromSecret:
       key: dragonfly_password
-      name: renovate-secret
+      name: renovate-operator-secret
   resources:
     requests:
       cpu: 100m

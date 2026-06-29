@@ -24,7 +24,7 @@ spec:
         - name: envoy-internal
           namespace: network
     valkey:
-      existingSecret: "renovate-secret"
+      existingSecret: "renovate-operator-secret"
       existingSecretKey: "dragonfly-url"
     webhook:
       enabled: true
