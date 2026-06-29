@@ -25,7 +25,7 @@ spec:
           namespace: network
     valkey:
       existingSecret: "renovate-operator-secret"
-      existingSecretKey: "dragonfly-url"
+      existingSecretKey: "dragonfly_url"
     webhook:
       enabled: true
       route:
