@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Setup Flux CLI
-        uses: fluxcd/flux2/action@c1f7f0b86a2fa982e7769696c7201293c3e2e44f # main
+        uses: fluxcd/flux2/action@006ecb6b0401525e703585df9e87d6d0d2ed34bd # main
 
       - name: Login to GHCR
         uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4
