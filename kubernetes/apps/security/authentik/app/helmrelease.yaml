@@ -113,6 +113,12 @@ spec:
         capabilities:
           drop:
             - ALL
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
     worker:
       replicas: 1
       serviceAccount:
