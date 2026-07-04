@@ -101,10 +101,10 @@ spec:
               GOPATH: /opt/data/go
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_TUI: "1"
-              HERMES_DASHBOARD_PUBLIC_URL: https://hermes.{$SECRET_DOMAIN}
-              HERMES_DASHBOARD_OIDC_ISSUER: https://auth.{$SECRET_DOMAIN}/application/o/hermes/
+              HERMES_DASHBOARD_PUBLIC_URL: https://hermes.rnatr.com
+              HERMES_DASHBOARD_OIDC_ISSUER: https://auth.rnatr.com/application/o/hermes/
               HERMES_DASHBOARD_OIDC_CLIENT_ID: N9271Z49qmLhtX2bznf4Qc1eL83xvtCSWKyEJrHY
-              HERMES_DASHBOARD_OIDC_REDIRECT_URI: https://hermes.{$SECRET_DOMAIN}/api/auth/oidc/callback
+              HERMES_DASHBOARD_OIDC_REDIRECT_URI: https://hermes.rnatr.com/api/auth/oidc/callback
               HERMES_GID: "10000"
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
