@@ -22,7 +22,7 @@ spec:
                 tag: v1.8.0@sha256:0b00dc4fe125736c3b96070ad397e43498750ecb59ec09e573327155eec6c31a
             env:
               - name: CONDUWUIT_SERVER_NAME
-                value: ${SECRET_DOMAIN}
+                value: matrix.${SECRET_DOMAIN}
               - name: TOKIO_WORKER_THREADS
                 value: "5"
               - name: CONDUWUIT_ROCKSDB_PARALLELISM_THREADS
