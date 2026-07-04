@@ -102,6 +102,9 @@ spec:
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_TUI: "1"
               HERMES_DASHBOARD_INSECURE: "1"
+              HERMES_WEBUI_OIDC_ISSUER: authentik
+              HERMES_WEBUI_OIDC_CLIENT_ID: N9271Z49qmLhtX2bznf4Qc1eL83xvtCSWKyEJrHY
+              HERMES_WEBUI_OIDC_REDIRECT_URI: https://hermes.{$SECRET_DOMAIN}/api/auth/oidc/callback
               HERMES_GID: "10000"
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
