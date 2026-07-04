@@ -101,7 +101,6 @@ spec:
               GOPATH: /opt/data/go
               HERMES_DASHBOARD: "1"
               HERMES_DASHBOARD_TUI: "1"
-              HERMES_DASHBOARD_INSECURE: "1"
               HERMES_WEBUI_OIDC_ISSUER: authentik
               HERMES_WEBUI_OIDC_CLIENT_ID: N9271Z49qmLhtX2bznf4Qc1eL83xvtCSWKyEJrHY
               HERMES_WEBUI_OIDC_REDIRECT_URI: https://hermes.{$SECRET_DOMAIN}/api/auth/oidc/callback
@@ -109,7 +108,6 @@ spec:
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
               HOME: /opt/data
-              MATRIX_ENCRYPTION: "true"
               PATH: /opt/data/.local/bin:/opt/data/.local/go/bin:/opt/data/.local/homebrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
               PIP_BREAK_SYSTEM_PACKAGES: "1"
               PYTHONPATH: /opt/hermes/.venv/lib/python3.13/site-packages/
