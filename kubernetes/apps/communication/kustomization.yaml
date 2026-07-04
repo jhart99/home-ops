@@ -10,4 +10,4 @@ resources:
   - ./namespace.yaml
   # - ./signal-cli/ks.yaml
   - ./smtp-relay/ks.yaml
-  - ./tuwunel/ks.yaml
+  # - ./tuwunel/ks.yaml
