@@ -25,6 +25,7 @@ nodes:
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
+      - "@./patches/global/machine-time.yaml"
       - # Load kernel modules
         |-
         machine:
@@ -86,6 +87,7 @@ nodes:
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: true
     patches:
+      - "@./patches/global/machine-time.yaml"
       - # Load kernel modules
         |-
         machine:
@@ -214,6 +216,7 @@ nodes:
       - name: nvidia_modeset
       - name: mlx5-core
     patches:
+      - "@./patches/global/machine-time.yaml"
       - # Network configuration
         |-
         ---
@@ -264,14 +267,49 @@ nodes:
       secureboot: false
     talosImageURL: factory.talos.dev/installer/c3ff19ffec90f9ce45a8b80807b0e7614f94142f9959aabdecb7956024da9f2b
     controlPlane: false
-    networkInterfaces:
-      - deviceSelector:
-          hardwareAddr: "bc:24:11:9d:08:34"
-        dhcp: false
+    patches:
+      - # Network configuration
+        |-
+        ---
+        apiVersion: v1alpha1
+        kind: LinkAliasConfig
+        name: net0  # <--- This is the common name Multus will look for
+        selector:
+          # Match this specific node's hardware by MAC
+          match: "mac(link.permanent_addr) == 'bc:24:11:9d:08:34'"
+        ---
+        apiVersion: v1alpha1
+        kind: LinkConfig
+        name: net0
         addresses:
-          - "192.168.1.19/24"
+          - address: 192.168.1.19/24
+        mtu: 9000
         routes:
-          - gateway: "192.168.1.1"
+          - gateway: 192.168.1.1
+        up: true
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.10
+        vlanID: 10
+        parent: net0
+        addresses:
+          - address: 192.168.2.19/24
+        routes:
+          - gateway: 192.168.2.1
+            metric: 2000
+        mtu: 9000
+        ---
+        apiVersion: v1alpha1
+        kind: VLANConfig
+        name: net0.100
+        vlanID: 100
+        parent: net0
+        addresses:
+          - address: 192.168.100.19/24
+        routes:
+          - gateway: 192.168.100.1
+            metric: 3000
         mtu: 9000
 
 # Global patches
