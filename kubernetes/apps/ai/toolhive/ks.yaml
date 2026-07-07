@@ -3,13 +3,13 @@
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
-  name: toolhive
+  name: toolhive-operator
 spec:
   interval: 1h
-  path: ./kubernetes/apps/ai/toolhive/app
+  path: ./kubernetes/apps/ai/toolhive/operator
   postBuild:
     substitute:
-      APP: toolhive
+      APP: toolhive-operator
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
