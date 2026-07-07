@@ -18,3 +18,4 @@ resources:
   - ./open-webui/ks.yaml
   - ./openvino-qwen3-embedding/ks.yaml
   - ./searxng/ks.yaml
+  - ./toolhive/ks.yaml
