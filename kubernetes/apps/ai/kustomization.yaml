@@ -11,6 +11,7 @@ resources:
   - ./namespace.yaml
   - ./agentmemory/ks.yaml
   - ./comfyui/ks.yaml
+  - ./github-mcp/ks.yaml
   - ./hermes/ks.yaml
   - ./llama-cpp/ks.yaml
   - ./litellm/ks.yaml
