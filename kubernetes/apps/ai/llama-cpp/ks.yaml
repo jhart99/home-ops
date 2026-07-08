@@ -13,6 +13,8 @@ spec:
     - name: nvidia-gpu-operator
       namespace: kube-system
   postBuild:
+    substitute:
+      APP: llama-cpp
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
