@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: github
+  name: github-mcp
 spec:
   image: ghcr.io/github/github-mcp-server
   transport: stdio
