@@ -1,0 +1,36 @@
+---
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: VirtualMCPServer
+metadata:
+  name: mcp-gateway-internal
+spec:
+  groupRef:
+    name: mcp-tools
+  config:
+    aggregation:
+      conflictResolution: prefix
+      conflictResolutionConfig:
+        prefixFormat: "{workload}_"
+    optimizer:
+      embeddingProvider: openai
+      embeddingModel: qwen3-embedding
+      embeddingService: http://litellm:4000/v1
+  incomingAuth:
+    type: anonymous
+  outgoingAuth:
+    source: discovered
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: vmcp
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: toolhive-embed
+                  key: OPENAI_API_KEY
+          resources:
+            requests:
+              memory: 256Mi
+            limits:
+              memory: 2Gi
