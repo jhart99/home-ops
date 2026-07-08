@@ -15,7 +15,7 @@ spec:
         pod:
           resourceClaims:
             - name: gpu
-              resourceClaimTemplateName: dgx-template
+              resourceClaimTemplateName: llama-cpp-gpu
           securityContext:
             supplementalGroups:
               - 44
