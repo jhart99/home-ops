@@ -12,7 +12,10 @@ spec:
       namespace: rook-ceph
     - name: volsync
       namespace: volsync-system
+    - name: nvidia-gpu-operator
+      namespace: kube-system
   components:
+    - ../../../../components/gpu
     - ../../../../components/volsync
   postBuild:
     substitute:

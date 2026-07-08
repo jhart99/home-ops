@@ -12,6 +12,14 @@ spec:
   values:
     controllers:
       comfyui:
+        pod:
+          resourceClaims:
+            - name: gpu
+              resourceClaimTemplateName: comfyui-gpu
+          securityContext:
+            supplementalGroups:
+              - 44
+              - 992
         annotations:
           reloader.stakater.com/auto: "true"
         initContainers:
@@ -73,13 +81,13 @@ spec:
                   failureThreshold: 60
                   periodSeconds: 5
             resources:
+              claims:
+                - name: gpu
               requests:
                 cpu: 100m
                 memory: 4Gi
-                nvidia.com/gpu: "1"
               limits:
                 memory: 16Gi
-                nvidia.com/gpu: "1"
 
     defaultPodOptions:
       runtimeClassName: nvidia
