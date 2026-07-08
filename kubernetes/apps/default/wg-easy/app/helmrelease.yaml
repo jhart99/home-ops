@@ -22,7 +22,7 @@ spec:
               repository: ghcr.io/wg-easy/wg-easy
               tag: 15.3.0@sha256:93bbd593e07bab98d02807a28770ac87ab6c48818e319e68c1f66561feb99876
             env:
-              TZ: ${TIMEZONE}
+              TZ: "America/New_York"
               PORT: &port 80
               DISABLE_IPV6: true
               EXPERIMENTAL_AWG: true
