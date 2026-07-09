@@ -10,3 +10,11 @@ spec:
       - name: gpu
         exactly:
           deviceClassName: gpu.nvidia.com
+      config:
+      - opaque:
+          driver: gpu.nvidia.com
+          parameters:
+            apiVersion: resource.nvidia.com/v1beta1
+            kind: GpuConfig
+            sharing:
+              strategy: TimeSlicing

@@ -26,6 +26,7 @@ spec:
     keepHistory: false
   values:
     devicePlugin:
+      enabled: false
       config:
         name: time-sharing-config
         default: ""
