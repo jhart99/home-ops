@@ -26,14 +26,20 @@ spec:
     keepHistory: false
   values:
     devicePlugin:
-      enabled: true
+      enabled: false
       config:
         name: time-sharing-config
         default: any
+    dcgmExporter:
+      enabled: false
     driver:
+      enabled: false
+    gfd:
       enabled: false
     hostPaths:
       driverInstallDir: "/usr/local/"
+    migManager:
+      enabled: false
     nfd:
       enabled: false
       nodefeaturerules: true
