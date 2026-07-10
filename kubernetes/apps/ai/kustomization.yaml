@@ -10,7 +10,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./agentmemory/ks.yaml
-  # - ./comfyui/ks.yaml
+  - ./comfyui/ks.yaml
   - ./dgx-resource-claim/ks.yaml
   - ./github-mcp/ks.yaml
   - ./hermes/ks.yaml

@@ -15,7 +15,7 @@ spec:
         pod:
           resourceClaims:
             - name: gpu
-              resourceClaimTemplateName: comfyui-gpu
+              resourceClaimName: gpu-claim
           securityContext:
             supplementalGroups:
               - 44
