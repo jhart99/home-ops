@@ -15,7 +15,6 @@ spec:
     - name: nvidia-gpu-operator
       namespace: kube-system
   components:
-    - ../../../../components/gpu
     - ../../../../components/volsync
   postBuild:
     substitute:

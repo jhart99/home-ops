@@ -7,8 +7,6 @@ metadata:
 spec:
   interval: 1h
   path: ./kubernetes/apps/ai/llama-cpp/app
-  components:
-    - ../../../../components/gpu
   dependsOn:
     - name: nvidia-gpu-operator
       namespace: kube-system
