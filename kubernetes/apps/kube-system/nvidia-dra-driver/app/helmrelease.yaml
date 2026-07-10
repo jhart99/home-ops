@@ -28,3 +28,9 @@ spec:
         enabled: false
     gpuResourcesEnabledOverride: true
     nvidiaDriverRoot: '/usr/local'
+    featureGates:
+      TimeSlicingSettings: true
+    kubeletPlugin:
+      priorityClassName: ""
+      tolerations:
+        - operator: Exists
