@@ -48,6 +48,7 @@ spec:
     modelCache:
       enabled: true
       size: 100Gi
-      accessMode: ReadWriteOnce
+      storageClass: nfs-slow
+      accessMode: ReadWriteMany
       mountPath: /models
       annotations: {}
