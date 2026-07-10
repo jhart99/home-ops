@@ -38,4 +38,4 @@ spec:
       enabled: false
       nodefeaturerules: true
     toolkit:
-      enabled: true
+      enabled: false
