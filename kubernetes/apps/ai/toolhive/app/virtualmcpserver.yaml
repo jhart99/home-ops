@@ -13,8 +13,8 @@ spec:
         prefixFormat: "{workload}_"
     optimizer:
       embeddingProvider: openai
-      embeddingModel: qwen3-embedding
-      embeddingService: http://litellm:4000/v1
+      embeddingService: http://litellm.ai.svc.cluster.local:4000/v1
+      embeddingModel: qwen3-embedding2
   incomingAuth:
     type: anonymous
   outgoingAuth:
