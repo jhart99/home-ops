@@ -8,8 +8,6 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/ai/open-webui/app
   dependsOn:
-    - name: llama-cpp
-      namespace: ai
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync

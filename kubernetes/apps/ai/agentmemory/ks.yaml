@@ -8,8 +8,6 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/ai/agentmemory/app
   dependsOn:
-    - name: openvino-qwen3-embedding
-      namespace: ai
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync
