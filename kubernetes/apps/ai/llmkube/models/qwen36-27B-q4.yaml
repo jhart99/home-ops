@@ -26,9 +26,6 @@ spec:
   modelRef: qwen36-27b-q4
   runtime: llamacpp
   image: ghcr.io/ggml-org/llama.cpp:server-cuda
-  rolloutPolicy:
-    waitForIdle: true
-    idleTimeoutSeconds: 86400
   replicas: 1
   runtimeClassName: nvidia
   contextSize: 131072
