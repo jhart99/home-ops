@@ -7,9 +7,5 @@ resources:
   - ./helmrelease.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
-configMapGenerator:
-  - name: litellm-configmap
-    files:
-      - config.yaml=./config.yaml
 generatorOptions:
   disableNameSuffixHash: true

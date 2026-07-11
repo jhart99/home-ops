@@ -31,11 +31,6 @@ spec:
                   secretKeyRef:
                     name: litellm-db-app
                     key: uri
-              LLAMA_API_KEY:
-                valueFrom:
-                  secretKeyRef:
-                    name: llama-cpp-secret
-                    key: LLAMA_API_KEY
               STORE_MODEL_IN_DB: "True"
             envFrom:
               - secretRef:
@@ -75,11 +70,3 @@ spec:
           - backendRefs:
               - identifier: app
                 port: 4000
-    persistence:
-      config:
-        type: configMap
-        name: litellm-configmap
-        globalMounts:
-          - path: /app/config.yaml
-            subPath: config.yaml
-            readOnly: true
