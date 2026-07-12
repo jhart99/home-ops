@@ -19,3 +19,4 @@ resources:
   - ./open-webui/ks.yaml
   - ./searxng/ks.yaml
   - ./toolhive/ks.yaml
+  - ./yardstick/ks.yaml
