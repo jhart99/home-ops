@@ -1,0 +1,86 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: &name grafana
+spec:
+  image: grafana/mcp-grafana:0.17.1
+  transport: stdio
+  groupRef:
+    name: mcp-tools
+  args:
+    - "-t"
+    - "stdio"
+  env:
+    - name: GRAFANA_URL
+      value: http://grafana-service.observability.svc.cluster.local:3000
+  toolConfigRef:
+    name: *name
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 110Mi
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 100Mi
+---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPToolConfig
+metadata:
+  name: grafana
+spec:
+  # Self-hosted Grafana OSS with Prometheus + Alertmanager only.
+  # Excludes Grafana Cloud features (Incident, OnCall, Sift, Assertions),
+  # Pyroscope tools (no Pyroscope datasource), Loki tools (no Loki datasource),
+  # and Sift-backed helpers (find_error_pattern_logs, find_slow_requests).
+  toolsFilter:
+    # Datasources
+    - list_datasources
+    - get_datasource_by_uid
+    - get_datasource_by_name
+    # Prometheus
+    - query_prometheus
+    - query_prometheus_histogram
+    - list_prometheus_metric_names
+    - list_prometheus_metric_metadata
+    - list_prometheus_label_names
+    - list_prometheus_label_values
+    # Alerting (Grafana-managed alerts + Alertmanager datasource)
+    - list_alert_rules
+    - get_alert_rule_by_uid
+    - create_alert_rule
+    - update_alert_rule
+    - delete_alert_rule
+    - list_alert_groups
+    - get_alert_group
+    - list_contact_points
+    # Dashboards and folders
+    - search_dashboards
+    - get_dashboard_by_uid
+    - get_dashboard_summary
+    - get_dashboard_property
+    - get_dashboard_panel_queries
+    - update_dashboard
+    - search_folders
+    - create_folder
+    - get_panel_image
+    - generate_deeplink
+    # Annotations
+    - get_annotations
+    - get_annotation_tags
+    - create_annotation
+    - update_annotation
+    - patch_annotation
+    - create_graphite_annotation

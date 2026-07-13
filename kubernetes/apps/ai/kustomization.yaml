@@ -13,6 +13,7 @@ resources:
   - ./comfyui/ks.yaml
   - ./dgx-resource-claim/ks.yaml
   - ./github-mcp/ks.yaml
+  - ./grafana-mcp/ks.yaml
   - ./hermes/ks.yaml
   - ./litellm/ks.yaml
   - ./llmkube/ks.yaml
