@@ -12,6 +12,7 @@ resources:
   - ./agentmemory/ks.yaml
   - ./comfyui/ks.yaml
   - ./dgx-resource-claim/ks.yaml
+  - ./flux-mcp/ks.yaml
   - ./github-mcp/ks.yaml
   - ./grafana-mcp/ks.yaml
   - ./hermes/ks.yaml
