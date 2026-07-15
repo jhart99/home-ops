@@ -3,7 +3,9 @@ machine:
     kubernetesTalosAPIAccess:
       allowedKubernetesNamespaces:
         - actions-runner-system
+        - ai
         - system-upgrade
       allowedRoles:
         - os:admin
+        - os:reader
       enabled: true
