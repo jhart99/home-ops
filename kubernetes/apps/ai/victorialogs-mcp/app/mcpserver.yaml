@@ -24,6 +24,8 @@ spec:
       value: info
     - name: VL_INSTANCE_ENTRYPOINT
       value: http://victoria-logs-server.observability.svc.cluster.local:9428
+    - name: MCP_DISABLED_TOOLS
+      value: documentation
   toolConfigRef:
     name: *name
   podTemplateSpec:
