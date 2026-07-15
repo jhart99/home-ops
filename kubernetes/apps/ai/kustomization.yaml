@@ -10,6 +10,7 @@ components:
 resources:
   - ./namespace.yaml
   - ./agentmemory/ks.yaml
+  - ./context7-mcp/ks.yaml
   - ./comfyui/ks.yaml
   - ./dgx-resource-claim/ks.yaml
   - ./flux-mcp/ks.yaml
