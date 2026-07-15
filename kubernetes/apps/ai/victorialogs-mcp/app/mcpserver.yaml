@@ -5,7 +5,7 @@ kind: MCPServer
 metadata:
   name: &name victorialogs
 spec:
-  image: ghcr.io/victoriametrics/mcp-victorialogs:v1.20.2@sha256:bcbf84f945d6efb03fb8b2d2ccc3294420dccdc0b445752dce96f02619416dfe
+  image: ghcr.io/victoriametrics/mcp-victorialogs:v1.20.2
   transport: streamable-http
   mcpPort: 8081
   groupRef:
