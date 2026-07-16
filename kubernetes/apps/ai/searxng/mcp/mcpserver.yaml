@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: searxng-mcp
+  name: searxng
 spec:
   image: docker.io/isokoliuk/mcp-searxng:1.11.1
   transport: stdio
