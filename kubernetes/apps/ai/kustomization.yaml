@@ -25,5 +25,5 @@ resources:
   - ./searxng/ks.yaml
   - ./talos-mcp/ks.yaml
   - ./toolhive/ks.yaml
-  - ./victorialogs-mcp/ks.yaml
+  # - ./victorialogs-mcp/ks.yaml
   - ./yardstick/ks.yaml
