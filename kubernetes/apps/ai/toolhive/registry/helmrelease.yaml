@@ -3,21 +3,41 @@
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
-  name: toolhive-registry-server
+  name: toolhive-registry
 spec:
   chartRef:
     kind: OCIRepository
-    name: toolhive-registry-server
+    name: toolhive-registry
   interval: 1h
   values:
     podAnnotations:
       reloader.stakater.com/auto: "true"
     extraEnv:
-      - name: PGPASSFILE
+      - name: PGHOST
         valueFrom:
           secretKeyRef:
             name: toolhive-db-app
-            key: pgpass
+            key: host
+      - name: PGPORT
+        valueFrom:
+          secretKeyRef:
+            name: toolhive-db-app
+            key: port
+      - name: PGDATABASE
+        valueFrom:
+          secretKeyRef:
+            name: toolhive-db-app
+            key: dbname
+      - name: PGUSER
+        valueFrom:
+          secretKeyRef:
+            name: toolhive-db-app
+            key: username
+      - name: PGPASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: toolhive-db-app
+            key: password
     config:
       sources:
         - name: toolhive
