@@ -38,6 +38,19 @@ spec:
           secretKeyRef:
             name: toolhive-db-app
             key: password
+      - name: PGSSLROOTCERT
+        value: "/etc/ssl/certs/cnpg/ca.crt"
+    extraVolumes:
+      - name: cnpg-ca-volume
+        secret:
+          secretName: toolhive-db-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+    extraVolumeMounts:
+      - name: cnpg-ca-volume
+        mountPath: /etc/ssl/certs/cnpg
+        readOnly: true
     config:
       sources:
         - name: toolhive
