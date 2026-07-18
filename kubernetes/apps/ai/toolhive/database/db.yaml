@@ -10,6 +10,7 @@ spec:
   imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
   primaryUpdateStrategy: unsupervised
   instances: 2
+  enableSuperuserAccess: true
   storage:
     storageClass: ceph-block
     size: 5Gi
