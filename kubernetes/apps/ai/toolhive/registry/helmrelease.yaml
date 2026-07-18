@@ -49,8 +49,8 @@ spec:
         # Discover MCPServer CRs running in-cluster (e.g. ha-mcp) via the
         # operator. RBAC is cluster-scoped, so it can watch the mcp namespace.
         - name: cluster
-          kubernetes: {}
-            # namespaces: ["ai"]
+          kubernetes:
+            namespaces: ["ai"]
           syncPolicy:
             interval: 5m
       registries:
