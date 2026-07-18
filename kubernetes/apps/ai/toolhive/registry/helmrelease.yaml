@@ -10,6 +10,7 @@ spec:
     name: toolhive-registry
   interval: 1h
   values:
+    fullnameOverride: toolhive-registry
     podAnnotations:
       reloader.stakater.com/auto: "true"
     extraEnv:
