@@ -6,7 +6,8 @@ metadata:
   name: &name victorialogs
   annotations:
     toolhive.stacklok.dev/registry-export: "true"
-    toolhive.stacklok.dev/registry-name: "Victorialogs"
+    toolhive.stacklok.dev/registry-title: "Victorialogs"
+    toolhive.stacklok.dev/registry-url: "https://github.com/victoriametrics/mcp-victorialogs"
     toolhive.stacklok.dev/registry-description: "This provides access to your VictoriaLogs instance and seamless integration with VictoriaLogs APIs and documentation. It can give you a comprehensive interface for logs, observability, and debugging tasks related to your VictoriaLogs instances, enable advanced automation and interaction capabilities for engineers and tools."
 spec:
   image: ghcr.io/victoriametrics/mcp-victorialogs:v1.9.0
