@@ -10,6 +10,7 @@ spec:
     name: toolhive-ui
   interval: 1h
   values:
+    fullnameOverride: toolhive-ui
     podAnnotations:
       reloader.stakater.com/auto: "true"
     env:
