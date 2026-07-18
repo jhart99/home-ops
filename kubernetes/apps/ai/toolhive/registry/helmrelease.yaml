@@ -13,30 +13,15 @@ spec:
     podAnnotations:
       reloader.stakater.com/auto: "true"
     extraEnv:
-      - name: PGHOST
+      - name: THV_REGISTRY_DATABASE_PASSWORD
         valueFrom:
           secretKeyRef:
             name: toolhive-db-app
-            key: host
-      - name: PGPORT
+            key: password
+      - name: THV_REGISTRY_DATABASE_MIGRATIONPASSWORD
         valueFrom:
           secretKeyRef:
-            name: toolhive-db-app
-            key: port
-      - name: PGDATABASE
-        valueFrom:
-          secretKeyRef:
-            name: toolhive-db-app
-            key: dbname
-      - name: PGUSER
-        valueFrom:
-          secretKeyRef:
-            name: toolhive-db-app
-            key: username
-      - name: PGPASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: toolhive-db-app
+            name: toolhive-db-superuser
             key: password
       - name: PGSSLROOTCERT
         value: "/etc/ssl/certs/cnpg/ca.crt"
@@ -76,6 +61,7 @@ spec:
         host: toolhive-db-rw
         port: 5432
         user: toolhive
+        migrationUser: postgres
         database: toolhive
         sslMode: verify-ca
         maxOpenConns: 10
