@@ -127,7 +127,7 @@ spec:
   dependsOn:
     - name: toolhive-registry
   interval: 1h
-  path: ./kubernetes/apps/ai/toolhive/registry
+  path: ./kubernetes/apps/ai/toolhive/ui
   postBuild:
     substitute:
       APP: toolhive-ui
