@@ -8,12 +8,27 @@ spec:
     kind: OCIRepository
     name: backstage
   interval: 30m
-  postBuild:
-    substituteFrom:
-      - kind: Secret
-        name: backstage-db-app
-      - kind: Secret
-        name: backstage-secret
+  valuesFrom:
+    - kind: Secret
+      name: backstage-secret # The name of your secret
+      valuesKey: AUTH_OIDC_CLIENT_SECRET # The key inside the secret
+      targetPath: backstage.appConfig.auth.providers.oidc.clientSecret # The path in the Helm chart's values.yaml you want to overwrit
+    - kind: Secret
+      name: backstage-secret # The name of your secret
+      valuesKey: AUTH_OIDC_CLIENT_ID # The key inside the secret
+      targetPath: backstage.appConfig.auth.providers.oidc.clientId # The path in the Helm chart's values.yaml you want to overwrit
+    - kind: Secret
+      name: backstage-db-app # The name of your secret
+      valuesKey: host # The key inside the secret
+      targetPath: backstage.appConfig.backend.database.connection.host # The path in the Helm chart's values.yaml you want to overwrit
+    - kind: Secret
+      name: backstage-db-app # The name of your secret
+      valuesKey: user # The key inside the secret
+      targetPath: backstage.appConfig.backend.database.connection.user # The path in the Helm chart's values.yaml you want to overwrit
+    - kind: Secret
+      name: backstage-db-app # The name of your secret
+      valuesKey: password # The key inside the secret
+      targetPath: backstage.appConfig.backend.database.connection.password
   values:
     replicas: 1
     backstage:
@@ -23,23 +38,6 @@ spec:
         pullPolicy: IfNotPresent
       containerPorts:
         backend: 7007
-      # readinessProbe: &probes
-      #   failureThreshold: 3
-      #   httpGet:
-      #     path: /healthcheck
-      #     port: 7007
-      #     scheme: HTTP
-      #   initialDelaySeconds: 30
-      #   periodSeconds: 10
-      #   successThreshold: 2
-      #   timeoutSeconds: 2
-      # livenessProbe: *probes
-      # podSecurityContext:
-      #   runAsUser: 1000
-      #   runAsGroup: 1000
-      #   fsGroup: 1000
-      #   fsGroupChangePolicy: OnRootMismatch
-      # We're using external psql database instead of
       appConfig:
         app:
           baseUrl: https://backstage.${SECRET_DOMAIN}
@@ -49,8 +47,6 @@ spec:
             oidc:
               production:
                 metadataUrl: https://auth.${SECRET_DOMAIN}/application/o/backstage/.well-known/openid-configuration
-                clientId: ${AUTH_OIDC_CLIENT_ID}
-                clientSecret: ${AUTH_OIDC_CLIENT_SECRET}
                 prompt: auto
                 signIn:
                   resolvers:
@@ -64,9 +60,6 @@ spec:
           database:
             client: pg
             connection:
-              host: ${host}
-              user: ${user}
-              password: ${password}
               port: "5432"
             plugin:
               app:
