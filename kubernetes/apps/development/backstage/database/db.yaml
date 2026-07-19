@@ -21,6 +21,8 @@ spec:
     initdb:
       database: backstage
       owner: backstage
+      postInitApplicationSQL:
+        - ALTER ROLE backstage CREATEDB;
     # recovery:
     #   source: backup-source
   monitoring:
@@ -33,14 +35,14 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: backstage-cnpg-s3
-        serverName: backstage-cnpg-v1
+        serverName: backstage-cnpg-v2
   externalClusters:
     - name: backup-source
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
           barmanObjectName: backstage-cnpg-s3
-          serverName: backstage-cnpg-v1
+          serverName: backstage-cnpg-v2
   postgresql:
     parameters:
       shared_buffers: 128MB
