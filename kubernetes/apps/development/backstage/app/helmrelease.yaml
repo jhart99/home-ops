@@ -42,11 +42,11 @@ spec:
         app:
           baseUrl: https://backstage.${SECRET_DOMAIN}
           title: "My Developer Portal"
-        auth:
-          environment: development
-          providers:
-            guest:
-              dangerouslyAllowOutsideDevelopment: true
+        # auth:
+        #   environment: development
+        #   providers:
+        #     guest:
+        #       dangerouslyAllowOutsideDevelopment: true
         auth:
           environment: production
           providers:
