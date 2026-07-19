@@ -16,6 +16,8 @@ spec:
         # App
         - name: CODER_ACCESS_URL
           value: https://coder.${SECRET_DOMAIN}
+        - name: CODER_OIDC_IGNORE_EMAIL_VERIFIED
+          value: "true"
         # DB
         - name: CODER_PG_CONNECTION_URL
           valueFrom:
