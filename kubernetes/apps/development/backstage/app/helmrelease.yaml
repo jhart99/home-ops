@@ -8,6 +8,12 @@ spec:
     kind: OCIRepository
     name: backstage
   interval: 30m
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: backstage-db-app
+      - kind: Secret
+        name: backstage-secret
   values:
     replicas: 1
     backstage:
@@ -34,9 +40,6 @@ spec:
       #   fsGroup: 1000
       #   fsGroupChangePolicy: OnRootMismatch
       # We're using external psql database instead of
-      extraEnvVarsSecrets:
-        - backstage-secret
-        - backstage-db-app
       appConfig:
         app:
           baseUrl: https://backstage.${SECRET_DOMAIN}
