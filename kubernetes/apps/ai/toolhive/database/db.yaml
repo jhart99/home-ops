@@ -18,11 +18,11 @@ spec:
     storageClass: ceph-block
     size: 1Gi
   bootstrap:
-    initdb:
-      database: toolhive
-      owner: toolhive
-    # recovery:
-    #   source: backup-source
+    # initdb:
+    #   database: toolhive
+    #   owner: toolhive
+    recovery:
+      source: backup-source
   monitoring:
     enablePodMonitor: true
     customQueriesConfigMap:
