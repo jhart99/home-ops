@@ -47,16 +47,16 @@ spec:
           providers:
             guest:
               dangerouslyAllowOutsideDevelopment: true
-        # auth:
-        #   environment: production
-        #   providers:
-        #     oidc:
-        #       production:
-        #         metadataUrl: https://auth.${SECRET_DOMAIN}/application/o/backstage/.well-known/openid-configuration
-        #         prompt: auto
-        #         signIn:
-        #           resolvers:
-        #             - resolver: emailMatchingUserEntityProfileEmail
+        auth:
+          environment: production
+          providers:
+            oidc:
+              production:
+                metadataUrl: https://auth.${SECRET_DOMAIN}/application/o/backstage/.well-known/openid-configuration
+                prompt: auto
+                signIn:
+                  resolvers:
+                    - resolver: emailMatchingUserEntityProfileEmail
         backend:
           baseUrl: https://backstage.${SECRET_DOMAIN}
           cors:
