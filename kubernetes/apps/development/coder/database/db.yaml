@@ -1,0 +1,63 @@
+---
+# yaml-language-server: $schema=https://github.com/datreeio/CRDs-catalog/raw/refs/heads/main/postgresql.cnpg.io/cluster_v1.json
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: coder-db
+  annotations:
+    cnpg.io/skipEmptyWalArchiveCheck: "enabled"
+spec:
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.3-system-trixie
+  primaryUpdateStrategy: unsupervised
+  instances: 2
+  enableSuperuserAccess: true
+  storage:
+    storageClass: ceph-block
+    size: 5Gi
+  walStorage:
+    storageClass: ceph-block
+    size: 1Gi
+  bootstrap:
+    initdb:
+      database: coder
+      owner: coder
+      postInitApplicationSQL:
+        - ALTER ROLE coder CREATEDB;
+    # recovery:
+    #   source: backup-source
+  monitoring:
+    enablePodMonitor: true
+    customQueriesConfigMap:
+      - name: cnpg-default-monitoring
+        key: queries
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: coder-cnpg-s3
+        serverName: coder-cnpg-v1
+  externalClusters:
+    - name: backup-source
+      plugin:
+        name: barman-cloud.cloudnative-pg.io
+        parameters:
+          barmanObjectName: coder-cnpg-s3
+          serverName: coder-cnpg-v1
+  postgresql:
+    parameters:
+      shared_buffers: 128MB
+  resources:
+    requests:
+      cpu: 50m
+    limits:
+      memory: 1Gi
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: coder-database
+spec:
+  name: coder
+  owner: coder
+  cluster:
+    name: coder-db
