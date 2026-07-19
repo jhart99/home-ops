@@ -3,7 +3,7 @@
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:
-  name: toolhive-db
+  name: backstage-db
   annotations:
     cnpg.io/skipEmptyWalArchiveCheck: "enabled"
 spec:
@@ -19,8 +19,8 @@ spec:
     size: 1Gi
   bootstrap:
     initdb:
-      database: toolhive
-      owner: toolhive
+      database: backstage
+      owner: backstage
     # recovery:
     #   source: backup-source
   monitoring:
@@ -32,15 +32,15 @@ spec:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true
       parameters:
-        barmanObjectName: toolhive-cnpg-s3
-        serverName: toolhive-cnpg-v2
+        barmanObjectName: backstage-cnpg-s3
+        serverName: backstage-cnpg-v1
   externalClusters:
     - name: backup-source
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
-          barmanObjectName: toolhive-cnpg-s3
-          serverName: toolhive-cnpg-v2
+          barmanObjectName: backstage-cnpg-s3
+          serverName: backstage-cnpg-v1
   postgresql:
     parameters:
       shared_buffers: 128MB
@@ -53,9 +53,9 @@ spec:
 apiVersion: postgresql.cnpg.io/v1
 kind: Database
 metadata:
-  name: toolhive-database
+  name: backstage-database
 spec:
-  name: toolhive
-  owner: toolhive
+  name: backstage
+  owner: backstage
   cluster:
-    name: toolhive-db
+    name: backstage-db
