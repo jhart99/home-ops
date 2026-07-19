@@ -41,6 +41,7 @@ spec:
       appConfig:
         app:
           baseUrl: https://backstage.${SECRET_DOMAIN}
+          title: "My Developer Portal"
         auth:
           environment: production
           providers:
@@ -96,10 +97,7 @@ spec:
                 connection:
                   database: backstage_plugin_techdocs
           ssl:
-          #   #ca: # if you have a CA file and want to verify it you can uncomment this section
-          #   #$file: <file-path>/file.crt
             require: false
-          #   rejectUnauthorized: false
         techdocs:
           builder: "local" # Alternatives - 'external'
         generator:
