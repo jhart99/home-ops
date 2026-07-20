@@ -32,10 +32,10 @@ spec:
   values:
     replicas: 1
     backstage:
-      image:
-        repository: ghcr.io/backstage/backstage
-        tag: 1.53.0@sha256:ce21057f17a41243c842af1ad0e43beb4748e590c8c1210ddc98c5dcff36e737
-        pullPolicy: IfNotPresent
+      # image:
+      #   repository: ghcr.io/backstage/backstage
+      #   tag: 1.52.1
+      #   pullPolicy: IfNotPresent
       containerPorts:
         backend: 7007
       appConfig:
