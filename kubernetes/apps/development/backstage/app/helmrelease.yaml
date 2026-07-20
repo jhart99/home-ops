@@ -115,8 +115,10 @@ spec:
           type: "local" # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
         catalog:
           locations:
+            # - type: url
+            #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all-apis.yaml
             - type: url
-              target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+              target: https://github.com/tyriis/home-ops/blob/main/.backstage/catalog-info.yaml
         # catalog:
         #   # Overrides the default list locations from app-config.yaml as these contain example data.
         #   # See https://backstage.io/docs/features/software-catalog/#adding-components-to-the-catalog for more details
