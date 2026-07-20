@@ -71,40 +71,40 @@ spec:
             client: pg
             connection:
               port: "5432"
-            plugin:
-              app:
-                connection:
-                  database: backstage_plugin_app
-              auth:
-                connection:
-                  database: backstage_plugin_auth
-              catalog:
-                connection:
-                  database: backstage_plugin_catalog
-              kubernetes:
-                connection:
-                  database: backstage_plugin_kubernetes
-              notifications:
-                connection:
-                  database: backstage_plugin_notifications
-              permission:
-                connection:
-                  database: backstage_plugin_permission
-              proxy:
-                connection:
-                  database: backstage_plugin_proxy
-              scaffolder:
-                connection:
-                  database: backstage_plugin_scaffolder
-              search:
-                connection:
-                  database: backstage_plugin_search
-              signals:
-                connection:
-                  database: backstage_plugin_signals
-              techdocs:
-                connection:
-                  database: backstage_plugin_techdocs
+            # plugin:
+            #   app:
+            #     connection:
+            #       database: backstage_plugin_app
+            #   auth:
+            #     connection:
+            #       database: backstage_plugin_auth
+            #   catalog:
+            #     connection:
+            #       database: backstage_plugin_catalog
+            #   kubernetes:
+            #     connection:
+            #       database: backstage_plugin_kubernetes
+            #   notifications:
+            #     connection:
+            #       database: backstage_plugin_notifications
+            #   permission:
+            #     connection:
+            #       database: backstage_plugin_permission
+            #   proxy:
+            #     connection:
+            #       database: backstage_plugin_proxy
+            #   scaffolder:
+            #     connection:
+            #       database: backstage_plugin_scaffolder
+            #   search:
+            #     connection:
+            #       database: backstage_plugin_search
+            #   signals:
+            #     connection:
+            #       database: backstage_plugin_signals
+            #   techdocs:
+            #     connection:
+            #       database: backstage_plugin_techdocs
           ssl:
             require: false
         techdocs:
