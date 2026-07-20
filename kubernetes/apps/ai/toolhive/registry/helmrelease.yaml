@@ -45,14 +45,14 @@ spec:
             branch: main
             path: pkg/catalog/toolhive/data/registry-upstream.json
           syncPolicy:
-            interval: 30m
+            interval: 360m
         # Discover MCPServer CRs running in-cluster (e.g. ha-mcp) via the
         # operator. RBAC is cluster-scoped, so it can watch the mcp namespace.
         - name: cluster
           kubernetes:
             namespaces: ["ai"]
           syncPolicy:
-            interval: 5m
+            interval: 360m
       registries:
         - name: default
           sources: ["toolhive", "cluster"]
