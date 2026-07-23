@@ -3,7 +3,7 @@ kind: MCPServer
 metadata:
   name: yardstick
 spec:
-  image: ghcr.io/stackloklabs/yardstick/yardstick-server:1.1.3
+  image: ghcr.io/stackloklabs/yardstick/yardstick-server:1.2.0
   transport: streamable-http
   env:
   - name: TRANSPORT
