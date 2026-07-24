@@ -64,7 +64,7 @@ spec:
                 memory: 194Mi
               limits:
                 cpu: 1000m
-                memory: 194Mi
+                memory: 512Mi
             securityContext:
               privileged: true
             env:
@@ -80,7 +80,7 @@ spec:
                 memory: 100Mi
               limits:
                 cpu: 1000m
-                memory: 100Mi
+                memory: 200Mi
             command:
               - "sh"
               - "-c"
