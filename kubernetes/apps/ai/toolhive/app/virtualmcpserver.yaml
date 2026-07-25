@@ -34,3 +34,5 @@ spec:
               memory: 256Mi
             limits:
               memory: 2Gi
+  telemetryConfigRef:
+    name: prometheus
