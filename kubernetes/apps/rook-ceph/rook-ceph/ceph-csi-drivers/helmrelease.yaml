@@ -18,6 +18,10 @@ spec:
         snapshotPolicy: volumeSnapshot
         kernelMountOptions:
           ms_mode: prefer-crc
+        nodePlugin:
+          serviceAccountName: rook-ceph-cephfs-csi-ceph-com-nodeplugin-sa
+        controllerPlugin:
+          serviceAccountName: rook-ceph-cephfs-csi-ceph-com-ctrlplugin-sa
       nfs:
         enabled: false
       nvmeof:
@@ -26,3 +30,7 @@ spec:
         enabled: true
         name: rook-ceph.rbd.csi.ceph.com
         snapshotPolicy: volumeSnapshot
+        nodePlugin:
+          serviceAccountName: rook-ceph-rbd-csi-ceph-com-nodeplugin-sa
+        controllerPlugin:
+          serviceAccountName: rook-ceph-rbd-csi-ceph-com-ctrlplugin-sa
