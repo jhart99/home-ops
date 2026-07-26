@@ -53,7 +53,7 @@ spec:
               # AI Features
               PAPERLESS_AI_ENABLED: true
               PAPERLESS_AI_LLM_BACKEND: openai-like
-              PAPERLESS_AI_LLM_MODEL: qwen36-27b-q4
+              PAPERLESS_AI_LLM_MODEL: mimo-v2.5
               PAPERLESS_AI_LLM_ENDPOINT: http://litellm.ai.svc.cluster.local:4000/v1
               PAPERLESS_AI_LLM_EMBEDDING_BACKEND: openai-like
               PAPERLESS_AI_LLM_EMBEDDING_MODEL: qwen3-embedding
