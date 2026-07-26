@@ -1,0 +1,13 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: erecords
+  namespace: flux-system
+spec:
+  interval: 30m
+  url: "https://forgejo.rnatr.com/delf/erecords.git"
+  ref:
+    branch: main
+  secretRef:
+    name: forgejo-pat-secret

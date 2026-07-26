@@ -11,3 +11,4 @@ resources:
   - ./atuin/ks.yaml
   - ./backstage/ks.yaml
   - ./coder/ks.yaml
+  - ./erecords/kustomization.yaml
