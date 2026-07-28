@@ -73,6 +73,13 @@ spec:
                   values:
                   - talos-worker-6  # Replace with the name of the node with the slow
       resources:
+        mgr:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"   # Increase from the default
+          limits:
+            cpu: "1000m"
+            memory: "2Gi"
         osd:
           requests:
             cpu: 100m
