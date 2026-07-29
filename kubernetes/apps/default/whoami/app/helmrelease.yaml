@@ -16,7 +16,7 @@ spec:
           app:
             image:
               repository: docker.io/traefik/whoami
-              tag: v1.11
+              tag: v1.12
             env:
               WHOAMI_PORT_NUMBER: &port 80
             probes:
