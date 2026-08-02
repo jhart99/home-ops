@@ -106,10 +106,10 @@ spec:
         advancedMounts:
           desktop:
             app:
-              - path: /etc/ssl/certs/ssl-cert-snakeoil.pem
+              - path: /opt/kasm/current/certs/kasm_nginx.crt
                 subPath: tls.crt
                 readOnly: true
-              - path: /etc/ssl/private/ssl-cert-snakeoil.key
+              - path: /opt/kasm/current/certs/kasm_nginx.key
                 subPath: tls.key
                 readOnly: true
             init-certs:
