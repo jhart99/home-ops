@@ -47,6 +47,7 @@ spec:
       app:
         ports:
           https:
+            appProtocol: https
             port: 6901
     route:
       app:
@@ -74,3 +75,22 @@ spec:
         sizeLimit: 512Mi
         globalMounts:
           - path: /dev/shm
+      tls:
+        type: custom
+        volumeSpec:
+          csi:
+            driver: csi.cert-manager.io
+            readOnly: true
+            volumeAttributes:
+              csi.cert-manager.io/issuer-name: rnatr-internal-ca
+              csi.cert-manager.io/issuer-kind: ClusterIssuer
+              csi.cert-manager.io/dns-names: desktop.thin-client.svc.cluster.local
+        advancedMounts:
+          desktop:
+            app:
+              - path: /etc/ssl/certs/ssl-cert-snakeoil.pem
+                subPath: tls.crt
+                readOnly: true
+              - path: /etc/ssl/private/ssl-cert-snakeoil.key
+                subPath: tls.key
+                readOnly: true
