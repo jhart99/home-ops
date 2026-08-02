@@ -15,15 +15,15 @@ data:
     item alpine      Boot Alpine Linux (Thin Client Desktop)
     item netbootxyz  netboot.xyz Main Menu
     item shell       iPXE Shell
-    choose --default alpine --timeout 5000 target && goto ${target}
+    choose --default alpine --timeout 5000 target && goto $${target}
 
     :alpine
     set alpine-mirror http://dl-cdn.alpinelinux.org/alpine/latest-stable
     set alpine-arch x86_64
 
     echo Booting Alpine Linux thin client...
-    kernel ${alpine-mirror}/releases/${alpine-arch}/netboot/vmlinuz-lts alpine_repo=${alpine-mirror}/main modloop=${alpine-mirror}/releases/${alpine-arch}/netboot/modloop-lts modules=loop,squashfs,sd-mod,usb-storage quiet nomodeset
-    initrd ${alpine-mirror}/releases/${alpine-arch}/netboot/initramfs-lts
+    kernel $${alpine-mirror}/releases/$${alpine-arch}/netboot/vmlinuz-lts alpine_repo=$${alpine-mirror}/main modloop=$${alpine-mirror}/releases/$${alpine-arch}/netboot/modloop-lts modules=loop,squashfs,sd-mod,usb-storage quiet nomodeset
+    initrd $${alpine-mirror}/releases/$${alpine-arch}/netboot/initramfs-lts
     boot
 
     :netbootxyz
@@ -102,7 +102,7 @@ data:
 
     # Auto-start X on tty1
     cat > /etc/profile.d/auto-startx.sh << 'STARTX'
-    if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+    if [ -z "$$DISPLAY" ] && [ "$$(tty)" = "/dev/tty1" ]; then
       exec startx
     fi
     STARTX
