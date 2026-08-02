@@ -14,6 +14,19 @@ spec:
       desktop:
         annotations:
           reloader.stakater.com/auto: "true"
+        initContainers:
+          init-certs:
+            image:
+              repository: docker.io/library/alpine
+              tag: "3.20"
+            command: ["/bin/sh", "-c"]
+            args: ["cat /etc/ssl/certs/ca-certificates.crt /tls/ca.crt > /shared-ssl/ca-certificates.crt"]
+            resources:
+              requests:
+                cpu: 10m
+                memory: 32Mi
+              limits:
+                memory: 64Mi
         containers:
           app:
             image:
@@ -22,6 +35,7 @@ spec:
             env:
               VNC_PW: password
               TZ: America/New_York
+              SSL_CERT_FILE: /shared-ssl/ca-certificates.crt
             resources:
               requests:
                 cpu: 500m
@@ -75,6 +89,10 @@ spec:
         sizeLimit: 512Mi
         globalMounts:
           - path: /dev/shm
+      shared-ssl:
+        type: emptyDir
+        globalMounts:
+          - path: /shared-ssl
       tls:
         type: custom
         volumeSpec:
@@ -93,4 +111,8 @@ spec:
                 readOnly: true
               - path: /etc/ssl/private/ssl-cert-snakeoil.key
                 subPath: tls.key
+                readOnly: true
+            init-certs:
+              - path: /tls/ca.crt
+                subPath: ca.crt
                 readOnly: true
