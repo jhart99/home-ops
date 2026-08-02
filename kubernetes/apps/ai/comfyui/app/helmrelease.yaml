@@ -64,7 +64,7 @@ spec:
           app:
             image:
               repository: ghcr.io/jhart99/sparkyui
-              digest: sha256:e41632b650a42d5966e85d8a2cfc336d2c2785ed14fa83bd12d82f3072c63c24
+              tag: 0.29.2@sha256:2a5db7cc9b1a96ef6da47ac0ac1eab4b0e50e5006ca323f5158b6f834bab2f84
             env:
               COMFYUI_FLAGS: "--listen 0.0.0.0 --port 8188"
             envFrom:
