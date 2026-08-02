@@ -8,6 +8,8 @@ spec:
   components:
     - ../../../../components/volsync
   dependsOn:
+    - name: cert-manager-csi-driver
+      namespace: cert-manager
     - name: rook-ceph-cluster
       namespace: rook-ceph
   interval: 1h
