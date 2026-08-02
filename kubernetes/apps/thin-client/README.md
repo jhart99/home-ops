@@ -4,7 +4,7 @@ Remote Linux desktop infrastructure for Dell Wyse 5070 thin clients.
 
 ## Architecture
 
-The Wyse 5070 thin client PXE-boots a minimal Alpine Linux environment that runs entirely in RAM, then auto-connects to a Linux desktop (XFCE4) running as a container on the Kubernetes cluster.
+The Wyse 5070 thin client PXE-boots a minimal Alpine Linux environment that runs entirely in RAM, then auto-connects to a Linux desktop running as a container on the Kubernetes cluster.
 
 ```
 ┌──────────────────────┐     ┌──────────────────────────────────┐
@@ -16,8 +16,8 @@ The Wyse 5070 thin client PXE-boots a minimal Alpine Linux environment that runs
 │          │           │     │                                  │
 │  ┌───────▼────────┐  │     │  ┌────────────────────────────┐  │
 │  │ Alpine Linux   │  │     │  │  desktop                   │  │
-│  │ (runs in RAM)  │  │     │  │  XFCE4 + KasmVNC           │  │
-│  │                │──│─HTTPS──│  linuxserver/webtop         │  │
+│  │ (runs in RAM)  │  │     │  │  Kasm Desktop (WebRTC)     │  │
+│  │                │──│─HTTPS──│  kasmweb/desktop            │  │
 │  │ Chromium Kiosk │  │     │  │                            │  │
 │  └────────────────┘  │     │  │  Persistent: 20Gi Ceph PVC │  │
 │                      │     │  └────────────────────────────┘  │
@@ -28,7 +28,7 @@ The Wyse 5070 thin client PXE-boots a minimal Alpine Linux environment that runs
 
 | App | Purpose | Image |
 |-----|---------|-------|
-| [desktop](desktop/) | XFCE4 Linux desktop (KasmVNC web access) | `lscr.io/linuxserver/webtop:alpine-xfce` |
+| [desktop](desktop/) | Linux desktop (Kasm/KasmVNC WebRTC) | `docker.io/kasmweb/desktop:1.15.0` |
 | [netboot](netboot/) | iPXE boot server (TFTP + HTTP + web UI) | `ghcr.io/netbootxyz/netbootxyz` |
 
 ## Boot Chain
@@ -39,7 +39,7 @@ The Wyse 5070 thin client PXE-boots a minimal Alpine Linux environment that runs
 4. **iPXE script** (`custom.ipxe`) downloads Alpine Linux kernel + initramfs from Alpine CDN
 5. **Alpine Linux** boots diskless (entirely in RAM)
 6. **Post-boot script** installs Chromium, Openbox, and auto-starts X11
-7. **Chromium kiosk** connects to `https://desktop.<domain>` — full XFCE desktop via KasmVNC
+7. **Chromium kiosk** connects to `https://desktop.<domain>` — full desktop via KasmVNC WebRTC
 
 ## DHCP Configuration
 
@@ -67,6 +67,16 @@ In the UniFi Network UI:
 | Internal (browser) | `https://desktop.<domain>` | Access from any device on the LAN |
 | Thin client (auto) | Chromium kiosk → same URL | Wyse 5070 auto-connects on boot |
 
+## Desktop Image Details
+
+The desktop runs [Kasm Workspaces](https://www.kasmweb.com/) (`kasmweb/desktop`):
+
+- **Desktop environment**: Full Linux desktop (XFCE-based)
+- **Streaming**: KasmVNC with WebRTC — low latency audio, clipboard, and file transfer
+- **Security**: Runs as non-root (UID 1000, `kasm-user`)
+- **Shared memory**: 512Mi emptyDir (Memory-backed) at `/dev/shm` for browser stability
+- **Node selector**: `kubernetes.io/arch: amd64` — desktop must run on x86_64 nodes
+
 ## First-Time Alpine Setup
 
 After the Wyse 5070 boots into Alpine for the first time, you need to run the setup script to install the desktop client packages:
@@ -82,18 +92,18 @@ This installs Chromium, Openbox, Intel GPU drivers, and configures auto-login + 
 
 ## Persistent Storage
 
-The desktop pod uses a 20Gi Ceph block PVC mounted at `/config`. This persists:
+The desktop pod uses a 20Gi Ceph block PVC mounted at `/home/kasm-user`. This persists:
 - Desktop configuration and customizations
-- Application data and settings  
-- User files stored under `/config`
+- Application data and settings
+- User files
 
 Backups are managed by VolSync (hourly Kopia snapshots to S3).
 
 ## Future Enhancements
 
 - [ ] Custom Alpine overlay (`apkovl.tar.gz`) for zero-touch thin client boot
-- [ ] XRDP server container for native RDP multi-monitor support
 - [ ] Moonlight/Sunshine streaming for GPU-accelerated desktop (DGX Spark worker)
 - [ ] Network policies restricting desktop access to thin client subnet
 - [ ] Authentik SSO integration for web-based desktop access
 - [ ] Multiple desktop profiles (dev workstation, media center, etc.)
+- [ ] SOPS-encrypted VNC credentials
