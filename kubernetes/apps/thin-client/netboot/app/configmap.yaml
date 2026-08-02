@@ -1,0 +1,114 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: netboot-ipxe
+data:
+  custom.ipxe: |
+    #!ipxe
+    # Wyse 5070 Thin Client — Custom boot menu
+    # Boots Alpine Linux in diskless mode with auto-start desktop client
+
+    :start
+    menu Thin Client Boot Menu
+    item --gap --    ---- Thin Client Options ----
+    item alpine      Boot Alpine Linux (Thin Client Desktop)
+    item netbootxyz  netboot.xyz Main Menu
+    item shell       iPXE Shell
+    choose --default alpine --timeout 5000 target && goto ${target}
+
+    :alpine
+    set alpine-mirror http://dl-cdn.alpinelinux.org/alpine/latest-stable
+    set alpine-arch x86_64
+
+    echo Booting Alpine Linux thin client...
+    kernel ${alpine-mirror}/releases/${alpine-arch}/netboot/vmlinuz-lts alpine_repo=${alpine-mirror}/main modloop=${alpine-mirror}/releases/${alpine-arch}/netboot/modloop-lts modules=loop,squashfs,sd-mod,usb-storage quiet nomodeset
+    initrd ${alpine-mirror}/releases/${alpine-arch}/netboot/initramfs-lts
+    boot
+
+    :netbootxyz
+    chain --autofree https://boot.netboot.xyz/ipxe/netboot.xyz.efi
+
+    :shell
+    shell
+  thin-client-setup.sh: |
+    #!/bin/sh
+    # Post-boot setup script for Alpine thin client
+    # Run this after Alpine boots to configure the desktop client
+    #
+    # Usage: wget -qO- http://netboot.thin-client.svc.cluster.local:3000/config/menus/custom/thin-client-setup.sh | sh
+    #
+    set -e
+
+    echo "=== Thin Client Setup ==="
+
+    # Enable community repo
+    echo "http://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories
+
+    # Install packages
+    apk update
+    apk add \
+      xorg-server \
+      xf86-video-intel \
+      xf86-input-libinput \
+      mesa-dri-gallium \
+      eudev \
+      dbus \
+      xfce4-terminal \
+      chromium \
+      freerdp \
+      pulseaudio \
+      alsa-utils \
+      font-noto \
+      font-noto-emoji \
+      openbox \
+      xdotool
+
+    # Configure auto-login
+    setup-devd udev
+
+    # Create thin client user
+    adduser -D -s /bin/sh user
+    echo "user:user" | chpasswd
+
+    # Create Openbox autostart to launch browser in kiosk mode
+    mkdir -p /home/user/.config/openbox
+    cat > /home/user/.config/openbox/autostart << 'AUTOSTART'
+    # Wait for network
+    sleep 3
+
+    # Launch Chromium in kiosk mode pointed at the desktop
+    chromium-browser \
+      --no-first-run \
+      --disable-translate \
+      --disable-infobars \
+      --disable-suggestions-service \
+      --disable-save-password-bubble \
+      --disable-session-crashed-bubble \
+      --kiosk \
+      --noerrdialogs \
+      --no-default-browser-check \
+      --autoplay-policy=no-user-gesture-required \
+      --start-fullscreen \
+      "https://desktop.${SECRET_DOMAIN}" &
+    AUTOSTART
+    chown -R user:user /home/user
+
+    # Create xinitrc
+    cat > /home/user/.xinitrc << 'XINIT'
+    exec openbox-session
+    XINIT
+    chown user:user /home/user/.xinitrc
+
+    # Auto-start X on tty1
+    cat > /etc/profile.d/auto-startx.sh << 'STARTX'
+    if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+      exec startx
+    fi
+    STARTX
+
+    # Auto-login user on tty1
+    sed -i 's|^tty1.*|tty1::respawn:/bin/login -f user|' /etc/inittab
+
+    echo "=== Setup complete. Rebooting into desktop... ==="
+    kill -HUP 1  # Re-read inittab
