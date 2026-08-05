@@ -18,7 +18,7 @@ spec:
           init-certs:
             image:
               repository: docker.io/library/alpine
-              tag: "3.20"
+              tag: "3.24"
             command: ["/bin/sh", "-c"]
             args: ["cat /etc/ssl/certs/ca-certificates.crt /tls/ca.crt > /shared-ssl/ca-certificates.crt"]
             resources:
