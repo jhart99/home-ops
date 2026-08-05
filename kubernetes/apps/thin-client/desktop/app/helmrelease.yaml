@@ -31,7 +31,7 @@ spec:
           app:
             image:
               repository: docker.io/kasmweb/desktop
-              tag: 1.15.0
+              tag: 1.19.0
             env:
               VNC_PW: password
               TZ: America/New_York
