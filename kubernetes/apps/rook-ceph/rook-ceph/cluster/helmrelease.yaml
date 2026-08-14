@@ -79,7 +79,7 @@ spec:
             memory: "1Gi"   # Increase from the default
           limits:
             cpu: "1000m"
-            memory: "2Gi"
+            memory: "4Gi"
         osd:
           requests:
             cpu: 100m
