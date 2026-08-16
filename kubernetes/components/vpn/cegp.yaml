@@ -17,8 +17,24 @@ spec:
    - "192.168.1.0/24"
 
   # 3. Which node handles the exit, and what IP/interface to use?
-  egressGateway:
-    nodeSelector:
-      matchLabels:
-        kubernetes.io/hostname: "talos-cp-2"
-    interface: net0.10
+  egressGateways:
+    -  nodeSelector:
+        matchLabels:
+          kubernetes.io/hostname: "talos-cp-1"
+       interface: net0.10
+    -  nodeSelector:
+        matchLabels:
+          kubernetes.io/hostname: "talos-cp-2"
+       interface: net0.10
+    -  nodeSelector:
+        matchLabels:
+          kubernetes.io/hostname: "talos-cp-3"
+       interface: net0.10
+    -  nodeSelector:
+        matchLabels:
+          kubernetes.io/hostname: "talos-worker-5"
+       interface: net0.10
+    -  nodeSelector:
+        matchLabels:
+          kubernetes.io/hostname: "talos-worker-6"
+       interface: net0.10
