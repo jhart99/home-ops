@@ -40,7 +40,3 @@ spec:
         matchLabels:
           kubernetes.io/hostname: "talos-worker-5"
       interface: net0.10
-    - nodeSelector:
-        matchLabels:
-          kubernetes.io/hostname: "talos-worker-6"
-      interface: net0.10
