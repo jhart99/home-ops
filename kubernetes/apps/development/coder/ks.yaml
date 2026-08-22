@@ -27,6 +27,9 @@ kind: Kustomization
 metadata:
   name: coder-db
 spec:
+  dependsOn:
+    - name: cnpg-operator
+      namespace: database
   interval: 1h
   path: ./kubernetes/apps/development/coder/database
   postBuild:

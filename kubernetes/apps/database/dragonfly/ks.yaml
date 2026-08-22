@@ -4,6 +4,9 @@ metadata:
   name: dragonfly
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: grafana
+      namespace: observability
   path: ./kubernetes/apps/database/dragonfly/app
   targetNamespace: database
   prune: true

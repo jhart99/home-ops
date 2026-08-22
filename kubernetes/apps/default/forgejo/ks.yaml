@@ -8,6 +8,8 @@ spec:
   interval: 1h
   path: ./kubernetes/apps/default/forgejo/app
   dependsOn:
+    - name: dragonfly
+      namespace: database
     - name: rook-ceph-cluster
       namespace: rook-ceph
     - name: volsync

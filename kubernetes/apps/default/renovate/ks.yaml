@@ -5,6 +5,9 @@ kind: Kustomization
 metadata:
   name: &app renovate-operator
 spec:
+  dependsOn:
+    - name: dragonfly
+      namespace: database
   interval: 30m
   path: ./kubernetes/apps/default/renovate/operator
   postBuild:
