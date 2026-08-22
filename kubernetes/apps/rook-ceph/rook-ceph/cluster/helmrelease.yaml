@@ -89,6 +89,8 @@ spec:
             memory: 4Gi
       security:
         cephx:
+          allowedCiphers:
+            - aes
           admin:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
