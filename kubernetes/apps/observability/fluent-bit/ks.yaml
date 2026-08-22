@@ -5,6 +5,8 @@ kind: Kustomization
 metadata:
   name: fluent-bit
 spec:
+  dependsOn:
+    - name: grafana
   interval: 1h
   path: ./kubernetes/apps/observability/fluent-bit/app
   prune: true

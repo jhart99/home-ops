@@ -5,6 +5,8 @@ kind: Kustomization
 metadata:
   name: gatus
 spec:
+  dependsOn:
+    - name: grafana
   interval: 1h
   path: ./kubernetes/apps/observability/gatus/app
   postBuild:
