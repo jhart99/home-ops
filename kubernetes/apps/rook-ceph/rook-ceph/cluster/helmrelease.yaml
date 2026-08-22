@@ -92,7 +92,7 @@ spec:
           allowedCiphers:
             - aes256k
           csi:
-            keyType: aes
+            keyType: aes256k
             keyGeneration: 2
             keyRotationPolicy: KeyGeneration
           daemon:
