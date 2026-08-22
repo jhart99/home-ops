@@ -91,6 +91,7 @@ spec:
         cephx:
           allowedCiphers:
             - aes
+            - aes256k
           csi:
             keyRotationPolicy: KeyGeneration
             keyType: aes
