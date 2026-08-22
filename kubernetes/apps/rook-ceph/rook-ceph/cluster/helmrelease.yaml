@@ -99,10 +99,6 @@ spec:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
             keyType: aes
-          crashCollector:
-            keyGeneration: 8
-            keyRotationPolicy: KeyGeneration
-            keyType: aes
           csi:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
