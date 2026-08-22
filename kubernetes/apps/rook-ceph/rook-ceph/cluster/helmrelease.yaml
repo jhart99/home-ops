@@ -87,6 +87,17 @@ spec:
           limits:
             cpu: 2
             memory: 4Gi
+      security:
+        cephx:
+          csi:
+            keyType: aes
+          daemon:
+            keyGeneration: 2
+            keyRotationPolicy: KeyGeneration
+          rbdMirrorPeer: {}
+        keyRotation:
+          enabled: true
+        kms: {}
       storage:
         useAllNodes: false
         useAllDevices: false
