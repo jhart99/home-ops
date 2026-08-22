@@ -115,10 +115,6 @@ spec:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
             keyType: aes
-          osd:
-            keyGeneration: 8
-            keyRotationPolicy: KeyGeneration
-            keyType: aes
           rbdMirrorPeer:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
