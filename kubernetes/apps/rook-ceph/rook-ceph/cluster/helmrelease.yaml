@@ -91,10 +91,6 @@ spec:
         cephx:
           allowedCiphers:
             - aes
-          admin:
-            keyGeneration: 8
-            keyRotationPolicy: KeyGeneration
-            keyType: aes
           cephExporter:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
