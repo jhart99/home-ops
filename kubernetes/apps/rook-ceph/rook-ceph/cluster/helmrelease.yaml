@@ -93,10 +93,10 @@ spec:
             - aes256k
           csi:
             keyType: aes256k
-            keyGeneration: 2
+            keyGeneration: 3
             keyRotationPolicy: KeyGeneration
           daemon:
-            keyGeneration: 2
+            keyGeneration: 3
             keyRotationPolicy: KeyGeneration
           rbdMirrorPeer: {}
         keyRotation:
