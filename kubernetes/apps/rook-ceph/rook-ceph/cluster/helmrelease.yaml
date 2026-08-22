@@ -92,7 +92,6 @@ spec:
           allowedCiphers:
             - aes
           csi:
-            keyGeneration: 8
             keyRotationPolicy: KeyGeneration
             keyType: aes
         keyRotation:
