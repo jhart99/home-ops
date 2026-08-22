@@ -89,18 +89,14 @@ spec:
             memory: 4Gi
       security:
         cephx:
-          allowedCiphers:
-            - aes256k
           csi:
-            keyType: aes256k
-            keyGeneration: 3
+            keyGeneration: 6
             keyRotationPolicy: KeyGeneration
           daemon:
-            keyGeneration: 3
+            keyGeneration: 6
             keyRotationPolicy: KeyGeneration
           rbdMirrorPeer:
-            keyType: aes256k
-            keyGeneration: 3
+            keyGeneration: 6
             keyRotationPolicy: KeyGeneration
         keyRotation:
           enabled: true
