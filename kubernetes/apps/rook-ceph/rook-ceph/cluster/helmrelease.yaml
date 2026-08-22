@@ -89,15 +89,38 @@ spec:
             memory: 4Gi
       security:
         cephx:
+          admin:
+            keyGeneration: 8
+            keyRotationPolicy: KeyGeneration
+            keyType: aes
+          cephExporter:
+            keyGeneration: 8
+            keyRotationPolicy: KeyGeneration
+            keyType: aes
+          crashCollector:
+            keyGeneration: 8
+            keyRotationPolicy: KeyGeneration
+            keyType: aes
           csi:
-            keyGeneration: 6
+            keyGeneration: 8
             keyRotationPolicy: KeyGeneration
-          daemon:
-            keyGeneration: 6
+            keyType: aes
+          mgr:
+            keyGeneration: 8
             keyRotationPolicy: KeyGeneration
+            keyType: aes
+          mon:
+            keyGeneration: 8
+            keyRotationPolicy: KeyGeneration
+            keyType: aes
+          osd:
+            keyGeneration: 8
+            keyRotationPolicy: KeyGeneration
+            keyType: aes
           rbdMirrorPeer:
-            keyGeneration: 6
+            keyGeneration: 8
             keyRotationPolicy: KeyGeneration
+            keyType: aes
         keyRotation:
           enabled: true
         kms: {}
