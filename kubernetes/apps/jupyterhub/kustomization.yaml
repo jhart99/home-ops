@@ -8,4 +8,4 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./jupyterhub/ks.yaml
+  # - ./jupyterhub/ks.yaml

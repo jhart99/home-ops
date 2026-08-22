@@ -10,4 +10,4 @@ resources:
   - ./namespace.yaml
   - ./atuin/ks.yaml
   # - ./backstage/ks.yaml
-  - ./coder/ks.yaml
+  # - ./coder/ks.yaml
