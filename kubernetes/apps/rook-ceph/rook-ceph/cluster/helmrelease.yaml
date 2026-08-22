@@ -98,7 +98,10 @@ spec:
           daemon:
             keyGeneration: 3
             keyRotationPolicy: KeyGeneration
-          rbdMirrorPeer: {}
+          rbdMirrorPeer:
+            keyType: aes256k
+            keyGeneration: 3
+            keyRotationPolicy: KeyGeneration
         keyRotation:
           enabled: true
         kms: {}
