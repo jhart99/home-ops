@@ -99,10 +99,6 @@ spec:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
             keyType: aes
-          mgr:
-            keyGeneration: 8
-            keyRotationPolicy: KeyGeneration
-            keyType: aes
           mon:
             keyGeneration: 8
             keyRotationPolicy: KeyGeneration
