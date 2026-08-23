@@ -11,4 +11,4 @@ resources:
   # - ./erecords/ks.yaml
   - ./flux-instance/ks.yaml
   - ./flux-operator/ks.yaml
-  - ./flux-sensitive/ks.yaml
+  # - ./flux-sensitive/ks.yaml
