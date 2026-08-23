@@ -5,6 +5,9 @@ kind: Kustomization
 metadata:
   name: talos-mcp
 spec:
+  dependsOn:
+    - name: toolhive-crds
+      namespace: ai
   interval: 1h
   path: ./kubernetes/apps/ai/talos-mcp/app
   postBuild:

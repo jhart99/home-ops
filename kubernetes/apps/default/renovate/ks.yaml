@@ -8,6 +8,11 @@ spec:
   dependsOn:
     - name: dragonfly
       namespace: database
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: renovate-operator
+      namespace: default
   interval: 30m
   path: ./kubernetes/apps/default/renovate/operator
   postBuild:
