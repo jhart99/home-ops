@@ -10,7 +10,7 @@ spec:
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
-      name: dragonfly
+      name: dragonfly-operator
       namespace: database
   path: ./kubernetes/apps/database/dragonfly/app
   targetNamespace: database
