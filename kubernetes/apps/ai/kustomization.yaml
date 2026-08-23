@@ -17,13 +17,13 @@ resources:
   - ./github-mcp/ks.yaml
   - ./grafana-mcp/ks.yaml
   - ./hermes/ks.yaml
-  # - ./litellm/ks.yaml
+  - ./litellm/ks.yaml
   - ./llmkube/ks.yaml
   - ./kubectl-mcp/ks.yaml
   - ./kubesearch-mcp/ks.yaml
   - ./open-webui/ks.yaml
   - ./searxng/ks.yaml
   - ./talos-mcp/ks.yaml
-  # - ./toolhive/ks.yaml
+  - ./toolhive/ks.yaml
   - ./victorialogs-mcp/ks.yaml
   - ./yardstick/ks.yaml
