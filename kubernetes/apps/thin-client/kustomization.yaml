@@ -8,5 +8,5 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./desktop/ks.yaml
-  - ./netboot/ks.yaml
+  # - ./desktop/ks.yaml
+  # - ./netboot/ks.yaml
