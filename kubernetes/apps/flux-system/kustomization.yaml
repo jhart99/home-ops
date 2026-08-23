@@ -8,7 +8,7 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./erecords/ks.yaml
+  # - ./erecords/ks.yaml
   - ./flux-instance/ks.yaml
   - ./flux-operator/ks.yaml
   - ./flux-sensitive/ks.yaml
