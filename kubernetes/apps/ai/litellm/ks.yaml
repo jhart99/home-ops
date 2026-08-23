@@ -33,6 +33,8 @@ spec:
   dependsOn:
     - name: cnpg-operator
       namespace: database
+    - name: cnpg-barman-cloud
+      namespace: database
     - name: rustfs
       namespace: rustfs
   targetNamespace: ai
