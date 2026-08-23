@@ -6,6 +6,9 @@ metadata:
   name: cnpg-operator
   namespace: flux-system
 spec:
+  dependsOn:
+    - name: grafana
+      namespace: observability
   healthChecks:
     - apiVersion: helm.toolkit.fluxcd.io/v2
       kind: HelmRelease
