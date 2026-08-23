@@ -13,12 +13,12 @@ resources:
   - ./echo-basicauth/ks.yaml
   - ./echo-oidcauth/ks.yaml
   - ./forgejo/ks.yaml
-  # - ./forgejo-runner/ks.yaml
-  # - ./freshrss/ks.yaml
+  - ./forgejo-runner/ks.yaml
+  - ./freshrss/ks.yaml
   - ./home-assistant/ks.yaml
   - ./immich/ks.yaml
   - ./mosquitto/ks.yaml
-  # - ./paperless/ks.yaml
+  - ./paperless/ks.yaml
   - ./pihole/ks.yaml
   - ./renovate/ks.yaml
   - ./wg-easy/ks.yaml
