@@ -5,6 +5,8 @@ kind: Kustomization
 metadata:
   name: toolhive-operator
 spec:
+  dependsOn:
+    - name: toolhive-crds
   interval: 1h
   path: ./kubernetes/apps/ai/toolhive/operator
   postBuild:
