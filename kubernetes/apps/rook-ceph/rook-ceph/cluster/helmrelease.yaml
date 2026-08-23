@@ -87,17 +87,6 @@ spec:
           limits:
             cpu: 2
             memory: 4Gi
-      security:
-        cephx:
-          allowedCiphers:
-            - aes
-            - aes256k
-          csi:
-            keyRotationPolicy: KeyGeneration
-            keyType: aes
-        keyRotation:
-          enabled: true
-        kms: {}
       storage:
         useAllNodes: false
         useAllDevices: false
