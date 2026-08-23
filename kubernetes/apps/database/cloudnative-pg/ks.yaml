@@ -36,6 +36,11 @@ spec:
       namespace: cert-manager
     - name: cnpg-operator
       namespace: database
+  healthChecks:
+    - apiVersion: helm.toolkit.fluxcd.io/v2
+      kind: HelmRelease
+      name: plugin-barman-cloud
+      namespace: database
   path: ./kubernetes/apps/database/cloudnative-pg/barman
   prune: true
   sourceRef:
