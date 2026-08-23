@@ -19,7 +19,7 @@ resources:
   - ./immich/ks.yaml
   - ./mosquitto/ks.yaml
   # - ./paperless/ks.yaml
-  # - ./pihole/ks.yaml
+  - ./pihole/ks.yaml
   - ./renovate/ks.yaml
   - ./wg-easy/ks.yaml
   - ./whoami/ks.yaml
