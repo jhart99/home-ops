@@ -37,16 +37,16 @@ spec:
               - "sh"
               - "-c"
               - >
-                if [ ! -f /data/.runner ]; then
+                # if [ ! -f /data/.runner ]; then
                   echo "Registering runner...";
                   forgejo-runner register --no-interactive \
                     --token $(RUNNER_TOKEN) \
                     --name $(RUNNER_NAME) \
                     --instance $(FORGEJO_INSTANCE_URL) \
                     --labels "$(LABELS)";
-                else
-                  echo "Runner already registered, skipping.";
-                fi
+                # else
+                #   echo "Runner already registered, skipping.";
+                # fi
             env:
               FORGEJO_INSTANCE_URL: http://forgejo.default.svc.cluster.local
               LABELS: "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
