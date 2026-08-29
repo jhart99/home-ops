@@ -48,7 +48,7 @@ spec:
                   echo "Runner already registered, skipping.";
                 fi
             env:
-              FORGEJO_INSTANCE_URL: https://forgejo.rnatr.com
+              FORGEJO_INSTANCE_URL: http://forgejo.default.svc.cluster.local
               LABELS: "ubuntu-latest:docker://ghcr.io/catthehacker/ubuntu:act-latest"
             envFrom:
               - secretRef:
