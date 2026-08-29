@@ -14,7 +14,7 @@ spec:
   path: ./kubernetes/apps/development/atuin/app
   postBuild:
     substitute:
-      APP: atuin
+      APP: atuin2
       VOLSYNC_CAPACITY: 5Gi
     substituteFrom:
       - name: cluster-secrets
