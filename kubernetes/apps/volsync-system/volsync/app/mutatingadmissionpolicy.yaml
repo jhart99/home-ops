@@ -147,19 +147,12 @@ spec:
         'volsync.backube/replication-destination' in object.metadata.labels
   failurePolicy: Ignore
   mutations:
-    - patchType: ApplyConfiguration
-      applyConfiguration:
-        # Dynamically grabs the main container name from the Job's pod template
-        # and merges the preStop hook into it via Server-Side Apply
-        expression: >
-          "apiVersion: batch/v1\n" +
-          "kind: Job\n" +
-          "spec:\n" +
-          "  template:\n" +
-          "    spec:\n" +
-          "      containers:\n" +
-          "      - name: " + object.spec.template.spec.containers[0].name + "\n" +
-          "        lifecycle:\n" +
-          "          preStop:\n" +
-          "            exec:\n" +
-          "              command: ['/bin/sh', '-c', 'sync && sleep 5']"
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{
+              op: "add", path: "/spec/template/spec/containers/0/lifecycle/preStop/exec/command/-",
+              value: ['/bin/sh', '-c', 'sync && sleep 5']
+            }
+          ]
