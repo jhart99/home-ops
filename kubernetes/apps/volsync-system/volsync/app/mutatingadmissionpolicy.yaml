@@ -146,6 +146,7 @@ spec:
         has(object.metadata.labels) &&
         'volsync.backube/replication-destination' in object.metadata.labels
   failurePolicy: Ignore
+  reinvocationPolicy: IfNeeded
   mutations:
     - patchType: JSONPatch
       jsonPatch:
