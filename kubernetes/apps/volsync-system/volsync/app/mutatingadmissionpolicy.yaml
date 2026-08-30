@@ -141,10 +141,12 @@ spec:
         resources:
           - jobs
   matchConditions:
-    - name: is-volsync-dest-job
-      expression: >
-        has(object.metadata.labels) &&
-        'volsync.backube/replication-destination' in object.metadata.labels
+    - name: has-volsync-job-name-prefix
+      expression: >-
+        object.metadata.name.startsWith("volsync-")
+    - name: has-volsync-created-by-labels
+      expression: >-
+        object.metadata.?labels["app.kubernetes.io/created-by"].orValue("") == "volsync"
   failurePolicy: Ignore
   reinvocationPolicy: IfNeeded
   mutations:
