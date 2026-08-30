@@ -114,3 +114,52 @@ spec:
               }
             }
           ]
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.34.0/mutatingadmissionpolicybinding-admissionregistration-v1beta1.json
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: volsync-force-sync-binding
+spec:
+  policyName: volsync-force-sync
+---
+# yaml-language-server: $schema=https://raw.githubusercontent.com/yannh/kubernetes-json-schema/refs/heads/master/v1.34.0/mutatingadmissionpolicy-admissionregistration-v1beta1.json
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: volsync-force-sync
+spec:
+  matchConstraints:
+    resourceRules:
+      - apiGroups:
+          - batch
+        apiVersions:
+          - v1
+        operations:
+          - CREATE
+          - UPDATE
+        resources:
+          - jobs
+  matchConditions:
+    - name: is-volsync-dest-job
+      expression: >
+        has(object.metadata.labels) &&
+        'volsync.backube/replication-destination' in object.metadata.labels
+  failurePolicy: Ignore
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        # Dynamically grabs the main container name from the Job's pod template
+        # and merges the preStop hook into it via Server-Side Apply
+        expression: >
+          "apiVersion: batch/v1\n" +
+          "kind: Job\n" +
+          "spec:\n" +
+          "  template:\n" +
+          "    spec:\n" +
+          "      containers:\n" +
+          "      - name: " + object.spec.template.spec.containers[0].name + "\n" +
+          "        lifecycle:\n" +
+          "          preStop:\n" +
+          "            exec:\n" +
+          "              command: ['/bin/sh', '-c', 'sync && sleep 5']"
