@@ -18,7 +18,7 @@ spec:
     - ../../../../components/volsync
   postBuild:
     substitute:
-      APP: paperless
+      APP: paperless2
       VOLSYNC_CAPACITY: 15Gi
     substituteFrom:
       - name: cluster-secrets
