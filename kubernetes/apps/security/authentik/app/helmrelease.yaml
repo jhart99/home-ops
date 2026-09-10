@@ -13,7 +13,7 @@ spec:
     global:
       image:
         repository: ghcr.io/goauthentik/server
-        tag: 2026.8.0@sha256:7421753cfea67e89a6d295a1f0173ccea3866b33768c88dad90453b151cdcfd5
+        tag: 2026.8.2@sha256:ff8489a5af4f4fe415ffd180a8e3c10b120bc2592d13d79dac050d977f7b9ecd
       fullnameOverride: authentik
       env:
         - name: AUTHENTIK_SECRET_KEY
