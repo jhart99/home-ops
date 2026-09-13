@@ -17,6 +17,15 @@ spec:
         enabled: true
       dashboard:
         enabled: true
+    policy:
+      enabled: true
+      allowedHosts:
+        - api.github.com
+        - github.com
+        - forgejo.${SECRET_DOMAIN}
+        - forgejo
+        - forgejo.default
+        - forgejo.default.svc.cluster.local
     route:
       enabled: true
       hostnames: ["renovate.${SECRET_DOMAIN}"]
