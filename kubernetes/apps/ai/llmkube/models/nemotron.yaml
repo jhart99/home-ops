@@ -5,8 +5,14 @@ kind: Model
 metadata:
   name: nemotron-3-5-lightning
 spec:
-  source: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
+  source: hf://nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
   format: safetensors
+  files:
+    - model.safetensors
+    - config.json
+    - tokenizer.json
+  sourceSecretRef:
+    name: hf-token
   hardware:
     accelerator: cuda
     gpu:
