@@ -7,12 +7,9 @@ metadata:
 spec:
   source: hf://nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
   format: safetensors
-  files:
-    - model.safetensors
-    - config.json
-    - tokenizer.json
   sourceSecretRef:
     name: hf-token
+  quantization: Q4_K_XL
   hardware:
     accelerator: cuda
     gpu:
