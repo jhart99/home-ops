@@ -5,8 +5,7 @@ kind: Model
 metadata:
   name: nemotron-3-5-lightning
 spec:
-  # Identifies the upstream HuggingFace repository in v0.9.x
-  source: https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/
+  source: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/
   format: safetensors
   hardware:
     accelerator: cuda
