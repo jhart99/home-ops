@@ -5,7 +5,7 @@ kind: Model
 metadata:
   name: nemotron-3-5-lightning
 spec:
-  source: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4/
+  source: nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4
   format: safetensors
   hardware:
     accelerator: cuda
