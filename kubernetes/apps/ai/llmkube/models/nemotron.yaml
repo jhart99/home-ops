@@ -29,7 +29,7 @@ spec:
 
   # Image override directly in the spec ensures we use the exact vLLM build
   # needed for these specific MoE/Mamba features.
-  image: "vllm/vllm-openai:v0.27.1"
+  image: "vllm/vllm-openai:v0.29.0"
 
   # extraArgs is the v0.9.x method for passing arbitrary flags to the backend
   extraArgs:
