@@ -14,6 +14,16 @@ spec:
       value: '["pnpm run bundle"]'
     - name: RENOVATE_PLATFORM_COMMIT
       value: "enabled"
+    - name: GITHUB_COM_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: renovate-secret
+          key: GITHUB_COM_TOKEN
+    - name: RENOVATE_GITHUB_COM_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: renovate-secret
+          key: GITHUB_COM_TOKEN
   image: ghcr.io/renovatebot/renovate:44.82.4
   provider:
     name: forgejo
