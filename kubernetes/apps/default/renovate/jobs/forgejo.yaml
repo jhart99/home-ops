@@ -25,6 +25,14 @@ spec:
           name: renovate-secret
           key: GITHUB_COM_TOKEN
   image: ghcr.io/renovatebot/renovate:44.82.4
+  policy:
+    allowedHosts:
+      - api.github.com
+      - github.com
+      - forgejo.rnatr.com
+      - forgejo
+      - forgejo.default
+      - forgejo.default.svc.cluster.local
   provider:
     name: forgejo
     endpoint: https://forgejo.rnatr.com/api/v1
