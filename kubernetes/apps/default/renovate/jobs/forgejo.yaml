@@ -26,7 +26,7 @@ spec:
         secretKeyRef:
           name: renovate-secret
           key: GITHUB_COM_TOKEN
-  image: ghcr.io/renovatebot/renovate:44.82.4
+  image: ghcr.io/renovatebot/renovate:44.89.1
   provider:
     name: forgejo
     endpoint: https://forgejo.rnatr.com/api/v1
