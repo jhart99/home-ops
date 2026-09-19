@@ -22,7 +22,6 @@ spec:
       allowedHosts:
         - api.github.com
         - github.com
-        - forgejo.${SECRET_DOMAIN}
         - forgejo
         - forgejo.default
         - forgejo.default.svc.cluster.local
