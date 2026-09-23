@@ -22,6 +22,7 @@ spec:
       allowedHosts:
         - api.github.com
         - github.com
+        - forgejo.rnatr.com
         - forgejo
         - forgejo.default
         - forgejo.default.svc.cluster.local
