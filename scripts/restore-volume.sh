@@ -52,10 +52,10 @@ Options:
   -h, --help                Show this help message
 
 Examples:
-  $(basename "$0") -n default -a wg-easy
-  $(basename "$0") -n sensitive -a qui
-  $(basename "$0") -n communication -a tuwunel -t statefulset
-  $(basename "$0") -n sensitive -a qui --previous 1
+  restore-volume.sh -n default -a wg-easy
+  restore-volume.sh -n sensitive -a qui
+  restore-volume.sh -n communication -a tuwunel -t statefulset
+  restore-volume.sh -n sensitive -a qui --previous 1
 USAGE_EOF
     exit 0
 }
@@ -197,15 +197,15 @@ kubectl patch replicationdestination -n "${NAMESPACE}" "${DST_NAME}" --type merg
 # Wait for the mover pod to start
 function check_mover_pod_running() {
     local mover_phase
-    mover_phase=$(kubectl get pod -n "${NAMESPACE}" -l "volsync.backube/destinationName=${DST_NAME}" -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
+    mover_phase=$(kubectl get pod -n "${NAMESPACE}" -l "job-name=volsync-dst-${DST_NAME}" -o jsonpath='{.items[0].status.phase}' 2>/dev/null || true)
     [[ "${mover_phase}" == "Running" || "${mover_phase}" == "Succeeded" ]]
 }
 
 log info "Waiting for VolSync restore mover pod to initialize"
 wait_until "restore mover pod to start" "${TIMEOUT}" 2 check_mover_pod_running
 
-# Stream mover logs in background if mover is running
-MOVER_POD=$(kubectl get pod -n "${NAMESPACE}" -l "volsync.backube/destinationName=${DST_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+# Stream mover logs if mover is running
+MOVER_POD=$(kubectl get pod -n "${NAMESPACE}" -l "job-name=volsync-dst-${DST_NAME}" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 if [[ -n "${MOVER_POD}" ]]; then
     log info "Streaming restore mover logs" "pod=${MOVER_POD}"
     kubectl logs -n "${NAMESPACE}" "${MOVER_POD}" -f --tail=20 2>/dev/null || true
