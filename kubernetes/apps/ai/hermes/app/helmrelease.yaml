@@ -114,6 +114,8 @@ spec:
               SEARXNG_URL: http://searxng.ai.svc.cluster.local:8080
               TERM: xterm-256color
               TZ: &tz America/New_York
+              MATRIX_DEVICE_ID: HERMES_BOT
+              MATRIX_RECOVERY_KEY_OUTPUT_FILE: /opt/data/matrix_recovery_key.txt
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
