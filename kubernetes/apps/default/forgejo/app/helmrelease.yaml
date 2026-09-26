@@ -44,6 +44,21 @@ spec:
       ssh:
         existingSecret: forgejo-signing-secret
 
+    extraVolumes:
+      - name: ssh-signing-key-direct
+        secret:
+          secretName: forgejo-signing-secret
+          defaultMode: 256
+          items:
+            - key: privateKey
+              path: key
+
+    extraContainerVolumeMounts:
+      - name: ssh-signing-key-direct
+        mountPath: /data/git/.ssh-signing/key
+        subPath: key
+        readOnly: true
+
     gitea:
       admin:
         existingSecret: forgejo-admin-secret
