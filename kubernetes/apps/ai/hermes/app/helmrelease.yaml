@@ -104,6 +104,7 @@ spec:
               HERMES_DASHBOARD_OIDC_ISSUER: https://auth.rnatr.com/application/o/hermes/
               HERMES_DASHBOARD_OIDC_CLIENT_ID: N9271Z49qmLhtX2bznf4Qc1eL83xvtCSWKyEJrHY
               HERMES_DASHBOARD_OIDC_REDIRECT_URI: https://hermes.rnatr.com/api/auth/oidc/callback
+              HERMES_DASHBOARD_OIDC_SCOPES: openid profile email offline_access
               HERMES_GID: "10000"
               HERMES_HOME: /opt/data
               HERMES_UID: "10000"
