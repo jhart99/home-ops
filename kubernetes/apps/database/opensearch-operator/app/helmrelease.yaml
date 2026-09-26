@@ -31,9 +31,6 @@ spec:
         requests:
           cpu: 200m
           memory: 350Mi
-      image:
-        repository: opensearchproject/opensearch-operator
-        tag: v3.0.0
       dnsBase: cluster.local
       metricsBindAddress: 127.0.0.1:8080
     installCRDs: true
