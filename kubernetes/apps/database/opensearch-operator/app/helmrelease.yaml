@@ -33,7 +33,7 @@ spec:
           memory: 350Mi
       image:
         repository: opensearchproject/opensearch-operator
-        tag: 3.0.0-alpha@sha256:f78bbdd1a3860839d3022ee9c55abb503d5547967aec938d66805846bae37604
+        tag: v3.0.0
       dnsBase: cluster.local
       metricsBindAddress: 127.0.0.1:8080
     installCRDs: true
