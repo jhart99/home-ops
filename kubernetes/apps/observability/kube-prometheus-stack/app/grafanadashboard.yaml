@@ -251,72 +251,7 @@ spec:
             "y": 0
           },
           "id": 2,
-          "title": "Total CPU Requests / Limits",
-          "type": "stat",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "$${datasource}"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "decimals": 2,
-              "mappings": [],
-              "unit": "short"
-            },
-            "overrides": []
-          },
-          "options": {
-            "colorMode": "value",
-            "graphMode": "none",
-            "justifyMode": "auto",
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "textMode": "auto"
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "$${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_container_resource_requests{resource=\"cpu\",namespace=~\"$$namespace\"} * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
-              "legendFormat": "Requests",
-              "range": true,
-              "refId": "A"
-            },
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "$${datasource}"
-              },
-              "editorMode": "code",
-              "expr": "sum(kube_pod_container_resource_limits{resource=\"cpu\",namespace=~\"$$namespace\"} * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
-              "legendFormat": "Limits",
-              "range": true,
-              "refId": "B"
-            }
-          ]
-        },
-        {
-          "collapsed": false,
-          "gridPos": {
-            "h": 4,
-            "w": 6,
-            "x": 12,
-            "y": 0
-          },
-          "id": 3,
-          "title": "Total Memory Usage (Working Set)",
+          "title": "Total Memory (Working Set)",
           "type": "stat",
           "datasource": {
             "type": "prometheus",
@@ -383,11 +318,76 @@ spec:
           "gridPos": {
             "h": 4,
             "w": 6,
+            "x": 12,
+            "y": 0
+          },
+          "id": 3,
+          "title": "Total Network Bandwidth (Rx / Tx)",
+          "type": "stat",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "decimals": 2,
+              "mappings": [],
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "options": {
+            "colorMode": "value",
+            "graphMode": "area",
+            "justifyMode": "auto",
+            "orientation": "auto",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "textMode": "auto"
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(container_network_receive_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "Rx (Inbound)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum(rate(container_network_transmit_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "Tx (Outbound)",
+              "range": true,
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 4,
+            "w": 6,
             "x": 18,
             "y": 0
           },
           "id": 4,
-          "title": "Total Memory Requests / Limits",
+          "title": "Total Persistent Storage (RBD / PVC)",
           "type": "stat",
           "datasource": {
             "type": "prometheus",
@@ -425,8 +425,8 @@ spec:
                 "uid": "$${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(kube_pod_container_resource_requests{resource=\"memory\",namespace=~\"$$namespace\"} * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
-              "legendFormat": "Requests",
+              "expr": "sum((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "Used",
               "range": true,
               "refId": "A"
             },
@@ -436,8 +436,8 @@ spec:
                 "uid": "$${datasource}"
               },
               "editorMode": "code",
-              "expr": "sum(kube_pod_container_resource_limits{resource=\"memory\",namespace=~\"$$namespace\"} * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
-              "legendFormat": "Limits",
+              "expr": "sum((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "Capacity",
               "range": true,
               "refId": "B"
             }
@@ -750,6 +750,320 @@ spec:
             "y": 22
           },
           "id": 30,
+          "title": "Network Bandwidth Usage",
+          "type": "row"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 16,
+            "x": 0,
+            "y": 23
+          },
+          "id": 31,
+          "title": "Network Bandwidth by HelmRelease / Workload (Rx & Tx)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "gradientMode": "opacity",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_network_receive_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} (Rx)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_network_transmit_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} (Tx)",
+              "range": true,
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 23
+          },
+          "id": 32,
+          "title": "Top 10 Network Consumers (Total Rx + Tx)",
+          "type": "bargauge",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "color": {
+                "mode": "palette-classic"
+              },
+              "decimals": 2,
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "options": {
+            "displayMode": "gradient",
+            "orientation": "horizontal",
+            "reduceOptions": {
+              "calcs": [
+                "lastNotNull"
+              ],
+              "fields": "",
+              "values": false
+            },
+            "showUnfilled": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "topk(10, sum by (namespace, workload) ((rate(container_network_receive_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) + rate(container_network_transmit_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m])) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"}))",
+              "legendFormat": "{{namespace}} / {{workload}}",
+              "range": true,
+              "refId": "A"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 31
+          },
+          "id": 40,
+          "title": "Storage Usage (RBD Persistent Volumes & EmptyDir / Ephemeral I/O)",
+          "type": "row"
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 32
+          },
+          "id": 41,
+          "title": "Persistent Volume (RBD / PVC) Used vs Capacity",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "gradientMode": "opacity",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "unit": "bytes"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) ((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} [Used]",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) ((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} [Capacity]",
+              "range": true,
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 32
+          },
+          "id": 42,
+          "title": "EmptyDir / Container Ephemeral Storage Throughput (Reads & Writes)",
+          "type": "timeseries",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "$${datasource}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "custom": {
+                "drawStyle": "line",
+                "fillOpacity": 15,
+                "gradientMode": "opacity",
+                "lineInterpolation": "linear",
+                "lineWidth": 2,
+                "pointSize": 5,
+                "showPoints": "auto",
+                "spanNulls": false,
+                "stacking": {
+                  "group": "A",
+                  "mode": "none"
+                },
+                "thresholdsStyle": {
+                  "mode": "off"
+                }
+              },
+              "decimals": 2,
+              "unit": "Bps"
+            },
+            "overrides": []
+          },
+          "options": {
+            "legend": {
+              "calcs": [
+                "lastNotNull",
+                "max",
+                "mean"
+              ],
+              "displayMode": "table",
+              "placement": "bottom",
+              "showLegend": true
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "desc"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_fs_writes_bytes_total{namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} (Writes)",
+              "range": true,
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_fs_reads_bytes_total{namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "legendFormat": "{{namespace}} / {{workload}} (Reads)",
+              "range": true,
+              "refId": "B"
+            }
+          ]
+        },
+        {
+          "collapsed": false,
+          "gridPos": {
+            "h": 1,
+            "w": 24,
+            "x": 0,
+            "y": 40
+          },
+          "id": 50,
           "title": "Workload Resource Summary Table",
           "type": "row"
         },
@@ -759,9 +1073,9 @@ spec:
             "h": 12,
             "w": 24,
             "x": 0,
-            "y": 23
+            "y": 41
           },
-          "id": 31,
+          "id": 51,
           "title": "Resource Allocation & Consumption Matrix",
           "type": "table",
           "datasource": {
@@ -922,6 +1236,133 @@ spec:
                     "value": 2
                   }
                 ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Net Rx"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Net Rx (Inbound)"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "Bps"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Net Tx"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Net Tx (Outbound)"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "Bps"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #PVC Used"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "RBD / PVC Used"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  },
+                  {
+                    "id": "custom.cellOptions",
+                    "value": {
+                      "mode": "gradient",
+                      "type": "gauge"
+                    }
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #PVC Cap"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "RBD / PVC Capacity"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "bytes"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Disk Writes"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Disk Writes (EmptyDir)"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "Bps"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
+              },
+              {
+                "matcher": {
+                  "id": "byName",
+                  "options": "Value #Disk Reads"
+                },
+                "properties": [
+                  {
+                    "id": "displayName",
+                    "value": "Disk Reads (EmptyDir)"
+                  },
+                  {
+                    "id": "unit",
+                    "value": "Bps"
+                  },
+                  {
+                    "id": "decimals",
+                    "value": 2
+                  }
+                ]
               }
             ]
           },
@@ -1014,6 +1455,78 @@ spec:
               "instant": true,
               "legendFormat": "",
               "refId": "Mem Limit"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_network_receive_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "Net Rx"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_network_transmit_bytes_total{interface!=\"lo\",namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "Net Tx"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) ((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "PVC Used"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) ((sum by (namespace, persistentvolumeclaim, pod) (kube_pod_spec_volumes_persistentvolumeclaims_info{namespace=~\"$$namespace\"}) * on(namespace, persistentvolumeclaim) group_left sum by (namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes{namespace=~\"$$namespace\"})) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "PVC Cap"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_fs_writes_bytes_total{namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "Disk Writes"
+            },
+            {
+              "datasource": {
+                "type": "prometheus",
+                "uid": "$${datasource}"
+              },
+              "editorMode": "code",
+              "expr": "sum by (namespace, workload) (rate(container_fs_reads_bytes_total{namespace=~\"$$namespace\"}[5m]) * on(namespace, pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{namespace=~\"$$namespace\",workload=~\"$$workload\"})",
+              "format": "table",
+              "instant": true,
+              "legendFormat": "",
+              "refId": "Disk Reads"
             }
           ],
           "transformations": [
@@ -1033,7 +1546,13 @@ spec:
                   "Time 2": true,
                   "Time 3": true,
                   "Time 4": true,
-                  "Time 5": true
+                  "Time 5": true,
+                  "Time 6": true,
+                  "Time 7": true,
+                  "Time 8": true,
+                  "Time 9": true,
+                  "Time 10": true,
+                  "Time 11": true
                 },
                 "indexByName": {},
                 "renameByName": {}
@@ -1150,5 +1669,5 @@ spec:
       "timezone": "browser",
       "title": "Kubernetes / Resources / HelmReleases",
       "uid": "k8s-resources-helmreleases",
-      "version": 1
+      "version": 2
     }
