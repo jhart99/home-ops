@@ -73,6 +73,29 @@ spec:
         - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run/containerd/.+|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
         - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs|erofs)$
         - --web.max-requests=256
+        - --no-collector.cpufreq
+        - --no-collector.hwmon
+        - --no-collector.thermal_zone
+      livenessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: http-metrics
+          scheme: HTTP
+        initialDelaySeconds: 10
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
+      readinessProbe:
+        failureThreshold: 3
+        httpGet:
+          path: /metrics
+          port: http-metrics
+          scheme: HTTP
+        initialDelaySeconds: 10
+        periodSeconds: 15
+        successThreshold: 1
+        timeoutSeconds: 5
     kube-state-metrics:
       fullnameOverride: kube-state-metrics
     grafana:
