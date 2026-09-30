@@ -74,6 +74,35 @@ Adds a Cilium `EgressGatewayPolicy` to route a namespace's egress traffic throug
 
 ---
 
+### `deny-all/`
+
+Adds default-deny `CiliumNetworkPolicy` resources for both ingress and egress. Blocks all traffic to/from pods in the namespace unless explicitly allowed by additional policies.
+
+**Use when**: A namespace should follow least-privilege network access. Always pair with specific allow policies (either via the `egress` component or per-app CNPs).
+
+Reference in `kustomization.yaml`:
+```yaml
+components:
+  - ../../components/deny-all
+```
+
+---
+
+### `egress/`
+
+Adds common egress `CiliumNetworkPolicy` allow rules: DNS resolution (kube-dns) and Kubernetes API server access. Intended to be composed with the `deny-all` component.
+
+**Use when**: Pods in a namespace need DNS and/or Kubernetes API access (nearly all workloads).
+
+Reference in `kustomization.yaml`:
+```yaml
+components:
+  - ../../components/deny-all
+  - ../../components/egress
+```
+
+---
+
 ## How Components Work
 
 Components are `kustomize.toolkit.fluxcd.io/v1alpha1` `Component` resources. Unlike regular `bases`, components can be composed — multiple components can be applied to a single app without conflict.

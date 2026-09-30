@@ -1,0 +1,38 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# Allow Tuppr egress to Talos API on nodes (port 50000) for OS upgrades
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuppr-allow-talos-api
+  namespace: system-upgrade
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuppr
+  egress:
+    - toCIDR:
+        - 192.168.1.0/24
+      toPorts:
+        - ports:
+            - port: "50000"
+              protocol: TCP
+---
+# Allow Prometheus to scrape Tuppr metrics (port 8080)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuppr-allow-prometheus-scrape
+  namespace: system-upgrade
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuppr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

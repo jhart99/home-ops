@@ -1,0 +1,17 @@
+---
+# Allow all pods in this namespace to reach the Kubernetes API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-k8s-api
+spec:
+  endpointSelector: {}
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-apiserver
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
