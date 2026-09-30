@@ -1,5 +1,7 @@
 ---
 # Allow all pods in this namespace to reach the Kubernetes API server
+# Uses toServices to match the kubernetes ClusterIP Service (10.43.0.1)
+# as well as direct pod endpoint connections
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -7,10 +9,20 @@ metadata:
 spec:
   endpointSelector: {}
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+    # Also allow connections to kube-apiserver pod endpoints directly
+    # (covers cases where pods bypass the Service ClusterIP)
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-apiserver
+            component: kube-apiserver
       toPorts:
         - ports:
             - port: "6443"
