@@ -12,7 +12,7 @@ spec:
     - toServices:
         - k8sService:
             serviceName: kubernetes
-            namespace: kube-system
+            namespace: default
       toPorts:
         - ports:
             - port: "6443"
