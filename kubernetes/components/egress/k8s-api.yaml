@@ -15,10 +15,11 @@ spec:
             namespace: default
       toPorts:
         - ports:
-            - port: "6443"
+            - port: "443"
               protocol: TCP
     # Also allow connections to kube-apiserver pod endpoints directly
     # (covers cases where pods bypass the Service ClusterIP)
+    # kube-apiserver pods listen on port 6443
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
