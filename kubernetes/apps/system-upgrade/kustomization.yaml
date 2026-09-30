@@ -6,8 +6,10 @@ namespace: system-upgrade
 
 components:
   - ../../components/alerts
+  - ../../components/deny-all
+  - ../../components/egress
 
 resources:
   - ./namespace.yaml
   - ./tuppr/ks.yaml
-  - ./networkpolicies
+  - ./tuppr/networkpolicies.yaml

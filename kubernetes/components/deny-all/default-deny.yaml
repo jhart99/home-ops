@@ -1,0 +1,18 @@
+---
+# Default deny all ingress to pods in this namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-ingress
+spec:
+  endpointSelector: {}
+  ingress: []
+---
+# Default deny all egress from pods in this namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: default-deny-egress
+spec:
+  endpointSelector: {}
+  egress: []
