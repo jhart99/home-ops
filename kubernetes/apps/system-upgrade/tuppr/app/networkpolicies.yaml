@@ -34,10 +34,8 @@ spec:
     matchLabels:
       app.kubernetes.io/name: tuppr
   egress:
-    - toServices:
-      - k8sService:
-          serviceName: kubernetes
-          namespace: default
+    - toEntities:
+        - kube-apiserver
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow Tuppr egress to Talos API on nodes (port 50000) for OS upgrades
