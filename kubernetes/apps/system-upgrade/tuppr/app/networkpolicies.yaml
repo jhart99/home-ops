@@ -1,5 +1,45 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# Allow all pods in this namespace to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuppr-allow-dns
+  namespace: system-upgrade
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuppr
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# Allow all pods in this namespace to reach the Kubernetes API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuppr-allow-k8s-api
+  namespace: system-upgrade
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuppr
+  egress:
+    - toServices:
+      - k8sService:
+          serviceName: kubernetes
+          namespace: default
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow Tuppr egress to Talos API on nodes (port 50000) for OS upgrades
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
