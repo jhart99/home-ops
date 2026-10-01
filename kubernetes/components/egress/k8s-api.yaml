@@ -8,5 +8,7 @@ metadata:
 spec:
   endpointSelector: {}
   egress:
-    - toEntities:
-        - kube-apiserver
+    - toServices:
+      - k8sService:
+          serviceName: kubernetes
+          namespace: default
