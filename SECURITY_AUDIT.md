@@ -143,12 +143,13 @@
     *Remediation:* run as non-root; consider restricting TFTP exposure (VLAN/firewall)
     since thin clients only need it at PXE time.
 
-21. **UniFi controller: root + 6 exposed ports**
-    `kubernetes/apps/network/unifi/app/helmrelease.yaml:37-59` runs as root with
+21. ~~**UniFi controller: root + 6 exposed ports**~~ ✅ **Resolved**
+    ~~`kubernetes/apps/network/unifi/app/helmrelease.yaml:37-59` runs as root with
     `RUNAS_UID0: "true"` and exposes 8443, 8080, 6789, 3478 (STUN, unencrypted), 5514
-    (syslog, unencrypted), 10001 via LoadBalancer.
-    *Remediation:* run as non-root if the chart supports it; review whether all six ports
-    need LoadBalancer exposure.
+    (syslog, unencrypted), 10001 via LoadBalancer.~~
+    *Resolution:* app removed entirely (PR #1415) — no longer needed. The `unifi-dns`
+    external-dns webhook and observability integrations (unpoller, blackbox-exporter)
+    reference an external UniFi controller and are unaffected.
 
 ## 🟡 Medium — hardening
 
