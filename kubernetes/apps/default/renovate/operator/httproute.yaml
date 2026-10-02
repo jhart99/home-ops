@@ -1,0 +1,30 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/gateway.networking.k8s.io/httproute_v1.json
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: renovate-webhook
+  annotations:
+    gatus.home-operations.com/endpoint: |-
+      conditions: ["[STATUS] == 404"]
+spec:
+  hostnames: ["renovate-webhook.${SECRET_DOMAIN}"]
+  parentRefs:
+    - name: envoy-external
+      namespace: network
+  rules:
+    # The webhook server only ever receives POST requests under /webhook/
+    # (GitHub/Forgejo deliveries at /webhook/v1/{github,forgejo} and manual
+    # triggers at /webhook/v1/schedule). Restricting the route to that
+    # method and path means everything else — scanners probing /, GET
+    # requests, random paths — is answered with a 404 at the gateway and
+    # never reaches the operator. This replaces the chart-managed route's
+    # catch-all PathPrefix / rule (helmrelease: webhook.route.enabled=false).
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /webhook/
+          method: POST
+      backendRefs:
+        - name: renovate-operator
+          port: 8082
