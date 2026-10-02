@@ -5,7 +5,7 @@ kind: MCPServer
 metadata:
   name: &name grafana
 spec:
-  image: grafana/mcp-grafana:1.6.3
+  image: grafana/mcp-grafana:2.0.0
   transport: stdio
   groupRef:
     name: mcp-tools
