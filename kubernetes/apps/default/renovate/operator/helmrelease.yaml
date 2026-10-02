@@ -37,8 +37,18 @@ spec:
       existingSecretKey: "dragonfly_url"
     webhook:
       enabled: true
+      # Explicit WEBHOOK_BASE_URL. The chart used to derive this from
+      # route.enabled + route.hostnames, but the chart-managed route is now
+      # disabled in favor of the scoped HTTPRoute in ./httproute.yaml;
+      # without the override, auto webhook sync would register URLs with no
+      # host. Value is identical to the previously derived URL, so existing
+      # GitHub/Forgejo webhook registrations are unaffected.
+      baseUrl: "https://renovate-webhook.${SECRET_DOMAIN}"
       route:
-        enabled: true
+        # Replaced by ./httproute.yaml (POST /webhook/ only, instead of the
+        # chart's catch-all PathPrefix /). hostnames/parentRefs kept below
+        # for reference if the chart-managed route is ever re-enabled.
+        enabled: false
         hostnames: ["renovate-webhook.${SECRET_DOMAIN}"]
         parentRefs:
           - name: envoy-external

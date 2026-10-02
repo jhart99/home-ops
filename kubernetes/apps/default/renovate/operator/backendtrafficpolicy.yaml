@@ -1,0 +1,22 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: renovate-webhook
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: renovate-webhook
+  rateLimit:
+    local:
+      rules:
+        # Shared per-route bucket of 60 requests/minute: far above real
+        # webhook traffic (GitHub/Forgejo deliveries plus occasional manual
+        # /webhook/v1/schedule triggers), while sustained scanning or abuse
+        # of the endpoint is throttled with 429s. Requests that match no
+        # route rule are 404'd by the gateway and never reach this counter.
+        - limit:
+            unit: Minute
+            requests: 60
