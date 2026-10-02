@@ -19,6 +19,12 @@ spec:
           namespace: flux-system
           port: 80
       matches:
+        # The receiver only accepts POST deliveries (ping/push events from
+        # GitHub). Restricting the method means GETs, probes and other verbs
+        # on /hook/ are answered with a 404 at the gateway and never reach
+        # the flux webhook-receiver service. The path was already scoped to
+        # /hook/ — this closes the method gap flagged in the audit (#1448).
         - path:
             type: PathPrefix
             value: /hook/
+          method: POST
