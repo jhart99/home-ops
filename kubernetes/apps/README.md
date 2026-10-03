@@ -98,12 +98,6 @@ All application deployments, grouped by Kubernetes namespace. Each namespace dir
 | actions-runner-controller | GitHub Actions runner controller |
 | runners/home-ops | Self-hosted runner for this repository |
 
-### `jupyterhub` — Data Science
-
-| App | Purpose |
-|-----|---------|
-| jupyterhub | Multi-user Jupyter notebook server |
-
 ### `flux-system` — GitOps
 
 | App | Purpose |
