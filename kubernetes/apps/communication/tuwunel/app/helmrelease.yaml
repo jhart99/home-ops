@@ -40,7 +40,7 @@ spec:
               - name: CONDUWUIT_ALLOW_FEDERATION
                 value: "true"
               - name: CONDUWUIT_ALLOW_REGISTRATION
-                value: "true"
+                value: "false"
               - name: CONDUWUIT_TRUSTED_SERVERS
                 value: '["matrix.org"]'
               - name: CONDUWUIT_WELL_KNOWN__CLIENT
