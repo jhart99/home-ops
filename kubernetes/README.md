@@ -48,7 +48,6 @@ apps/<namespace>/<app-name>/
 | `observability` | Monitoring, logging, alerting |
 | `security` | Authentication (Authentik, OAuth2 proxy) |
 | `actions-runner-system` | GitHub Actions self-hosted runners |
-| `jupyterhub` | JupyterHub notebook server |
 | `flux-system` | Flux operator and instance |
 | `default` | User applications |
 
