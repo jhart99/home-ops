@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/gateway.envoyproxy.io/backendtrafficpolicy_v1alpha1.json
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: kromgo
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: kromgo
+  rateLimit:
+    local:
+      rules:
+        # SECURITY (#1426): shared per-route bucket of 60 requests/minute
+        # per Envoy replica, matching the webhook routes' budget. Real
+        # badge traffic is single-digit req/min (shields.io and GitHub's
+        # camo cache responses), so this leaves an order of magnitude of
+        # headroom while bounding the PromQL work anonymous internet
+        # clients can push into Prometheus — every request kromgo serves
+        # triggers at least one Prometheus query. A sustained scanner can
+        # exhaust the shared bucket (429s for badge fetches until it
+        # stops), which is still strictly better than unbounded query
+        # load.
+        - limit:
+            unit: Minute
+            requests: 60

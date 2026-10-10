@@ -67,11 +67,22 @@
    `auth.anonymous.enabled: "true"`. Anyone on the LAN can view all dashboards.
    *Remediation:* disable anonymous auth; require login (OIDC/Authentik).
 
-10. **Kromgo externally exposed with no auth**
-    `kubernetes/apps/observability/kromgo/app/helmrelease.yaml` is routed via
+10. ~~**Kromgo externally exposed with no auth**~~ ✅ **Accepted risk — hardened**
+    ~~`kubernetes/apps/observability/kromgo/app/helmrelease.yaml` is routed via
     `envoy-external` with no SecurityPolicy. Cluster metrics are visible on the public
-    internet at `kromgo.${SECRET_DOMAIN}`.
-    *Remediation:* add a SecurityPolicy with OIDC auth, or move to the internal gateway.
+    internet at `kromgo.${SECRET_DOMAIN}`.~~
+    *Resolution (2026-10-10, #1426): public unauthenticated reads are **accepted by
+    design** — the README's shields.io badges fetch `kromgo.${SECRET_DOMAIN}` from the
+    internet, kromgo only executes the queries preconfigured in
+    `resources/config.yaml` (Prometheus itself is never exposed), and the default
+    responses carry only the curated badge values (versions, counts, utilisation,
+    alert count) that the README already publishes. **Hardening** (same PR): requests
+    for `?format=raw` — which additionally returns internal labels (pod names,
+    pod/node IPs, namespace names) — are denied at the gateway by a backend-less
+    HTTPRoute rule, and a `BackendTrafficPolicy` local rate limit (60 req/min) bounds
+    unauthenticated PromQL load on Prometheus. **Residual accepted:** a
+    percent-encoded query-parameter *name* bypasses the `format=raw` deny (Envoy
+    matches query strings verbatim), still bounded by the rate limit.*
 
 11. **Echo externally exposed with no auth**
     `kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no

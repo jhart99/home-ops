@@ -66,7 +66,38 @@ spec:
           - name: envoy-external
             namespace: network
         rules:
-          - backendRefs:
+          # SECURITY (#1426): deny ?format=raw — its response includes
+          # full Prometheus label sets (pod names, internal pod/node IPs,
+          # namespaces), which is more than the badge values this
+          # endpoint is deliberately published for. No backendRefs means
+          # the gateway itself answers without forwarding to kromgo
+          # (Gateway API conformance test HTTPRouteNoBackendRefs expects
+          # 404/500 here). The value is a regex because Envoy matches
+          # query strings verbatim while kromgo (Go) percent-decodes
+          # them: the alternatives enumerate every single-encoding
+          # spelling of "raw" that Go decodes to exactly "raw" (the hex
+          # digits 72/61/77 contain no letters, so there are no case
+          # variants). Envoy Gateway evaluates this rule before the
+          # catch-all below — rules with query-param matches sort first.
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+                queryParams:
+                  - name: format
+                    type: RegularExpression
+                    value: "^(raw|%72aw|r%61w|ra%77|%72%61w|%72a%77|r%61%77|%72%61%77)$"
+          # Accepted public surface (#1426 / SECURITY_AUDIT.md #10):
+          # read-only badge JSON for the metrics preconfigured in
+          # resources/config.yaml — this is what the README's
+          # shields.io badges consume. Anything not matching the deny
+          # rule above falls through here to kromgo, which only serves
+          # GET on metric names (everything else 404/405 in-app).
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
               - identifier: app
                 port: *port
     persistence:
