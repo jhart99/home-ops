@@ -1,0 +1,8 @@
+   Originally only one CiliumNetworkPolicy existed (echo-oidcauth); there was no
+   default-deny anywhere. **Note:** that echo-oidcauth policy was deleted along with
+   its app in #1538, so there are now no app-level CiliumNetworkPolicies at all.
+   **Progress:** the `system-upgrade` namespace now has
+   default-deny + Tuppr egress policies (merged via PR #1398, using the new
+   `kubernetes/components/deny-all` and `kubernetes/components/egress` components).
+   Remaining namespaces have no default-deny or isolation policies.
+   *Remediation:* roll the same component pattern out to the remaining namespaces.
