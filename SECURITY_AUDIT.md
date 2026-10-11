@@ -84,10 +84,14 @@
     percent-encoded query-parameter *name* bypasses the `format=raw` deny (Envoy
     matches query strings verbatim), still bounded by the rate limit.*
 
-11. **Echo externally exposed with no auth**
-    `kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
-    authentication. Leaks request headers; unnecessary attack surface.
-    *Remediation:* add auth or remove the external route.
+11. ~~**Echo externally exposed with no auth**~~ ✅ **Resolved**
+    ~~`kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
+    authentication. Leaks request headers; unnecessary attack surface.~~
+    *Resolution (2026-10-11, #1538):* app removed entirely — no longer needed. It was
+    already commented out of the `default` namespace kustomization (so not deployed;
+    `prune: true` had reaped it), and this PR deletes the dead manifests plus the stale
+    references. The authenticated demo variants (`echo-basicauth`, `echo-oidcauth`)
+    remain in the repo but are also commented out and not deployed.
 
 12. **ToolHive MCP gateway: anonymous auth**
     `kubernetes/apps/ai/toolhive/app/virtualmcpserver.yaml:19` has
