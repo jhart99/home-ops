@@ -13,6 +13,8 @@ spec:
     controllers:
       mosquitto:
         type: statefulset
+        annotations:
+          reloader.stakater.com/auto: "true"
         containers:
           app:
             image:
@@ -58,11 +60,12 @@ spec:
       config:
         data:
           mosquitto.conf: |-
-            allow_anonymous true
+            allow_anonymous false
             autosave_interval 60
             connection_messages false
             listener 1883
             per_listener_settings false
+            password_file /mosquitto/config/passwd
             persistence true
             persistence_location /config
     persistence:
@@ -72,3 +75,13 @@ spec:
         globalMounts:
           - path: /mosquitto/config/mosquitto.conf
             subPath: mosquitto.conf
+      password-file:
+        type: secret
+        identifier: mosquitto-secret
+        # 0440: readable by the container (fsGroup 1000), no "others" bits —
+        # mosquitto warns on world-readable password files and future
+        # versions will refuse to load them
+        defaultMode: 0440
+        globalMounts:
+          - path: /mosquitto/config/passwd
+            subPath: passwd

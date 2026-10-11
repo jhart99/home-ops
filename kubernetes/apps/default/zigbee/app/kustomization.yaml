@@ -7,3 +7,4 @@ resources:
   - ./ocirepository.yaml
   # - ./scaledobject.yaml
   - ./secret.sops.yaml
+  - ./secret.mqtt.sops.yaml
