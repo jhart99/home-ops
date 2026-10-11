@@ -111,7 +111,6 @@ All application deployments, grouped by Kubernetes namespace. Each namespace dir
 | App | Purpose |
 |-----|---------|
 | devshell | Interactive dev shell pod |
-| echo-basicauth / echo-oidcauth | Echo test services (HTTP routing demos) |
 | forgejo | Self-hosted Git service |
 | forgejo-runner | Forgejo CI runner |
 | freshrss | RSS/Atom feed aggregator |
