@@ -56,7 +56,9 @@
 
 8. **Cluster-wide NetworkPolicies — mostly still missing**
    Originally only one CiliumNetworkPolicy existed (echo-oidcauth); there was no
-   default-deny anywhere. **Progress:** the `system-upgrade` namespace now has
+   default-deny anywhere. **Note:** that echo-oidcauth policy was deleted along with its
+   app in PR #1538, so there are now no app-level CiliumNetworkPolicies at all.
+   **Progress:** the `system-upgrade` namespace now has
    default-deny + Tuppr egress policies (merged via PR #1398, using the new
    `kubernetes/components/deny-all` and `kubernetes/components/egress` components).
    Remaining namespaces have no default-deny or isolation policies.
@@ -84,10 +86,15 @@
     percent-encoded query-parameter *name* bypasses the `format=raw` deny (Envoy
     matches query strings verbatim), still bounded by the rate limit.*
 
-11. **Echo externally exposed with no auth**
-    `kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
-    authentication. Leaks request headers; unnecessary attack surface.
-    *Remediation:* add auth or remove the external route.
+11. ~~**Echo externally exposed with no auth**~~ ✅ **Resolved**
+    ~~`kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
+    authentication. Leaks request headers; unnecessary attack surface.~~
+    *Resolution (2026-10-11, #1538):* all three echo demo apps removed — `echo`
+    (unauthenticated), `echo-basicauth`, and `echo-oidcauth`. None were deployed at the
+    time of removal (all commented out of the `default` namespace kustomization;
+    `prune: true` had already reaped them), so this PR deletes the dead manifests plus
+    the stale references. Their private secrets (`basic-auth-users`,
+    `echo-auth-client-secret`) were removed with them; nothing else referenced either.
 
 12. **ToolHive MCP gateway: anonymous auth**
     `kubernetes/apps/ai/toolhive/app/virtualmcpserver.yaml:19` has
