@@ -1,0 +1,4 @@
+| App | Purpose |
+|-----|---------|
+| devshell | Interactive dev shell pod |
+| forgejo | Self-hosted Git service |
