@@ -29,6 +29,13 @@ spec:
                 set -euo pipefail
                 mkdir -p /opt/data
                 cp -n /run/config/config.yaml /opt/data/config.yaml
+                # Materialise the mTLS client cert for the remote rootless DinD
+                # daemon from the cert-manager secret into the .pem filenames the
+                # Docker CLI expects under DOCKER_CERT_PATH.
+                mkdir -p /certs/client
+                cp /run/clientcerts/tls.crt /certs/client/cert.pem
+                cp /run/clientcerts/tls.key /certs/client/key.pem
+                cp /run/clientcerts/ca.crt /certs/client/ca.pem
             securityContext:
               allowPrivilegeEscalation: false
               capabilities:
@@ -36,52 +43,8 @@ spec:
                   - ALL
               runAsGroup: 10000
               runAsUser: 10000
-          daemon:
-            image:
-              repository: docker
-              tag: 29.9.0-dind@sha256:0b6d18a4a222e71c88be6034926b4f6cde2fc33c2218643d03ccfddc65995470
-            restartPolicy: Always
-            env:
-              DOCKER_TLS_CERTDIR: /certs
-            securityContext:
-              allowPrivilegeEscalation: true
-              privileged: true
-              runAsGroup: 0
-              runAsUser: 0
-            probes:
-              liveness:
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - "docker"
-                      - "info"
-                  failureThreshold: 3
-                  periodSeconds: 20
-                  timeoutSeconds: 3
-              readiness:
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - "docker"
-                      - "info"
-                  failureThreshold: 3
-                  periodSeconds: 5
-                  timeoutSeconds: 3
-              startup:
-                enabled: true
-                custom: true
-                spec:
-                  exec:
-                    command:
-                      - "docker"
-                      - "info"
-                  failureThreshold: 60
-                  periodSeconds: 2
-                  timeoutSeconds: 3
+              seccompProfile:
+                type: RuntimeDefault
         containers:
           app:
             image:
@@ -96,7 +59,7 @@ spec:
               API_SERVER_ENABLED: "true"
               API_SERVER_HOST: 0.0.0.0
               DOCKER_CERT_PATH: /certs/client
-              DOCKER_HOST: tcp://localhost:2376
+              DOCKER_HOST: tcp://hermes-dind:2376
               DOCKER_TLS_VERIFY: "1"
               AGENTMEMORY_URL: http://agentmemory.ai.svc.cluster.local:3111
               GOPATH: /opt/data/go
@@ -157,20 +120,134 @@ spec:
               limits:
                 cpu: 4
                 memory: 16Gi
+            # PSS restricted-compliant: non-root, no privilege escalation, all
+            # capabilities dropped, RuntimeDefault seccomp. NOTE: the official image
+            # supervises the gateway with s6-overlay, which normally expects root at
+            # boot - if the pod CrashLoops on deploy, the likely cause is s6 refusing
+            # to start as non-root and the entrypoint will need to bypass s6 (set
+            # command: to invoke the hermes binary directly). Left as a deliberate
+            # PoC per the remediation plan.
             securityContext:
-              allowPrivilegeEscalation: true
-              runAsUser: 0
-              runAsGroup: 0
+              allowPrivilegeEscalation: false
+              runAsNonRoot: true
+              runAsUser: 10000
+              runAsGroup: 10000
               capabilities:
-                add:
-                  - CHOWN
-                  - DAC_OVERRIDE
-                  - FOWNER
-                  - SETGID
-                  - SETUID
                 drop:
                   - ALL
+              seccompProfile:
+                type: RuntimeDefault
               readOnlyRootFilesystem: false
+
+      # Rootless Docker-in-Docker, split into its own pod so the hermes pod above
+      # can satisfy PSS restricted. Rootless DinD must create a user namespace,
+      # which on this Talos cluster requires seccompProfile Unconfined - that is
+      # forbidden under restricted (and PSS is evaluated per-pod), hence the split.
+      # This pod therefore sits at PSS baseline (the ai namespace carries only
+      # audit/warn labels, so a baseline pod is admitted).
+      hermes-dind:
+        strategy: Recreate
+        replicas: 1
+        type: deployment
+        annotations:
+          reloader.stakater.com/auto: "true"
+        pod:
+          securityContext:
+            fsGroup: 1000
+            fsGroupChangePolicy: OnRootMismatch
+        initContainers:
+          certs:
+            image:
+              repository: docker.io/library/alpine
+              tag: "3.24"
+            command:
+              - sh
+              - -c
+              - |
+                set -euo pipefail
+                # Rename the cert-manager server cert into the .pem filenames the
+                # dockerd entrypoint looks for under DOCKER_TLS_CERTDIR. Because the
+                # files already exist the entrypoint skips self-generation and uses
+                # the CA-signed cert (signed by rnatr-internal-ca), so the client
+                # cert presented by the hermes pod validates against the same CA.
+                mkdir -p /certs/server /certs/client
+                cp /run/servercerts/tls.crt /certs/server/cert.pem
+                cp /run/servercerts/tls.key /certs/server/key.pem
+                cp /run/servercerts/ca.crt /certs/server/ca.pem
+                chmod 644 /certs/server/*.pem
+                # The daemon's own docker-info probes act as a TLS client to
+                # localhost:2376; the entrypoint only exports the client env once
+                # /certs/client/ca.pem exists, so stage the client cert here too.
+                cp /run/clientcerts/tls.crt /certs/client/cert.pem
+                cp /run/clientcerts/tls.key /certs/client/key.pem
+                cp /run/clientcerts/ca.crt /certs/client/ca.pem
+                chmod 644 /certs/client/*.pem
+            securityContext:
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              seccompProfile:
+                type: RuntimeDefault
+        containers:
+          daemon:
+            image:
+              repository: docker
+              tag: 29.9.0-dind-rootless
+              # TODO: pin to a digest before merge - Renovate will propose one.
+            env:
+              DOCKER_TLS_CERTDIR: /certs
+            securityContext:
+              # Rootless, not privileged. Unconfined seccomp is REQUIRED for
+              # rootlesskit to create the user namespace; this is the one field that
+              # pins this pod to PSS baseline rather than restricted.
+              allowPrivilegeEscalation: false
+              privileged: false
+              runAsNonRoot: true
+              runAsUser: 1000
+              runAsGroup: 1000
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: Unconfined
+            probes:
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 3
+                  periodSeconds: 20
+                  timeoutSeconds: 3
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 3
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+              startup:
+                enabled: true
+                custom: true
+                spec:
+                  exec:
+                    command:
+                      - "docker"
+                      - "info"
+                  failureThreshold: 60
+                  periodSeconds: 2
+                  timeoutSeconds: 3
 
     defaultPodOptions:
       nodeSelector: { kubernetes.io/arch: amd64 }
@@ -185,6 +262,13 @@ spec:
             port: 9119
           gateway:
             port: 8642
+      dind:
+        controller: hermes-dind
+        ipFamilies:
+          - IPv4
+        ports:
+          docker:
+            port: 2376
 
     route:
       app:
@@ -221,10 +305,56 @@ spec:
         type: emptyDir
         globalMounts:
           - path: /tmp
-      certs:
+      # mTLS client cert (signed by rnatr-internal-ca) presented by the hermes pod
+      # to the rootless DinD daemon. Mounted read-only into the init container only,
+      # which renames it into /certs/client for the app container.
+      client-certs:
+        type: secret
+        name: hermes-client-tls
+        defaultMode: 0o400
+        advancedMounts:
+          hermes:
+            init:
+              - path: /run/clientcerts
+                readOnly: true
+          hermes-dind:
+            certs:
+              - path: /run/clientcerts
+                readOnly: true
+      client-certs-tmp:
         type: emptyDir
-        globalMounts:
-          - path: /certs
+        advancedMounts:
+          hermes:
+            init:
+              - path: /certs/client
+            app:
+              - path: /certs/client
+                readOnly: true
+          hermes-dind:
+            certs:
+              - path: /certs/client
+            daemon:
+              - path: /certs/client
+                readOnly: true
+      # mTLS server cert (signed by rnatr-internal-ca) used by the DinD daemon.
+      server-certs:
+        type: secret
+        name: hermes-dind-server-tls
+        defaultMode: 0o400
+        advancedMounts:
+          hermes-dind:
+            certs:
+              - path: /run/servercerts
+                readOnly: true
+      server-certs-tmp:
+        type: emptyDir
+        advancedMounts:
+          hermes-dind:
+            certs:
+              - path: /certs/server
+            daemon:
+              - path: /certs/server
+                readOnly: true
 
     rbac:
       roles:
@@ -266,8 +396,8 @@ spec:
             - apiGroups:
                 - "batch"
               resources:
-                - "jobs"
-                - "cronjobs"
+                - jobs
+                - cronjobs
               verbs:
                 - "get"
                 - "list"
@@ -275,9 +405,9 @@ spec:
             - apiGroups:
                 - "networking.k8s.io"
               resources:
-                - "ingresses"
-                - "ingressclasses"
-                - "networkpolicies"
+                - ingresses
+                - ingressclasses
+                - networkpolicies
               verbs:
                 - "get"
                 - "list"
@@ -296,7 +426,7 @@ spec:
             - apiGroups:
                 - "helm.toolkit.fluxcd.io"
               resources:
-                - "helmreleases"
+                - helmreleases
               verbs:
                 - "get"
                 - "list"
@@ -304,7 +434,7 @@ spec:
             - apiGroups:
                 - "kustomize.toolkit.fluxcd.io"
               resources:
-                - "kustomizations"
+                - kustomizations
               verbs:
                 - "get"
                 - "list"
@@ -337,7 +467,7 @@ spec:
             - apiGroups:
                 - ""
               resources:
-                - "pods"
+                - pods
               verbs:
                 - "delete"
         hermes-exec-deploy:
@@ -346,13 +476,13 @@ spec:
             - apiGroups:
                 - ""
               resources:
-                - "pods/exec"
+                - pods/exec
               verbs:
                 - "create"
             - apiGroups:
                 - "apps"
               resources:
-                - "deployments"
+                - deployments
               verbs:
                 - "patch"
                 - "update"
