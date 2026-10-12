@@ -170,11 +170,15 @@ spec:
                 # files already exist the entrypoint skips self-generation and uses
                 # the CA-signed cert (signed by rnatr-internal-ca), so the client
                 # cert presented by the hermes pod validates against the same CA.
-                mkdir -p /certs/server /certs/client
+                mkdir -p /certs/ca /certs/server /certs/client
+                # Staging /certs/ca/cert.pem (without ca/key.pem) signals to the
+                # dockerd-entrypoint script that the CA already exists, preventing it
+                # from auto-generating a self-signed CA that would overwrite server certs.
+                cp /run/servercerts/ca.crt /certs/ca/cert.pem
                 cp /run/servercerts/tls.crt /certs/server/cert.pem
                 cp /run/servercerts/tls.key /certs/server/key.pem
                 cp /run/servercerts/ca.crt /certs/server/ca.pem
-                chmod 644 /certs/server/*.pem
+                chmod 644 /certs/ca/*.pem /certs/server/*.pem
                 # The daemon's own docker-info probes act as a TLS client to
                 # localhost:2376; the entrypoint only exports the client env once
                 # /certs/client/ca.pem exists, so stage the client cert here too.
@@ -285,8 +289,12 @@ spec:
     persistence:
       data:
         existingClaim: "{{ .Release.Name }}"
-        globalMounts:
-          - path: /opt/data
+        advancedMounts:
+          hermes:
+            init:
+              - path: /opt/data
+            app:
+              - path: /opt/data
       config-yaml:
         type: configMap
         name: hermes-configmap
@@ -299,8 +307,10 @@ spec:
       plugin-agentmemory:
         type: configMap
         name: hermes-agentmemory-plugin
-        globalMounts:
-          - path: /opt/hermes/plugins/agentmemory
+        advancedMounts:
+          hermes:
+            app:
+              - path: /opt/hermes/plugins/agentmemory
       tmp:
         type: emptyDir
         globalMounts:
@@ -311,7 +321,7 @@ spec:
       client-certs:
         type: secret
         name: hermes-client-tls
-        defaultMode: 0o400
+        defaultMode: 0o444
         advancedMounts:
           hermes:
             init:
@@ -330,31 +340,24 @@ spec:
             app:
               - path: /certs/client
                 readOnly: true
-          hermes-dind:
-            certs:
-              - path: /certs/client
-            daemon:
-              - path: /certs/client
-                readOnly: true
       # mTLS server cert (signed by rnatr-internal-ca) used by the DinD daemon.
       server-certs:
         type: secret
         name: hermes-dind-server-tls
-        defaultMode: 0o400
+        defaultMode: 0o444
         advancedMounts:
           hermes-dind:
             certs:
               - path: /run/servercerts
                 readOnly: true
-      server-certs-tmp:
+      dind-certs:
         type: emptyDir
         advancedMounts:
           hermes-dind:
             certs:
-              - path: /certs/server
+              - path: /certs
             daemon:
-              - path: /certs/server
-                readOnly: true
+              - path: /certs
 
     rbac:
       roles:
