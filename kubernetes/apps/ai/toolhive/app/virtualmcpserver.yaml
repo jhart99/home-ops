@@ -1,4 +1,18 @@
 ---
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPOIDCConfig
+metadata:
+  name: vmcp-oidc
+  namespace: toolhive-system
+spec:
+  type: inline
+  inline:
+    issuer: https://auth.rnatr.com
+    clientId: PeYLk6eNz5on46QEh81SfL0QA6irMCBohRJiDaFa
+    clientSecretRef:
+      name: oidc-client-secret
+      key: clientSecret
+---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/toolhive.stacklok.dev/virtualmcpserver_v1alpha1.json
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: VirtualMCPServer
@@ -17,7 +31,11 @@ spec:
       embeddingService: http://litellm.ai.svc.cluster.local:4000/v1
       embeddingModel: qwen3-embedding
   incomingAuth:
-    type: anonymous
+    type: oidc
+    oidcConfigRef:
+      name: vmcp-oidc
+      audience: https://mcp.rnatr.com/mcp
+      resourceUrl: https://mcp.rnatr.com/mcp
   outgoingAuth:
     source: discovered
   podTemplateSpec:
