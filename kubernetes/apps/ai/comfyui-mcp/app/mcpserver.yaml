@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1alpha1
 kind: MCPServer
 metadata:
-  name: comfyui
+  name: comfyui-mcp
 spec:
   image: ghcr.io/rwlove/comfyui-mcp:v0.52.205
   transport: streamable-http
