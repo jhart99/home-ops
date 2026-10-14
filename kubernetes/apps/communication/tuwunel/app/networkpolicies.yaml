@@ -1,0 +1,95 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): enableDefaultDeny is false on every policy below - the
+# endpoint stays default-allow while the allow-list is validated in Hubble.
+# Enforcement is flipped on in a follow-up PR.
+# Allow tuwunel to resolve DNS via kube-dns (federation + well-known lookups)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuwunel-allow-dns
+  namespace: communication
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuwunel
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow tuwunel federation egress (HTTPS to remote homeservers on 443 and the
+# legacy federation port 8448).
+# TODO(enforce phase): consider scoping to FQDNs/CIDRs observed in Hubble;
+# add TURN/media UDP ranges if calls are enabled.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuwunel-allow-federation
+  namespace: communication
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuwunel
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "8448"
+              protocol: TCP
+---
+# Allow the envoy-external gateway (network namespace) into the Matrix client
+# and federation listener (pod port 8080; service port 80 -> targetPort 8080).
+# Covers both matrix.${SECRET_DOMAIN} (/_matrix) and the base-domain
+# /.well-known/matrix HTTPRoutes.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: tuwunel-allow-gateway
+  namespace: communication
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: tuwunel
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # kubelet probes (/_matrix/federation/v1/version) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
