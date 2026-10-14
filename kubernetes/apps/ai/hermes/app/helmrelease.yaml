@@ -86,7 +86,7 @@ spec:
           app:
             image:
               repository: nousresearch/hermes-agent
-              tag: v0.21.6@sha256:55e192fba0cd4fde61142abbff5adeacff40efdb482ccd0ff877924bd274f909
+              tag: v0.22.0@sha256:c69536a39e885b8943329bda68cdf44492458b96aa74a212239bde9d2aeb406a
               # repository: ghcr.io/jhart99/jhart99-hermes-agent
               # tag: v2026.9.24@sha256:073626546607edd4b74019bd1c2339fa3ab1100c6c7c44bf8f4bdf46bc4fb21c
             args:
