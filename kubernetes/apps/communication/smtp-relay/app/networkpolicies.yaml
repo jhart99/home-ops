@@ -1,7 +1,8 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
 # the selected endpoints do NOT enter default-deny. The rules are computed and
-# their matches are visible in Hubble, but non-matching traffic still passes.\# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
 # Allow smtp-relay to resolve DNS via kube-dns
 apiVersion: cilium.io/v2
