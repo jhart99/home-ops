@@ -1,0 +1,83 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): enableDefaultDeny false on every policy - observation only.
+# trivy-operator: heavy k8s-api consumer; scan jobs + node collector are separate
+# pods with their own labels - TODO(enforce phase): extend selectors to scan-job
+# pods once their labels are confirmed in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-operator-allow-dns
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-operator-allow-egress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  egress:
+    # operator watches CRs, configmaps, workloads across the cluster
+    - toEntities:
+        - kube-apiserver
+    # vulnerability/DB downloads for scans (ghcr.io, public.ecr.io, aquasecurity)
+    # TODO(enforce phase): pin toFQDNs observed in Hubble.
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: trivy-operator-allow-ingress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  ingress:
+    # kubelet probes + prometheus scrape (serviceMonitor, metrics 9090)
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    # TODO(enforce phase): split the observability scrape rule out of the probe rule.
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
