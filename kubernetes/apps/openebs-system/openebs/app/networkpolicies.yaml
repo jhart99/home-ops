@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# Wave 4 note: openebs is the local-hostpath storage path (basePath
+# /var/mnt/local-hostpath). Lower blast radius than Ceph, but still on the
+# data path for the PVCs that use the openebs-hostpath StorageClass; the
+# provisioner's actual volume I/O is hostPath, not network.
+# Allow the OpenEBS localpv hostpath provisioner + node plugin to resolve DNS
+# via kube-dns.
+# TODO(enforce phase): the pod labels for the openebs umbrella chart's
+# localpv-provisioner subchart are not visible in the repo; "app:
+# openebs-localpv-provisioner[-node]" is the best inference from the chart's
+# naming. A wrong selector is a no-op in audit mode - confirm the real labels
+# in Hubble (or kubectl get pods -n openebs-system --show-labels) before
+# enforcing.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openebs-allow-dns
+  namespace: openebs-system
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - openebs-localpv-provisioner
+          - openebs-localpv-provisioner-node
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the OpenEBS provisioner to reach the Kubernetes API (it reconciles
+# PV/PVC/StorageClass objects and serves the CSI controller endpoints).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: openebs-allow-k8s-api
+  namespace: openebs-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - openebs-localpv-provisioner
+          - openebs-localpv-provisioner-node
+  egress:
+    - toEntities:
+        - kube-apiserver
