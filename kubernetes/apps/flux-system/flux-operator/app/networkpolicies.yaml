@@ -1,0 +1,137 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement flips on in a follow-up PR for this namespace once the allow-list
+# is validated against observed traffic.
+# Scope: flux-operator only. The Flux controllers are already covered by
+# chart-managed NetworkPolicies (allow-egress, allow-scraping, allow-webhooks,
+# flux-operator-web) rendered from cluster.networkPolicy; those are untouched
+# here. Selector labels verified live: app.kubernetes.io/name and
+# app.kubernetes.io/instance are both "flux-operator" on the operator pods.
+# Allow flux-operator to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-allow-dns
+  namespace: flux-system
+  annotations:
+    # GitOps/audit marker only - Cilium does not read this annotation;
+    # spec.enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow flux-operator to reach the Kubernetes API server (it watches and
+# reconciles FluxResources such as FluxInstance/FluxReport)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-allow-k8s-api
+  namespace: flux-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow flux-operator egress to git remotes on 443.
+# TODO(enforce phase): pin toFQDNs to forgejo.rnatr.com and github.com once
+# the observed flows are confirmed in Hubble; world:443 is the audit-phase
+# approximation and cannot drop anything while enableDefaultDeny is false.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-allow-git-egress
+  namespace: flux-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow Prometheus to scrape flux-operator metrics: the HelmRelease enables
+# serviceMonitor.create and the flux-operator Service exposes http-metrics on
+# 8080 (targetPort http-metrics)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-allow-prometheus-scrape
+  namespace: flux-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# kubelet liveness/readiness probes (/healthz and /readyz on container port
+# 8081) arrive from the node. Web UI ingress on 9080 is covered by the chart's
+# flux-operator-web NetworkPolicy and is deliberately not duplicated here.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: flux-operator-allow-probes
+  namespace: flux-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: flux-operator
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
