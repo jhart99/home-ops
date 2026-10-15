@@ -1,0 +1,152 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# Wave 4 caution: rook-ceph is on the cluster data path - every PVC in the
+# cluster flows through the components in this namespace. The rules below are
+# deliberately wide rather than cleverly narrow; the enforce phase needs its own
+# design pass (see #1539), not a template application.
+# Allow the rook-ceph operator to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-allow-dns
+  namespace: rook-ceph
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rook-ceph
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the rook-ceph operator to reach the Kubernetes API (it manages the
+# CephCluster/CSI driver CRs, Deployments, Services and Secrets).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-allow-k8s-api
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rook-ceph
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow the operator to orchestrate the Ceph cluster itself over Ceph msgr
+# (v1 port 6789, v2 port 3300, v2 OSD/MDS/MGR range 6800-7300, TCP+UDP).
+# TODO(enforce phase): confirm the real port set in Hubble; the CephCluster
+# pins public/cluster networks to the node CIDR 192.168.1.0/24, which is a
+# candidate for tightening - but keep this wide until observed.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-allow-ceph-orchestration
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rook-ceph
+  egress:
+    - toEntities:
+        - cluster
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6789"
+              protocol: TCP
+            - port: "6789"
+              protocol: UDP
+            - port: "3300"
+              protocol: TCP
+            - port: "3300"
+              protocol: UDP
+            - port: "6800-7300"
+              protocol: TCP
+            - port: "6800-7300"
+              protocol: UDP
+---
+# Allow Prometheus (observability) to scrape the operator metrics endpoint.
+# monitoring.enabled is true in the HelmRelease.
+# TODO(enforce phase): confirm the metrics port (rook operator default 8008)
+# in Hubble before enforcing.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-allow-prometheus-scrape
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rook-ceph
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8008"
+              protocol: TCP
+---
+# Allow kube-apiserver to reach an operator admission webhook, if one is
+# enabled in this rook version.
+# TODO(enforce phase): confirm in Hubble whether the operator actually serves
+# a webhook on 9443; drop this policy if it does not.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-allow-webhook
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rook-ceph
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP

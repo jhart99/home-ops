@@ -1,0 +1,211 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# Wave 4 caution: this is the Ceph data path itself (MON/MGR/OSD/MDS run with
+# network.provider: host on the node CIDR 192.168.1.0/24). A bad rule here once
+# enforced degrades every PVC in the cluster. The rules below are deliberately
+# wide; the enforce phase needs its own design pass (see #1539), not a template
+# application.
+# Allow the Ceph daemons + toolbox (created at runtime by the rook operator,
+# not in this repo) to resolve DNS via kube-dns.
+# TODO(enforce phase): the daemons are operator-labelled (app: rook-ceph-<daemon>);
+# confirm the live label set in Hubble (or kubectl get pods -n rook-ceph --show-labels)
+# before enforcing. A wrong selector is a no-op in audit mode.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-cluster-allow-dns
+  namespace: rook-ceph
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mon
+          - rook-ceph-mgr
+          - rook-ceph-osd
+          - rook-ceph-mds
+          - rook-ceph-crashcollector
+          - rook-ceph-ceph-exporter
+          - rook-ceph-tools
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the Ceph daemons to reach the Kubernetes API. The mgr runs the rook
+# module, which creates/updates Services, Endpoints and CR status in-cluster.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-cluster-allow-k8s-api
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mon
+          - rook-ceph-mgr
+          - rook-ceph-osd
+          - rook-ceph-mds
+          - rook-ceph-crashcollector
+          - rook-ceph-ceph-exporter
+          - rook-ceph-tools
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Ceph daemon-to-daemon traffic (MON msgr v1 6789 / v2 3300, OSD/MDS/MGR v2
+# range 6800-7300, TCP+UDP), both directions. The daemons run with
+# network.provider: host, so this traffic spans node addresses.
+# TODO(enforce phase): confirm the real port set and peers in Hubble; candidate
+# for tightening to the node CIDR 192.168.1.0/24 (cephClusterSpec.network
+# addressRanges) - keep wide until observed.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-cluster-allow-ceph-traffic
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mon
+          - rook-ceph-mgr
+          - rook-ceph-osd
+          - rook-ceph-mds
+          - rook-ceph-crashcollector
+          - rook-ceph-ceph-exporter
+          - rook-ceph-tools
+  ingress:
+    - fromEntities:
+        - cluster
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6789"
+              protocol: TCP
+            - port: "6789"
+              protocol: UDP
+            - port: "3300"
+              protocol: TCP
+            - port: "3300"
+              protocol: UDP
+            - port: "6800-7300"
+              protocol: TCP
+            - port: "6800-7300"
+              protocol: UDP
+  egress:
+    - toEntities:
+        - cluster
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6789"
+              protocol: TCP
+            - port: "6789"
+              protocol: UDP
+            - port: "3300"
+              protocol: TCP
+            - port: "3300"
+              protocol: UDP
+            - port: "6800-7300"
+              protocol: TCP
+            - port: "6800-7300"
+              protocol: UDP
+---
+# Allow the Ceph dashboard (mgr, port 7000) via the envoy-internal HTTPRoute
+# (rook.${SECRET_DOMAIN} in the cluster HelmRelease).
+# TODO(enforce phase): confirm the envoy pod selector from Hubble and tighten
+# the fromEndpoints rule.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-cluster-allow-dashboard
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mgr
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "7000"
+              protocol: TCP
+---
+# Allow Prometheus (observability) to scrape the mgr metrics (9283) and the
+# ceph-exporter daemon (9926); monitoring.enabled + createPrometheusRules are
+# true in the cluster HelmRelease.
+# TODO(enforce phase): confirm both ports in Hubble before enforcing.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rook-ceph-cluster-allow-prometheus-scrape
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph-mgr
+          - rook-ceph-ceph-exporter
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9283"
+              protocol: TCP
+            - port: "9926"
+              protocol: TCP
