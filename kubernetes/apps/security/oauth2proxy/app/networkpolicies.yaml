@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): enableDefaultDeny false on every policy - observation only.
+# oauth2proxy: OIDC client for auth.$SECRET_DOMAIN; listens on 4180.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: oauth2proxy-allow-dns
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2proxy
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: oauth2proxy-allow-egress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2proxy
+  egress:
+    # OIDC issuer auth.$SECRET_DOMAIN (authentik server, same namespace)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: security
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+      # TODO(enforce phase): issuer URL may route via the gateway/LB instead of
+      # pod-to-pod; confirm the real path in Hubble and scope accordingly.
+    # token/JWKS fetches and any redirect targets over HTTPS
+    # TODO(enforce phase): tighten to the authentik FQDN once the path is confirmed.
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: oauth2proxy-allow-ingress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2proxy
+  ingress:
+    # kubelet probes arrive from the node; the chart health path is on the proxy port
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "4180"
+              protocol: TCP
+    # protected apps / gateways that front oauth2proxy
+    # TODO(enforce phase): identify real callers in Hubble and scope per app.
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "4180"
+              protocol: TCP
