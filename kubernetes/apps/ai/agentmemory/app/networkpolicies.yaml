@@ -2,6 +2,8 @@
 # AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
+# NOTE: the policy.cilium.io/audit-mode annotation is deliberately omitted here - it is
+# not a Cilium feature (marker-only); enableDefaultDeny below is the functional control.
 ---
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
