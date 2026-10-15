@@ -6,4 +6,5 @@ resources:
   - ./grafanadashboard.yaml
   - ./grafanadatasource.yaml
   - ./grafana.yaml
+  - ./networkpolicies.yaml
   - ./servicemonitor.yaml
