@@ -1,0 +1,264 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# This dir deploys two endpoint sets: the envoy-gateway control plane
+# (label control-plane: envoy-gateway, per the ServiceMonitor selector) and the
+# envoy data-plane proxies it deploys into this Gateway namespace
+# (app.kubernetes.io/name: envoy + app.kubernetes.io/component: proxy, per the
+# PodMonitor selector). The proxies are the cluster's ingress path for every
+# HTTPRoute/TCPRoute/UDPRoute, so their fan-in is intentionally wide in audit
+# mode.
+# Allow the envoy-gateway control plane to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-allow-dns
+  namespace: network
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the envoy-gateway control plane to reach the Kubernetes API server (it
+# reconciles Gateway/HTTPRoute/GRPCRoute/TCPRoute/UDPRoute and the EnvoyProxy
+# config, and deploys the data-plane proxies).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-allow-k8s-api
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow kube-apiserver to reach the envoy-gateway admission webhooks (standard
+# webhook port 9443).
+# TODO(enforce phase): confirm the webhook port in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-allow-webhook
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+---
+# Allow kubelet probes from the node and Prometheus scraping of the control
+# plane metrics (ServiceMonitor envoy-gateway, port metrics).
+# TODO(enforce phase): pin the probe/metrics ports in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-allow-probes-scrape
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+---
+# Allow the envoy data-plane proxies to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-dns
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the envoy proxies to receive xDS configuration from the envoy-gateway
+# control plane (proxy -> control-plane stream).
+# TODO(enforce phase): confirm the xDS port in Hubble (envoy-gateway default
+# 18000) and pin the control-plane selector.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-xds-egress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+            control-plane: envoy-gateway
+      toPorts:
+        - ports:
+            - port: "18000"
+              protocol: TCP
+---
+# Allow the envoy proxies to reach the backends behind every attached route
+# (HTTPRoutes across all namespaces, plus the cloudflare-tunnel origin). The
+# backend set is generated from route config and not statically knowable here.
+# TODO(enforce phase): pin to the observed backend ports (mostly 80/443 and the
+# per-app service ports) from Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-backend-egress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  egress:
+    - toEntities:
+        - cluster
+---
+# Allow client ingress to the envoy proxies on the Gateway listener ports
+# defined in envoy.yaml: http 80, https 443, syslog 5140 UDP and 5140 TCP
+# (LoadBalancer IPs 192.168.30.7/8 plus in-cluster callers; externalTrafficPolicy
+# Cluster means LAN clients arrive as node entities).
+# Deliberately permissive (no `from` constraint): any namespace may legitimately
+# attach routes, and external callers arrive via the nodes.
+# TODO(enforce phase): decide the enforce-time caller model (likely keep
+# permissive listener ingress but restrict to node/LB + cluster entities).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-listener-ingress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  ingress:
+    - toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "5140"
+              protocol: UDP
+            - port: "5140"
+              protocol: TCP
+---
+# Allow Prometheus to scrape the envoy proxy admin metrics
+# (PodMonitor envoy-proxy, port metrics, path /stats/prometheus) and kubelet
+# probes from the node.
+# TODO(enforce phase): pin the metrics/probe ports in Hubble (envoy-gateway
+# proxy metrics default 19000).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-metrics-ingress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "19000"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
