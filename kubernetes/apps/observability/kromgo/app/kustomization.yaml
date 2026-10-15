@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./backendtrafficpolicy.yaml
   - ./helmrelease.yaml
+  - ./networkpolicies.yaml
   - ./ocirepository.yaml
 configMapGenerator:
   - name: kromgo-configmap
