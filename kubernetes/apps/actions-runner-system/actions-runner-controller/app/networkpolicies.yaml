@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement flips on in a follow-up PR for this namespace once the allow-list
+# is validated against observed traffic.
+# Selector: the chart's app.kubernetes.io/name label is gha-rs-controller;
+# app.kubernetes.io/instance = actions-runner-controller matches the
+# HelmRelease release name and was verified live on the controller pod.
+# Allow actions-runner-controller to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: actions-runner-controller-allow-dns
+  namespace: actions-runner-system
+  annotations:
+    # GitOps/audit marker only - Cilium does not read this annotation;
+    # spec.enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: actions-runner-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow actions-runner-controller to reach the Kubernetes API server: it
+# manages the listener and runner scale set workloads in this namespace
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: actions-runner-controller-allow-k8s-api
+  namespace: actions-runner-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: actions-runner-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Wide audit-phase egress: the controller registers the runner scale set with
+# the GitHub API over HTTPS.
+# TODO(enforce phase): replace with the concrete rule (expected: toFQDNs to
+# api.github.com / github.com on 443) after confirming the flows in Hubble;
+# world with no toPorts is the audit-phase approximation and cannot drop
+# traffic while enableDefaultDeny is false.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: actions-runner-controller-allow-egress
+  namespace: actions-runner-system
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: actions-runner-controller
+  egress:
+    - toEntities:
+        - world
