@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+# NOTE: the policy.cilium.io/audit-mode annotation is deliberately omitted here - it is
+# not a Cilium feature (marker-only); enableDefaultDeny below is the functional control.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agentmemory-allow-dns
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: agentmemory
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# agentmemory embeds memories through LiteLLM (OPENAI_BASE_URL -> litellm:4000).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agentmemory-allow-egress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: agentmemory
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: litellm
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP
+    # TODO(enforce phase): confirm any direct provider traffic in Hubble (should be none
+    # - every outbound LLM call goes through LiteLLM).
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Ingress: envoy-internal gateway serves the viewer route (3113), hermes and the
+# toolhive gateways call the API (3111), kubelet probes /agentmemory/livez (3111).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: agentmemory-allow-ingress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: agentmemory
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "3113"
+              protocol: TCP
+            - port: "3111"
+              protocol: TCP
+    # kubelet liveness/readiness/startup probes (/agentmemory/livez) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "3111"
+              protocol: TCP
+    # TODO(enforce phase): narrow to the callers observed in Hubble (hermes, vmcp gateways).
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "3111"
+              protocol: TCP
+            - port: "3113"
+              protocol: TCP

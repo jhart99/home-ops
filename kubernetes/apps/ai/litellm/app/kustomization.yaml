@@ -5,6 +5,7 @@ kind: Kustomization
 resources:
   - ./cluster.yaml
   - ./helmrelease.yaml
+  - ./networkpolicies.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
 generatorOptions:

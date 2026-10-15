@@ -6,5 +6,6 @@ resources:
   - ./agentmemory-plugin.yaml
   - ./configmap.sops.yaml
   - ./helmrelease.yaml
+  - ./networkpolicies.yaml
   - ./ocirepository.yaml
   - ./secret.sops.yaml
