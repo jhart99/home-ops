@@ -1,0 +1,192 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+# These policies attach to the pods of the CloudNativePG cluster `coder-db`
+# (2 instances, managed by the cnpg-operator in the `database` namespace).
+# Allow the postgres instances to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-dns
+  namespace: development
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the postgres instances to reach the Kubernetes API server (instance
+# registration, status updates, secrets).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-k8s-api
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow SQL clients to reach postgres on 5432. The real client set cannot be
+# derived from this repo (coder injects its connection URL from a secret), so
+# this is deliberately cluster-wide for the audit window.
+# TODO(enforce phase): replace `cluster` with the observed client pods
+# (expected: the coderd deployment in this namespace) found in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-client-ingress
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  ingress:
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+# Allow intra-cluster postgres traffic between the instances (streaming
+# replication on 5432) and instance-manager communication (8000).
+# TODO(enforce phase): confirm the instance-manager/replication port set in
+# Hubble and pin the peer selector.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-instance-egress
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: development
+            cnpg.io/cluster: coder-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+---
+# Allow the barman-cloud instance sidecar to archive WAL/backups to the S3
+# endpoint pinned in the ObjectStore CR (s3.rnatr.com).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-backup-egress
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  egress:
+    - toFQDNs:
+        - matchName: s3.rnatr.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow Prometheus to scrape the CNPG postgres_exporter sidecar
+# (monitoring.enablePodMonitor: true, standard port 9187).
+# TODO(enforce phase): confirm the metrics port in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-prometheus-scrape
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+# Allow kubelet probes from the node (postgres readiness on 5432,
+# instance-manager health on 8000).
+# TODO(enforce phase): confirm the probed ports in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-db-allow-kubelet-probes
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: coder-db
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
