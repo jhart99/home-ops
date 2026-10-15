@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# Wave 4 caution: these CSI drivers sit on the data path for every Ceph-backed
+# PVC (mount/stage/unstage). Rules are deliberately wide; the enforce phase
+# needs its own design pass (see #1539), not a template application.
+# NOTE: the three pre-existing native NetworkPolicies in this namespace
+# (ceph-csi-ceph-csi-controller-manager, rook-ceph.cephfs.csi.ceph.com-ctrlplugin,
+# rook-ceph.rbd.csi.ceph.com-ctrlplugin) are emitted at runtime by the
+# operator/chart, are not in the repo, and are intentionally NOT replicated here.
+# Allow the CSI driver pods to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ceph-csi-drivers-allow-dns
+  namespace: rook-ceph
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  # TODO(enforce phase): the pod labels for the ceph-csi-drivers chart
+  # (ghcr.io/home-operations/charts-mirror/ceph-csi-drivers) are not visible in
+  # the repo; "app: <driver-name>-{ctrl,node}plugin" is the best inference from
+  # the chart's own workload/policy naming. A wrong selector is a no-op in
+  # audit mode - confirm the real labels in Hubble (or kubectl get pods -A --show-labels)
+  # before enforcing.
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph.cephfs.csi.ceph.com-ctrlplugin
+          - rook-ceph.cephfs.csi.ceph.com-nodeplugin
+          - rook-ceph.rbd.csi.ceph.com-ctrlplugin
+          - rook-ceph.rbd.csi.ceph.com-nodeplugin
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the CSI driver pods to reach the Kubernetes API (volume attachments,
+# secrets, CSINode/VolumeAttachment objects).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ceph-csi-drivers-allow-k8s-api
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph.cephfs.csi.ceph.com-ctrlplugin
+          - rook-ceph.cephfs.csi.ceph.com-nodeplugin
+          - rook-ceph.rbd.csi.ceph.com-ctrlplugin
+          - rook-ceph.rbd.csi.ceph.com-nodeplugin
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow the CSI driver pods to talk to the Ceph cluster (MON msgr v1/v2 ports
+# plus the OSD/MDS/MGR v2 range, TCP+UDP).
+# TODO(enforce phase): confirm the real port set in Hubble; candidate for
+# tightening to the node CIDR 192.168.1.0/24 once observed - keep wide until
+# then.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ceph-csi-drivers-allow-ceph-cluster
+  namespace: rook-ceph
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - rook-ceph.cephfs.csi.ceph.com-ctrlplugin
+          - rook-ceph.cephfs.csi.ceph.com-nodeplugin
+          - rook-ceph.rbd.csi.ceph.com-ctrlplugin
+          - rook-ceph.rbd.csi.ceph.com-nodeplugin
+  egress:
+    - toEntities:
+        - cluster
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6789"
+              protocol: TCP
+            - port: "6789"
+              protocol: UDP
+            - port: "3300"
+              protocol: TCP
+            - port: "3300"
+              protocol: UDP
+            - port: "6800-7300"
+              protocol: TCP
+            - port: "6800-7300"
+              protocol: UDP
