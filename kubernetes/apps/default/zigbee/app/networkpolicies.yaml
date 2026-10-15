@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zigbee-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zigbee
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# ZIGBEE2MQTT_CONFIG_MQTT_SERVER -> mosquitto.default.svc:1883; the coordinator is a
+# passed-through USB device (no network path).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zigbee-allow-mqtt
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zigbee
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: mosquitto
+      toPorts:
+        - ports:
+            - port: "1883"
+              protocol: TCP
+---
+# Ingress: envoy-internal gateway serves zigbee.${SECRET_DOMAIN} (frontend 8080).
+# TODO(enforce phase): no kubelet http/tcp probe is configured - re-check before
+# enforcement in case one is added.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zigbee-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zigbee
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
