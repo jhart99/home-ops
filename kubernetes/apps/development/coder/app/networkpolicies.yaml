@@ -1,0 +1,150 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+# Allow coderd to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-allow-dns
+  namespace: development
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow coderd to reach the Kubernetes API server - it provisions and watches
+# workspace pods, services and PVCs for every coder user.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-allow-k8s-api
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow coderd to reach its PostgreSQL database, a CloudNativePG cluster
+# (coder-db) that lives in this same namespace; the connection URL comes from
+# the coder-db-app secret.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-allow-postgres-egress
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: development
+            cnpg.io/cluster: coder-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+# Allow coderd egress to the OIDC identity provider and to workspace template
+# resources (images/metadata fetched at workspace start); the concrete FQDNs
+# live in the coder-secret and are not knowable from this repo.
+# TODO(enforce phase): tighten `world` to the IdP FQDN and the specific
+# registry/template endpoints observed in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-allow-egress-world
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow the coderd HTTP surface:
+#   - from the envoy-internal HTTPRoute (coder.${SECRET_DOMAIN}, backend port
+#     80 -> container port 7007) proxies in the network namespace;
+#   - from the node for kubelet probes.
+# TODO(enforce phase): confirm the effective container port in Hubble (the
+# chart exposes the backend on the `http` container port; both the named port
+# and 7007 are listed until that is verified).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: coder-allow-http-ingress
+  namespace: development
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: coder
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "http"
+              protocol: TCP
+            - port: "7007"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "http"
+              protocol: TCP
+            - port: "7007"
+              protocol: TCP
