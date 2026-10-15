@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: paperless-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# PAPERLESS_REDIS -> paperless-dragonfly (6379), PAPERLESS_AI_LLM_ENDPOINT ->
+# litellm.ai.svc:4000, postgres comes from the DB secret (5432), OIDC/logout over HTTPS.
+# TODO(enforce phase): confirm the postgres service in Hubble (toEntities cluster:5432
+# is deliberately loose) and pin world:443 to auth.${SECRET_DOMAIN}.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: paperless-allow-egress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: paperless-dragonfly
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: litellm
+      toPorts:
+        - ports:
+            - port: "4000"
+              protocol: TCP
+    - toEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+---
+# Ingress: envoy-internal gateway serves paperless.${SECRET_DOMAIN} (8000); kubelet tcp
+# probes hit 8000.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: paperless-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    # kubelet liveness/readiness probes (tcp 8000) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP

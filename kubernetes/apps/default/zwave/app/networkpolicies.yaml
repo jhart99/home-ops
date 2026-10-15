@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zwave-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zwave
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Ingress: envoy-internal gateway serves the zwave route (80), the secondary service
+# port 3000 (zwave-js server) is kept open while its real callers are identified,
+# kubelet probes /health/ on 80.
+# TODO(enforce phase): confirm whether anything besides the gateway reaches 3000 and
+# whether this app needs an MQTT egress like zigbee.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: zwave-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: zwave
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+    # kubelet liveness/readiness probes (/health/) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP

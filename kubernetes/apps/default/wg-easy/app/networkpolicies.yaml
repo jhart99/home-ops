@@ -1,0 +1,110 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# WireGuard peers live on the LAN (INIT_HOST vpn.${SECRET_DOMAIN}); UDP sessions are
+# initiated towards LAN clients.
+# TODO(enforce phase): confirm the peer CIDRs/ports seen in Hubble (51820/udp both ways).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-lan-wireguard
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toCIDR:
+        - 192.168.30.0/24
+      toPorts:
+        - ports:
+            - port: "51820"
+              protocol: UDP
+---
+# Ingress: LAN clients to the WireGuard LoadBalancer (51820/udp), envoy-internal serves
+# wireguard.${SECRET_DOMAIN} (80), kubelet tcp probes hit 80.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  ingress:
+    - toCIDR:
+        - 192.168.30.0/24
+      toPorts:
+        - ports:
+            - port: "51820"
+              protocol: UDP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    # kubelet liveness/readiness probes (tcp 80) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+---
+# Prometheus (ServiceMonitor, endpoint port http, /metrics/prometheus) scrapes port 80.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-prometheus-scrape
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP

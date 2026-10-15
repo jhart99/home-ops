@@ -1,0 +1,128 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Queue/cache/session run on forgejo-dragonfly (6379); outbound HTTPS covers webhooks,
+# LFS mirrors and dependency fetches.
+# TODO(enforce phase): pin world:443 to the webhook/mirror FQDNs seen in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-allow-egress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: forgejo-dragonfly
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+---
+# Ingress: LAN clients hit the SSH LoadBalancer (192.168.30.22:2222, externalTrafficPolicy
+# Local), envoy-internal serves git.${SECRET_DOMAIN} (3000), forgejo-runner clones over
+# http (3000), kubelet tcp probes hit 3000.
+# TODO(enforce phase): confirm the SSH client CIDR and scope the cluster rule to
+# forgejo-runner.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  ingress:
+    - toCIDR:
+        - 192.168.30.0/24
+      toPorts:
+        - ports:
+            - port: "2222"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    # kubelet liveness probes (tcp http/3000) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+# Prometheus (ServiceMonitor, metrics.enabled) scrapes /metrics on the http port.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-allow-prometheus-scrape
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP

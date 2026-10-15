@@ -1,0 +1,65 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+# RenovateJob pods (discovery + executor) only carry the
+# renovate-operator.mogenius.com/* labels, so they are selected by key existence -
+# this also covers future projects (delf-*, jhart99-*, ...).
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: renovate-jobs-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: renovate-operator.mogenius.com/renovatejob
+        operator: Exists
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Job pods clone/push against forgejo.rnatr.com and api.github.com (RenovateJob
+# endpoints) and may reach the in-cluster forgejo API for internal packages.
+# TODO(enforce phase): replace world:443 with forgejo.rnatr.com + api.github.com/github.com
+# toFQDNs, and drop the cluster rule if the jobs never hit forgejo.default:3000.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: renovate-jobs-allow-egress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: renovate-operator.mogenius.com/renovatejob
+        operator: Exists
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+    - toEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
