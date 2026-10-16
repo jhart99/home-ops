@@ -14,7 +14,7 @@ spec:
     image:
       registry: code.forgejo.org
       repository: forgejo/forgejo
-      tag: 16.0.6
+      tag: 17.0.0
       rootless: true
     containerSecurityContext:
       allowPrivilegeEscalation: false
