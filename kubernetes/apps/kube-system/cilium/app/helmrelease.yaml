@@ -55,9 +55,9 @@ spec:
         # view used for the #1539 netpol audit windows.
         enabled:
           - dns:query;ignoreAAAA
-          - drop:labelsContext=source_namespace\,destination_namespace
+          - drop:labelsContext=source_namespace,destination_namespace
           - tcp
-          - flow:labelsContext=source_namespace\,destination_namespace\,traffic_direction
+          - flow:labelsContext=source_namespace,destination_namespace,traffic_direction
           - icmp
           - port-distribution
           # hubble_policy_verdicts_total: counts policy allow/deny verdicts per
