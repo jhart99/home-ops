@@ -11,7 +11,7 @@ resources:
   - ./namespace.yaml
   - ./agentmemory/ks.yaml
   - ./comfyui/ks.yaml
-  # - ./comfyui-mcp/ks.yaml
+  - ./comfyui-mcp/ks.yaml
   - ./context7-mcp/ks.yaml
   - ./dgx-resource-claim/ks.yaml
   - ./flux-mcp/ks.yaml
