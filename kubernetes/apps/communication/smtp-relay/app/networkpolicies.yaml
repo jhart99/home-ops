@@ -77,7 +77,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: smtp-relay
   ingress:
-    - toCIDR:
+    - fromCIDR:
         - 192.168.30.0/24
       toPorts:
         - ports:
