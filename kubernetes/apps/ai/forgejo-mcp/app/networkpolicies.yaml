@@ -1,0 +1,82 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-mcp-allow-dns
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: forgejo-mcp
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Forgejo REST API over HTTP, in-cluster service forgejo-http in namespace default.
+# TODO(enforce phase): scope this down to the forgejo-http endpoints instead of the
+# whole default namespace, and widen it (world:443) if FORGEJO_URL is ever pointed
+# at a public Forgejo host instead.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-mcp-allow-egress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: forgejo-mcp
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+---
+# kubelet /health probes (8080) from the node; toolhive gateways call the server.
+# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: forgejo-mcp-allow-ingress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: forgejo-mcp
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
