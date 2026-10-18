@@ -85,3 +85,5 @@ spec:
         globalMounts:
           - path: /mosquitto/config/passwd
             subPath: passwd
+      tmp:
+        type: emptyDir
