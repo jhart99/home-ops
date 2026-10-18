@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: mosquitto-passwd-configmap
+data:
+    passwd: ENC[AES256_GCM,data:YDIijNZdrFwBAT8uQj4uaF/ZlD607XC5YElZK3ESGLrj84Qzh60RUMaY81SNqcv17dLQAXhgoj/Aq3uhrS/u2MMZwminj5Yd1ldl8qmTN6uKThaVPDiaz4WntPBTiK+4xHwlDWQPYGJJZ0FLdEu+EAmwn4ez9i+yvM5SNNiSsA==,iv:+NW5Q9e3EjrNkwotcCzQXhXcCffVOgm+MK/QIPJiA30=,tag:awncBto17aN4mZVQlRe1tQ==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBJMHZCK2hNZHhCaENZc2c0
+            YmV4dXZZeGUxMzQ4UTZNc3hhWWlpR09NdFIwCnN1S1JOY1NucVhoOG9sYmRtKzJn
+            bVg3MnJMbmVvRWxQNG01WjdPdHZJNzQKLS0tICsvZDQyQ3NuSXo3K1dEQ2Z3MTVq
+            WEl6UTV6RDFMV2tjejBwd0Z0cjl4VTgKxZXR1SCcFO/pnlsNLmlxFnQGZzk1uEfI
+            7GCg3ta28lNhDESfDkWP6QsWa+vYiUjr/foFkR0rGwc4aHDlT1dTsg==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1pec8jh874tjf7uc2asrh6wal9ta6c8sxfvxwy8qrkz76lxjshymsr5fvj6
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-10-18T18:49:04Z"
+    mac: ENC[AES256_GCM,data:LdTO0+qppoUxtot+OMkHZWmEUjczI7jQbCGhpy2twmR0yvzCYtRSSo/DfjDSohrxa7m2V2GE6XkAViVJy0wYOaUIMF5nsUU2c0iIO33VP/0nd9c1Dda51NPZTUESz6L9J9JR7Stg9rD5MFj3mrahhV6BIyfQutZ+oMR0BsW95bI=,iv:cwJW/gKYmAW6ubY0dEJSgaRrps8BAfgJ3EsS/vXJ3+0=,tag:5VT0hp1P1CrjqIf6FMCLFA==,type:str]
+    mac_only_encrypted: true
+    version: 3.13.3

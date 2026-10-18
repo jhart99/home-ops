@@ -69,21 +69,18 @@ spec:
             persistence true
             persistence_location /config
     persistence:
+      password-file:
+        type: configMap
+        name: mosquitto-passwd-configmap
+        defaultMode: 0o400
+        globalMounts:
+          - path: /mosquitto/config/passwd
+            subPath: passwd
       config-file:
         type: configMap
         identifier: config
         globalMounts:
           - path: /mosquitto/config/mosquitto.conf
             subPath: mosquitto.conf
-      password-file:
-        type: secret
-        identifier: mosquitto-secret
-        # 0440: readable by the container (fsGroup 1000), no "others" bits —
-        # mosquitto warns on world-readable password files and future
-        # versions will refuse to load them
-        defaultMode: 0440
-        globalMounts:
-          - path: /mosquitto/config/passwd
-            subPath: passwd
       tmp:
         type: emptyDir
