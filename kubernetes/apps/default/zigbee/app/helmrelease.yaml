@@ -48,6 +48,8 @@ spec:
             envFrom:
               - secretRef:
                   name: "{{ .Release.Name }}-secret"
+              - secretRef:
+                  name: "{{ .Release.Name }}-mqtt-secret"
             # probes:
             #   liveness:
             #     enabled: true
