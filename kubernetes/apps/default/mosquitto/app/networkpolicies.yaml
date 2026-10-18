@@ -44,7 +44,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: mosquitto
   ingress:
-    - toCIDR:
+    - fromCIDR:
         - 192.168.30.0/24
       toPorts:
         - ports:
