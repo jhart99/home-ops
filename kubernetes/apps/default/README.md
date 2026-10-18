@@ -7,7 +7,6 @@ General purpose user applications and services. This namespace contains most of 
 | App | Description | Components |
 |-----|-------------|------------|
 | **devshell** | Interactive pod for debugging and administrative tasks. | `pod`, `serviceaccount` |
-| **echo** | Simple HTTP echo services for testing routing and authentication. | `deployment`, `httproute` |
 | **forgejo** | Lightweight self-hosted Git service (Gitea fork). | `helmrelease`, `postgresql`, `storage` |
 | **forgejo-runner** | CI/CD runner for Forgejo actions. | `deployment` |
 | **freshrss** | Self-hosted RSS feed aggregator. | `helmrelease`, `postgresql` |

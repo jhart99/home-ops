@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+# Allow the rustfs server to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rustfs-allow-dns
+  namespace: rustfs
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rustfs
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the rustfs server to reach the Kubernetes API conservatively; the
+# HelmRelease values do not indicate a dependency (no serviceaccount calls are
+# visible in the repo), so this may be droppable.
+# TODO(enforce phase): confirm in Hubble whether rustfs actually calls the API;
+# drop this policy if it does not.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rustfs-allow-k8s-api
+  namespace: rustfs
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rustfs
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow ingress to rustfs:
+#   - console/web UI (9001) and S3 API (9000) via the envoy-internal
+#     HTTPRoutes (rustfs.${SECRET_DOMAIN} / s3.${SECRET_DOMAIN}) in the
+#     network namespace;
+#   - in-cluster S3 consumers - the caller set is not knowable from this repo,
+#     so this is deliberately wide;
+#   - from the node for kubelet probes (probes are currently disabled in the
+#     HelmRelease, kept so the enforce phase does not depend on that staying
+#     true).
+# TODO(enforce phase): confirm the S3 caller set in Hubble and tighten (split
+# the in-cluster `cluster` rule down to real consumer namespaces).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: rustfs-allow-s3-ingress
+  namespace: rustfs
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: rustfs
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+# NOTE(enforce phase): the rustfs object-store backend is an NFS volume
+# (pve.jonathanrosshart.com:/pool/share/fileshare/data/rustfs) mounted into
+# this pod by the kubelet on the node. NFS traffic does not traverse the pod
+# network namespace, so no pod-level egress rule can cover or restrict it - it
+# is a node-level concern to track separately in the enforce design pass, not
+# a missing rule here.

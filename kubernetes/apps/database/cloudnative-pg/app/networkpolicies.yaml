@@ -1,0 +1,132 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# NOTE: only the operator lives here. The PostgreSQL instances it manages are
+# CloudNativePG Cluster CRs in application namespaces (e.g. development); their
+# pod-level policies ship with the owning application namespace. The
+# barman-cloud plugin (../barman, HelmRelease plugin-barman-cloud) is not
+# covered here yet - its pod labels are not derivable from this repo;
+# TODO(enforce phase): read them off the running pods and add its policies.
+# The selector covers both label spellings (chart name vs release name).
+# Allow the cnpg-operator to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cnpg-operator-allow-dns
+  namespace: database
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - cloudnative-pg
+          - cnpg-operator
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the cnpg-operator to reach the Kubernetes API server (it reconciles
+# Cluster/Pooler/Backup/ScheduledBackup/ObjectStore CRs, deployments, secrets
+# and PVCs in every namespace).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cnpg-operator-allow-k8s-api
+  namespace: database
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - cloudnative-pg
+          - cnpg-operator
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow kube-apiserver to reach the CNPG admission webhooks (standard webhook
+# port 9443).
+# TODO(enforce phase): confirm the webhook port in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cnpg-operator-allow-webhook
+  namespace: database
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - cloudnative-pg
+          - cnpg-operator
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+---
+# Allow kubelet probes from the node and Prometheus scraping of the operator
+# metrics (monitoring.podMonitorEnabled: true).
+# TODO(enforce phase): pin the probe/metrics ports in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cnpg-operator-allow-probes-scrape
+  namespace: database
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - cloudnative-pg
+          - cnpg-operator
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability

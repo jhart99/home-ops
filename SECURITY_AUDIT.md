@@ -56,7 +56,9 @@
 
 8. **Cluster-wide NetworkPolicies — mostly still missing**
    Originally only one CiliumNetworkPolicy existed (echo-oidcauth); there was no
-   default-deny anywhere. **Progress:** the `system-upgrade` namespace now has
+   default-deny anywhere. **Note:** that echo-oidcauth policy was deleted along with its
+   app in PR #1538, so there are now no app-level CiliumNetworkPolicies at all.
+   **Progress:** the `system-upgrade` namespace now has
    default-deny + Tuppr egress policies (merged via PR #1398, using the new
    `kubernetes/components/deny-all` and `kubernetes/components/egress` components).
    Remaining namespaces have no default-deny or isolation policies.
@@ -67,16 +69,32 @@
    `auth.anonymous.enabled: "true"`. Anyone on the LAN can view all dashboards.
    *Remediation:* disable anonymous auth; require login (OIDC/Authentik).
 
-10. **Kromgo externally exposed with no auth**
-    `kubernetes/apps/observability/kromgo/app/helmrelease.yaml` is routed via
+10. ~~**Kromgo externally exposed with no auth**~~ ✅ **Accepted risk — hardened**
+    ~~`kubernetes/apps/observability/kromgo/app/helmrelease.yaml` is routed via
     `envoy-external` with no SecurityPolicy. Cluster metrics are visible on the public
-    internet at `kromgo.${SECRET_DOMAIN}`.
-    *Remediation:* add a SecurityPolicy with OIDC auth, or move to the internal gateway.
+    internet at `kromgo.${SECRET_DOMAIN}`.~~
+    *Resolution (2026-10-10, #1426): public unauthenticated reads are **accepted by
+    design** — the README's shields.io badges fetch `kromgo.${SECRET_DOMAIN}` from the
+    internet, kromgo only executes the queries preconfigured in
+    `resources/config.yaml` (Prometheus itself is never exposed), and the default
+    responses carry only the curated badge values (versions, counts, utilisation,
+    alert count) that the README already publishes. **Hardening** (same PR): requests
+    for `?format=raw` — which additionally returns internal labels (pod names,
+    pod/node IPs, namespace names) — are denied at the gateway by a backend-less
+    HTTPRoute rule, and a `BackendTrafficPolicy` local rate limit (60 req/min) bounds
+    unauthenticated PromQL load on Prometheus. **Residual accepted:** a
+    percent-encoded query-parameter *name* bypasses the `format=raw` deny (Envoy
+    matches query strings verbatim), still bounded by the rate limit.*
 
-11. **Echo externally exposed with no auth**
-    `kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
-    authentication. Leaks request headers; unnecessary attack surface.
-    *Remediation:* add auth or remove the external route.
+11. ~~**Echo externally exposed with no auth**~~ ✅ **Resolved**
+    ~~`kubernetes/apps/default/echo/app/helmrelease.yaml` on `envoy-external` with no
+    authentication. Leaks request headers; unnecessary attack surface.~~
+    *Resolution (2026-10-11, #1538):* all three echo demo apps removed — `echo`
+    (unauthenticated), `echo-basicauth`, and `echo-oidcauth`. None were deployed at the
+    time of removal (all commented out of the `default` namespace kustomization;
+    `prune: true` had already reaped them), so this PR deletes the dead manifests plus
+    the stale references. Their private secrets (`basic-auth-users`,
+    `echo-auth-client-secret`) were removed with them; nothing else referenced either.
 
 12. **ToolHive MCP gateway: anonymous auth**
     `kubernetes/apps/ai/toolhive/app/virtualmcpserver.yaml:19` has

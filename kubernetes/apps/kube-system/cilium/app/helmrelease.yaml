@@ -46,24 +46,33 @@ spec:
       enabled: false
     gatewayAPI:
       enabled: false
-    # hubble:
-    #   enabled: false
-    #   export:
-    #     static:
-    #       enabled: false
-    #   metrics:
-    #     enabled:
-    #      - dns
-    #      - drop
-    #      - tcp
-    #      - flow
-    #      - port-distribution
-    #     serviceMonitor:
-    #       enabled: true
-    #   relay:
-    #     enabled: true
-    #   ui:
-    #     enabled: true
+    hubble:
+      enabled: true
+      metrics:
+        # Metric families verified against cilium v1.20.2 pkg/hubble/metrics/*.
+        # labelsContext adds source_namespace/destination_namespace so every
+        # metric can be aggregated per namespace - the generic, cluster-wide
+        # view used for the #1539 netpol audit windows.
+        enabled:
+          - dns:query;ignoreAAAA
+          - drop:labelsContext=source_namespace,destination_namespace
+          - tcp
+          - flow:labelsContext=source_namespace,destination_namespace,traffic_direction
+          - icmp
+          - port-distribution
+          # hubble_policy_verdicts_total: counts policy allow/deny verdicts per
+          # direction/match - shows exactly which audit-mode CNPs are matching
+          # real traffic, across all namespaces at once.
+          - policy
+        serviceMonitor:
+          enabled: true
+        dashboards:
+          enabled: true
+      relay:
+        enabled: true
+        rollOutPods: true
+      ui:
+        enabled: true
     ipam:
       mode: kubernetes
     ipv4NativeRoutingCIDR: "10.42.0.0/16"

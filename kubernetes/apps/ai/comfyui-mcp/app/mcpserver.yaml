@@ -1,0 +1,41 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1alpha1.json
+apiVersion: toolhive.stacklok.dev/v1alpha1
+kind: MCPServer
+metadata:
+  name: comfyui-mcp
+spec:
+  image: ghcr.io/rwlove/comfyui-mcp:v0.52.206
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  podTemplateSpec:
+    spec:
+      containers:
+        - name: mcp
+          env:
+            - name: COMFYUI_MCP_ALLOW_UNAUTH
+              value: "1"
+            - name: COMFYUI_URL
+              value: http://comfyui.ai.svc.cluster.local:8188
+            - name: NODE_ENV
+              value: "production"
+          volumeMounts:
+            - name: nodetmp
+              mountPath: /home/node/.npm
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: nodetmp
+          emptyDir: {}
+  groupRef:
+    name: mcp-tools

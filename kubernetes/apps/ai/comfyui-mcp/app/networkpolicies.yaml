@@ -1,0 +1,87 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+# Selects both toolhive workloads for this server (StatefulSet + gateway Deployment).
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: comfyui-mcp-allow-dns
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: comfyui-mcp
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Drives the ComfyUI API; npx-based tooling may fetch packages over HTTPS.
+# TODO(enforce phase): keep 8188 scoped to comfyui, tighten world:443 to FQDNs seen in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: comfyui-mcp-allow-egress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: comfyui-mcp
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: comfyui
+      toPorts:
+        - ports:
+            - port: "8188"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# kubelet /health probes (port 80) from the node; toolhive gateways call the server.
+# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: comfyui-mcp-allow-ingress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: comfyui-mcp
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP

@@ -5,4 +5,5 @@ resources:
   - ./externalsecrets.yaml
   - ./forgejo.yaml
   - ./github.yaml
+  - ./networkpolicies.yaml
   - ./secret.sops.yaml

@@ -1,0 +1,123 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+# Allow gatus to resolve DNS via kube-dns (probe targets are hostnames).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gatus-allow-dns
+  namespace: observability
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gatus
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow gatus to reach the Kubernetes API server (ClusterRole watching
+# services, gateways and httproutes for the --auto-httproute/--enable-service
+# discovery sidecar).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gatus-allow-k8s-api
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gatus
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow gatus health-check probes: it checks every discovered HTTPRoute/SVC in
+# the cluster plus the external endpoints configured in resources/config.yaml.
+# Deliberately wide (cluster + world, all ports) because the check list is
+# generated at runtime.
+# TODO(enforce phase): pin to the observed check targets/ports (mostly
+# in-cluster 80/443 and world 443) from Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gatus-allow-probe-egress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gatus
+  egress:
+    - toEntities:
+        - cluster
+        - world
+---
+# Allow the gatus web UI (app-template port 80, /health probes):
+#   - from the envoy-internal proxies (gatus.${SECRET_DOMAIN} /
+#     status.${SECRET_DOMAIN} HTTPRoutes);
+#   - from the node for kubelet probes;
+#   - from Prometheus (serviceMonitor endpoint port http).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gatus-allow-http-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gatus
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP

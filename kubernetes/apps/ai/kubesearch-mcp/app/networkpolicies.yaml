@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kubesearch-allow-dns
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: kubesearch
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# kubesearch indexes/searches Kubernetes objects.
+# TODO(enforce phase): verify in Hubble that this is only kube-apiserver traffic; if it
+# also reads Git sources over HTTPS, add an explicit world:443 rule for those FQDNs.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kubesearch-allow-k8s-api
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: kubesearch
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# kubelet /health probes (8080 on the gateway Deployment, 3000/mcp on the server
+# StatefulSet) from the node; toolhive gateways call the server.
+# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kubesearch-allow-ingress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: kubesearch
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP

@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: talos-mcp-allow-dns
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: talos
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Talos MCP reaches the Talos API on the node addresses (port 50000), same CIDR as the
+# tuppr upgrade policy.
+# TODO(enforce phase): confirm the node CIDR in Hubble if it is not 192.168.1.0/24.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: talos-mcp-allow-talos-api
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: talos
+  egress:
+    - toCIDR:
+        - 192.168.1.0/24
+      toPorts:
+        - ports:
+            - port: "50000"
+              protocol: TCP
+---
+# kubelet /health probes (8080) from the node; toolhive gateways call the server.
+# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: talos-mcp-allow-ingress
+  namespace: ai
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive-name: talos
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

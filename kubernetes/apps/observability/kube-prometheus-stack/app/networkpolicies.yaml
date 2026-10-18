@@ -1,0 +1,335 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+#
+# kube-prometheus-stack runs five distinct workloads; each gets its own
+# endpointSelector below: the prometheus-operator
+# (app.kubernetes.io/name: kube-prometheus-stack), prometheus and alertmanager
+# pods (app.kubernetes.io/name: prometheus / alertmanager), node-exporter and
+# kube-state-metrics. Prometheus scrapes OUTWARD into every other namespace by
+# design, so its egress rule is deliberately wide and marked for the enforce
+# phase.
+# Allow the prometheus-operator to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-prometheus-stack-allow-dns
+  namespace: observability
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-prometheus-stack
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the prometheus-operator to reach the Kubernetes API server (it
+# reconciles Prometheus/Alertmanager/ServiceMonitor/PodMonitor/Probe/Rules
+# across all namespaces).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-prometheus-stack-allow-k8s-api
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-prometheus-stack
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow kubelet probes from the node and Prometheus scraping of the operator
+# metrics (per-component ServiceMonitors are installed by the chart).
+# TODO(enforce phase): pin the operator probe/metrics ports in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-prometheus-stack-operator-allow-probes-scrape
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-prometheus-stack
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+---
+# Allow the prometheus server to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-allow-dns
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow the prometheus server to reach the Kubernetes API server (service
+# discovery, kubernetes_sd_configs).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-allow-k8s-api
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Prometheus scrapes OUTWARD into every other namespace (ServiceMonitors,
+# PodMonitors, Probes and scrape configs cluster-wide, plus Alertmanager and
+# remote-write endpoints). Enumerating the scrape-target set here is neither
+# feasible nor useful in audit mode.
+# TODO(enforce phase): scope this from the observed scrape flows - candidates
+# are toEntities [cluster] on the discovered metrics ports plus a small set of
+# world targets (external scrape configs, if any).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-allow-scrape-egress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  egress:
+    - toEntities:
+        - cluster
+---
+# Allow ingress to the prometheus server (port 9090):
+#   - from the envoy-internal proxies (prometheus.${SECRET_DOMAIN} HTTPRoute);
+#   - from the node for kubelet probes (/-/healthy, /-/ready).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: prometheus-allow-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+---
+# Allow ingress to alertmanager (port 9093 for the UI/API and for
+# prometheus/silence-operator/grafana clients; port 9094 for the HA mesh) and
+# kubelet probes on 9093.
+# TODO(enforce phase): pin the 9093 client set from Hubble (prometheus,
+# silence-operator, grafana, envoy proxies).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: alertmanager-allow-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  ingress:
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9093"
+              protocol: TCP
+            - port: "9094"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "9093"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9093"
+              protocol: TCP
+---
+# Allow alertmanager dispatch egress: notification receivers (Slack/webhook
+# URLs from the alertmanagerconfig secret, plus SMTP) and the HA mesh. The
+# receiver set is not knowable from this repo.
+# TODO(enforce phase): pin to the observed receiver endpoints (world 443 / SMTP
+# ports) and cluster-internal mesh peers.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: alertmanager-allow-egress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  egress:
+    - toEntities:
+        - world
+    - toEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9094"
+              protocol: TCP
+---
+# Allow Prometheus (and kubelet probes) to reach node-exporter on 9100.
+# NOTE: node-exporter runs with hostNetwork, so Cilium sees this traffic on the
+# node identity; the rules are written from both perspectives.
+# TODO(enforce phase): confirm the effective source identities in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: node-exporter-allow-scrape
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - node-exporter
+          - prometheus-node-exporter
+  ingress:
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9100"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9100"
+              protocol: TCP
+---
+# Allow Prometheus (and kubelet probes) to reach kube-state-metrics on its
+# http metrics port (8080).
+# TODO(enforce phase): confirm the metrics port in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-state-metrics-allow-scrape
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kube-state-metrics
+  ingress:
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

@@ -1,0 +1,128 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+# endpointSelector covers the immich server AND immich-machine-learning (both carry
+# app.kubernetes.io/name: immich); the CNPG pods (postgresql) are deliberately excluded.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-allow-dns
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: immich
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# DB_URL -> immich-db (CNPG, 5432), REDIS_HOSTNAME -> immich-dragonfly (6379); the
+# machine-learning replica fetches model weights over HTTPS.
+# TODO(enforce phase): pin world:443 to the model/HuggingFace FQDNs seen in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-allow-egress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: immich
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: immich-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app: immich-dragonfly
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+---
+# Ingress: envoy-internal serves immich.${SECRET_DOMAIN} (2283), kubelet probes /ping
+# on machine-learning (3003), the server is probed on 2283 when probes are enabled.
+# TODO(enforce phase): confirm whether the server container has a probe - add it here
+# if one appears before enforcement.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-allow-ingress
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: immich
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "2283"
+              protocol: TCP
+    # kubelet liveness/readiness probes (ml: /ping on 3003, server: 2283) from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "3003"
+              protocol: TCP
+            - port: "2283"
+              protocol: TCP
+---
+# Prometheus (ServiceMonitor endpoints metrics-api + metrics-ms) scrapes 8081/8082.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-allow-prometheus-scrape
+  namespace: default
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: immich
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+            - port: "8082"
+              protocol: TCP

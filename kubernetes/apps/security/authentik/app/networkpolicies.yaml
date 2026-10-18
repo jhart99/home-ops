@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the
+# endpoints stay default-allow while the allow-list is validated in Hubble.
+# Enforcement flips in a follow-up PR for this namespace. The
+# policy.cilium.io/audit-mode annotation is deliberately omitted: it is not a
+# Cilium feature (GitOps marker only) - enableDefaultDeny is the real control.
+# authentik: DNS + CNPG postgres + SMTP via smtp-relay + gateway ingress.
+# fullnameOverride: authentik -> app.kubernetes.io/name: authentik on server AND worker.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: authentik-allow-dns
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: authentik-allow-egress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+  egress:
+    # CNPG cluster authentik-db (same namespace, see ../database)
+    - toEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+      # TODO(enforce phase): scope to the authentik-db pod labels (cnpg.io/cluster).
+    # SMTP via smtp-relay (authentik.email.host, port 25, no TLS)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: communication
+      toPorts:
+        - ports:
+            - port: "25"
+              protocol: TCP
+    # TODO(enforce phase): k8s-api if the worker needs it (outpost/service-account
+    # reconciliation); confirm in Hubble and add toEntities kube-apiserver or drop.
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: authentik-allow-ingress
+  namespace: security
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+  ingress:
+    # envoy-external gateway serves auth.$SECRET_DOMAIN (route main -> server)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+    # kubelet probes arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+    # in-cluster consumers (oauth2proxy OIDC flow, app callbacks) + prometheus scrape
+    # (server/worker metrics + serviceMonitor)
+    # TODO(enforce phase): narrow to real callers and the metrics port in Hubble.
+    - fromEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9300"
+              protocol: TCP

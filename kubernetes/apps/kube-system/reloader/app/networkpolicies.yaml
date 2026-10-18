@@ -1,0 +1,85 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy in this file sets spec.enableDefaultDeny to false so the
+# selected endpoints do NOT enter default-deny: rules are computed and visible in Hubble, but
+# non-matching traffic still passes. Enforcement flips on in a follow-up per-namespace PR once
+# the allow-list is validated against observed traffic.
+---
+# Resolve DNS via kube-dns (kube-system local, recorded so the rule exists at enforce time)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reloader-allow-dns
+  namespace: kube-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: reloader
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Reach the Kubernetes API server (watches secrets/configmaps for changes)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reloader-allow-k8s-api
+  namespace: kube-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: reloader
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Kubelet liveness/readiness probes arrive from the node.
+# TODO(enforce phase): pin toPorts to the chart's probed ports - none are stated in repo values.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reloader-allow-kubelet-probes
+  namespace: kube-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: reloader
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+---
+# podMonitor enabled in values
+# TODO(enforce phase): pin toPorts to the reloader metrics port.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reloader-allow-prometheus-scrape
+  namespace: kube-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: reloader
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability

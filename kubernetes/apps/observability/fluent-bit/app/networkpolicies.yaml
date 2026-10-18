@@ -1,0 +1,155 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement is flipped on in a follow-up PR per namespace once the allow-list
+# is validated against observed traffic.
+# Allow fluent-bit to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-dns
+  namespace: observability
+  annotations:
+    # Marker for GitOps/audit tooling; Cilium itself does not read this
+    # annotation - enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow fluent-bit to reach the Kubernetes API server (the kubernetes filter
+# enriches records with pod/namespace metadata).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-k8s-api
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow fluent-bit to ship logs to victoria-logs (both http outputs in the
+# HelmRelease target victoria-logs-server.observability:9428).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-victoria-logs-egress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: victoria-logs-server
+            namespace: observability
+      toPorts:
+        - ports:
+            - port: "9428"
+              protocol: TCP
+---
+# Allow syslog ingestion on port 5140 (TCPRoute/UDPRoute on the envoy-internal
+# syslog listener; LAN devices such as openwrt routers send here, so the true
+# caller set is external plus the envoy proxies and in-cluster senders).
+# TODO(enforce phase): pin the caller set from Hubble (likely: network-namespace
+# envoy proxies, node/LB entities, and a small set of LAN sources).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-syslog-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "5140"
+              protocol: TCP
+            - port: "5140"
+              protocol: UDP
+    - fromEntities:
+        - host
+        - remote-node
+        - cluster
+      toPorts:
+        - ports:
+            - port: "5140"
+              protocol: TCP
+            - port: "5140"
+              protocol: UDP
+---
+# Allow Prometheus to scrape fluent-bit metrics (serviceMonitor enabled,
+# http_server metrics port, fluent-bit chart default 2020) and kubelet probes
+# on the same port (/api/v1/health).
+# TODO(enforce phase): confirm the metrics port in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-scrape
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "2020"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "2020"
+              protocol: TCP

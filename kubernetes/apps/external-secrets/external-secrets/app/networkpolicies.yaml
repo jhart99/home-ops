@@ -1,0 +1,163 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny. The rules are computed and
+# their matches are visible in Hubble, but non-matching traffic still passes.
+# Enforcement flips on in a follow-up PR for this namespace once the allow-list
+# is validated against observed traffic.
+# Selector: app.kubernetes.io/instance = external-secrets covers all three pods
+# of the release (the chart sets a distinct app.kubernetes.io/name per
+# component: external-secrets, external-secrets-cert-controller,
+# external-secrets-webhook - verified live), so the instance label is the
+# release-wide selector used here.
+# Allow the external-secrets release to resolve DNS via kube-dns
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-dns
+  namespace: external-secrets
+  annotations:
+    # GitOps/audit marker only - Cilium does not read this annotation;
+    # spec.enableDefaultDeny below is the functional control.
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow controller, cert-controller and webhook to reach the Kubernetes API
+# server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-k8s-api
+  namespace: external-secrets
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow egress to the secret backends referenced by SecretStore/ClusterSecretStore
+# providers (all HTTPS).
+# TODO(enforce phase): inventory the stores and pin toFQDNs to the concrete
+# backend endpoints once they are confirmed in Hubble; world:443 is the
+# audit-phase approximation. A missed backend here blocks Secret delivery
+# cluster-wide after enforcement, so this is the rule to validate first.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-secret-backends
+  namespace: external-secrets
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# kube-apiserver reaches the validating webhook: container port 10250
+# (Service targetPort webhook - verified live)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-webhook
+  namespace: external-secrets
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+---
+# kubelet readiness probes (/readyz on container port 8081) on the cert-controller
+# and webhook pods arrive from the node
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-probes
+  namespace: external-secrets
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+---
+# Allow Prometheus to scrape metrics: serviceMonitor is enabled in the
+# HelmRelease and all three components expose container port 8080
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-secrets-allow-prometheus-scrape
+  namespace: external-secrets
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: external-secrets
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

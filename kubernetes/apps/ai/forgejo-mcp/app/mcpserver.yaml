@@ -1,0 +1,32 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: forgejo-mcp
+spec:
+  # Single-arch (linux/amd64) image published per release to the b4mad forge
+  # container registry; anonymous pull works, no imagePullSecret required.
+  image: git.b4mad.industries/agentic-forges/forgejo-mcp:v3.3.0@sha256:9ffdde38b9825666227676d1abbe410646014272fe9c317cb3435c0a6f3e5ad2
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  env:
+    # In-cluster Forgejo HTTP API (service forgejo-http, port 3000, namespace default).
+    # The server exits at startup if FORGEJO_URL is missing; --transport defaults to
+    # stdio, which is what the toolhive proxy expects here.
+    - name: FORGEJO_URL
+      value: http://forgejo-http.default.svc.cluster.local:3000
+  secrets:
+    - name: toolhive-forgejo
+      key: token
+      targetEnvName: FORGEJO_ACCESS_TOKEN
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  groupRef:
+    name: mcp-tools
