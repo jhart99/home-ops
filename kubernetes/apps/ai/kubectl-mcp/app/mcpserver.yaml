@@ -35,6 +35,7 @@ spec:
               value: in-cluster
             - name: PYTHONUNBUFFERED
               value: "1"
+          workingDir: /tmp
   groupRef:
     name: mcp-tools
 ---
