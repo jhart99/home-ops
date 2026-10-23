@@ -39,6 +39,8 @@ spec:
               value: /tmp
             - name: XDG_CONFIG_HOME
               value: /tmp/.config
+            - name: MCP_ALLOW_UNAUTHENTICATED
+              value: "true"
           workingDir: /tmp
   groupRef:
     name: mcp-tools
