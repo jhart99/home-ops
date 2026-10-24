@@ -18,7 +18,7 @@ spec:
           app:
             image:
               repository: ghcr.io/berriai/litellm
-              tag: v1.106.1@sha256:1acf80698f7eb47021b0bf5aed01ba9e80098cf74cdb3e588515bdd48a129fa6
+              tag: v1.106.3@sha256:74d0696a9f0afcc993c7659d246f0c542f003368298633e852228250779f1032
             env:
               LITELLM_LOG: INFO
               LITELLM_MODE: PRODUCTION
