@@ -22,7 +22,7 @@ spec:
       - name: THV_REGISTRY_DATABASE_MIGRATIONPASSWORD
         valueFrom:
           secretKeyRef:
-            name: toolhive-db-superuser
+            name: toolhive-db-app
             key: password
       - name: PGSSLROOTCERT
         value: "/etc/ssl/certs/cnpg/ca.crt"
@@ -69,7 +69,7 @@ spec:
         host: toolhive-db-rw
         port: 5432
         user: toolhive
-        migrationUser: postgres
+        migrationUser: toolhive
         database: toolhive
         sslMode: verify-ca
         maxOpenConns: 10
