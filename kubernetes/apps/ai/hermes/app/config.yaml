@@ -1,8 +1,7 @@
 model:
   provider: custom
   default: mimo-v2.6-flash
-  base_url: https://litellm.rnatr.com/v1
-  api_key: sk-CGDN4xfUEAjSqzw0ERsmFA
+  base_url: http://litellm:4000/v1
 fallback_providers: []
 toolsets:
   - hermes-cli
@@ -553,8 +552,7 @@ session_reset:
   mode: none
 custom_providers:
   - name: dark-jarvis
-    base_url: https://litellm.rnatr.com/v1
-    api_key: 99142a17f76735c964031920dae2a613bfd2eb59745b1fa0ab44f8c20be3398d
+    base_url: https://litellm:4000/v1
     model: mimo-v2.5
     models:
       mimo-v2.5:
@@ -569,8 +567,6 @@ mcp_servers:
       AGENTMEMORY_URL: http://agentmemory:3111
   toolhive:
     url: http://vmcp-mcp-gateway-internal:4483
-  arr:
-    url: http://mcp-arr-proxy.sensitive.svc.cluster.local:8080/mcp
 plugins:
   enabled:
     - agentmemory
