@@ -1,0 +1,74 @@
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/inference.llmkube.dev/model_v1alpha1.json
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: Model
+metadata:
+  name: qwen38-27b-nvfp4
+spec:
+  source: hf://unsloth/Qwen3.8-27B-NVFP4
+  format: safetensors
+  quantization: NVFP4
+  files:
+    - config.json # the primary: must match exactly one file
+    - "*.json"
+    - "*.jinja"
+    - "*.safetensors"
+  hardware:
+    accelerator: cuda
+    gpu:
+      enabled: true
+      vendor: nvidia
+      count: 0
+      layers: -1
+      resourceClaims:
+        - name: gpu
+          resourceClaimName: gpu-claim
+---
+# yaml-language-server: $schema=https://k8s-schemas.m00nlit.dev/inference.llmkube.dev/inferenceservice_v1alpha1.json
+apiVersion: inference.llmkube.dev/v1alpha1
+kind: InferenceService
+metadata:
+  name: qwen38-27b-nvfp4
+spec:
+  modelRef: qwen38-27b-nvfp4
+  runtime: vllm
+  runtimeClassName: nvidia
+  image: vllm/vllm-openai:v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
+  replicas: 1
+  vllmConfig:
+    quantization: nvfp4
+    maxModelLen: 131072
+    kvCacheDtype: fp8_e4m3
+    gpuMemoryUtilization: 0.4
+    tensorParallelSize: 1
+    enablePrefixCaching: true
+    enableChunkedPrefill: true
+  resources:
+    cpu: "1"
+    memory: 16Gi
+  extraArgs:
+    - --served-model-name
+    - qwen38-27b-nvfp4
+  endpoint:
+    port: 8000
+    type: ClusterIP
+  probeOverrides:
+    startup:
+      httpGet:
+        path: /health
+        port: 8000
+      periodSeconds: 10
+      failureThreshold: 360
+    liveness:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      failureThreshold: 6
+    readiness:
+      httpGet:
+        path: /health
+        port: 8000
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      failureThreshold: 6
