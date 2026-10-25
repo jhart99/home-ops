@@ -35,7 +35,7 @@ spec:
   image: vllm/vllm-openai:v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34
   replicas: 1
   vllmConfig:
-    quantization: nvfp4
+    quantization: compressed-tensors
     maxModelLen: 131072
     kvCacheDtype: fp8_e4m3
     gpuMemoryUtilization: 0.4
