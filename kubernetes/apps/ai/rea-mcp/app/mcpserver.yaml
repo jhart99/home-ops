@@ -1,0 +1,60 @@
+---
+# yaml-language-server: $schema=https://k8s-schemas.home-operations.com/toolhive.stacklok.dev/mcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
+kind: MCPServer
+metadata:
+  name: rea
+spec:
+  # Built by .github/workflows/build-rea-mcp.yaml from images/rea-mcp/Dockerfile.
+  # NOTE: append @sha256:<digest> (the workflow prints it) once the first build
+  # has been pushed, per house style; GHCR packages start out private, so the
+  # package has to be made public (or an imagePullSecret added) before this pod
+  # can pull.
+  image: ghcr.io/jhart99/rea-mcp:0.1.0
+  # REA speaks stdio by default; ToolHive fronts it with the streamable-http
+  # proxy, exactly like github-mcp. This avoids REA's opt-in `rea mcp --http`
+  # listener, which upstream documents as plain HTTP with no auth.
+  transport: stdio
+  proxyMode: streamable-http
+  proxyPort: 8080
+  groupRef:
+    name: mcp-tools
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: "2"
+      memory: 4Gi
+  # The pod runs as UID 1000 with readOnlyRootFilesystem: true, so REA state,
+  # JVM scratch and the analysis targets all need explicit writable mounts.
+  # Verified against this exact constraint set with docker run --read-only.
+  podTemplateSpec:
+    spec:
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 4Gi
+        - name: home
+          emptyDir:
+            sizeLimit: 8Gi
+        - name: targets
+          persistentVolumeClaim:
+            claimName: rea-targets
+      containers:
+        - name: mcp
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: home
+              mountPath: /home/node
+            - name: targets
+              mountPath: /targets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 4Gi

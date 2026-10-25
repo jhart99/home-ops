@@ -10,12 +10,10 @@ components:
 resources:
   - ./namespace.yaml
   - ./agentmemory/ks.yaml
-  - ./comfyui/ks.yaml
-  - ./comfyui-mcp/ks.yaml
   - ./context7-mcp/ks.yaml
+  - ./comfyui/ks.yaml
   - ./dgx-resource-claim/ks.yaml
   - ./flux-mcp/ks.yaml
-  - ./forgejo-mcp/ks.yaml
   - ./github-mcp/ks.yaml
   - ./grafana-mcp/ks.yaml
   - ./hermes/ks.yaml
@@ -24,6 +22,7 @@ resources:
   - ./kubectl-mcp/ks.yaml
   - ./kubesearch-mcp/ks.yaml
   - ./open-webui/ks.yaml
+  - ./rea-mcp/ks.yaml
   - ./searxng/ks.yaml
   - ./talos-mcp/ks.yaml
   - ./toolhive/ks.yaml
