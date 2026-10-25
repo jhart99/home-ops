@@ -48,8 +48,7 @@ spec:
   toolsFilter:
     # Datasources
     - list_datasources
-    - get_datasource_by_uid
-    - get_datasource_by_name
+    - get_datasource
     # Prometheus
     - query_prometheus
     - query_prometheus_histogram
@@ -58,14 +57,12 @@ spec:
     - list_prometheus_label_names
     - list_prometheus_label_values
     # Alerting (Grafana-managed alerts + Alertmanager datasource)
-    - list_alert_rules
-    - get_alert_rule_by_uid
-    - create_alert_rule
-    - update_alert_rule
-    - delete_alert_rule
-    - list_alert_groups
-    - get_alert_group
-    - list_contact_points
+    - alerting_rules_read
+    - alerting_rules_write
+    - alerting_manage_routing
+    - alerting_routing_write
+    - alerting_silences_read
+    - alerting_silences_write
     # Dashboards and folders
     - search_dashboards
     - get_dashboard_by_uid
@@ -82,5 +79,3 @@ spec:
     - get_annotation_tags
     - create_annotation
     - update_annotation
-    - patch_annotation
-    - create_graphite_annotation
