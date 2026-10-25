@@ -12,6 +12,13 @@ spec:
   args:
     - "-t"
     - "stdio"
+    # Filter tools natively via --enabled-tools instead of MCPToolConfig.toolsFilter.
+    # ToolHive v0.56.0's tool-filter middleware strips "resultType" when re-encoding
+    # tools/list responses, which breaks MCP 2026-07-28 health checks in vmcp.
+    # Self-hosted Grafana OSS with Prometheus + Alertmanager only: excludes Grafana Cloud
+    # features (incident, oncall, asserts, agento11y, assistant), unused datasources
+    # (loki, pyroscope, tempo), and snapshot/plugin/api/config/provisioning/docs/user tools.
+    - "--enabled-tools=datasource,prometheus,alerting,dashboard,folder,search,navigation,annotations,rendering"
   env:
     - name: GRAFANA_URL
       value: http://grafana-service.observability.svc.cluster.local:3000
@@ -41,41 +48,9 @@ kind: MCPToolConfig
 metadata:
   name: grafana-mcp
 spec:
-  # Self-hosted Grafana OSS with Prometheus + Alertmanager only.
-  # Excludes Grafana Cloud features (Incident, OnCall, Sift, Assertions),
-  # Pyroscope tools (no Pyroscope datasource), Loki tools (no Loki datasource),
-  # and Sift-backed helpers (find_error_pattern_logs, find_slow_requests).
-  toolsFilter:
-    # Datasources
-    - list_datasources
-    - get_datasource
-    # Prometheus
-    - query_prometheus
-    - query_prometheus_histogram
-    - list_prometheus_metric_names
-    - list_prometheus_metric_metadata
-    - list_prometheus_label_names
-    - list_prometheus_label_values
-    # Alerting (Grafana-managed alerts + Alertmanager datasource)
-    - alerting_rules_read
-    - alerting_rules_write
-    - alerting_manage_routing
-    - alerting_routing_write
-    - alerting_silences_read
-    - alerting_silences_write
-    # Dashboards and folders
-    - search_dashboards
-    - get_dashboard_by_uid
-    - get_dashboard_summary
-    - get_dashboard_property
-    - get_dashboard_panel_queries
-    - update_dashboard
-    - search_folders
-    - create_folder
-    - get_panel_image
-    - generate_deeplink
-    # Annotations
-    - get_annotations
-    - get_annotation_tags
-    - create_annotation
-    - update_annotation
+  # Left empty because ToolHive v0.56.0's tool-filter middleware unmarshals tools/list
+  # into a struct with only result.tools, stripping result.resultType ("complete") required
+  # by MCP protocol revision 2026-07-28 and causing vmcp health checks to fail with:
+  # "backend returned a Legacy-shaped body (no resultType)".
+  # Tool filtering is handled natively via --enabled-tools on the MCPServer args above.
+  toolsFilter: []
