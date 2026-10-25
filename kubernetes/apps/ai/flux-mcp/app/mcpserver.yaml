@@ -49,6 +49,6 @@ spec:
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPToolConfig
 metadata:
-  name: flux-operator
+  name: flux-operator-mcp
 spec:
   toolsFilter: []

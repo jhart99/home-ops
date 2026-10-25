@@ -39,7 +39,7 @@ spec:
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPToolConfig
 metadata:
-  name: grafana
+  name: grafana-mcp
 spec:
   # Self-hosted Grafana OSS with Prometheus + Alertmanager only.
   # Excludes Grafana Cloud features (Incident, OnCall, Sift, Assertions),
