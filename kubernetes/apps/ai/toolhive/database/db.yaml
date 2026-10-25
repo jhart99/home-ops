@@ -18,11 +18,11 @@ spec:
     storageClass: ceph-block
     size: 1Gi
   bootstrap:
-    # initdb:
-    #   database: toolhive
-    #   owner: toolhive
-    recovery:
-      source: backup-source
+    initdb:
+      database: toolhive
+      owner: toolhive
+    # recovery:
+    #   source: backup-source
   monitoring:
     enablePodMonitor: true
     customQueriesConfigMap:
@@ -33,14 +33,14 @@ spec:
       isWALArchiver: true
       parameters:
         barmanObjectName: toolhive-cnpg-s3
-        serverName: toolhive-cnpg-v2
+        serverName: toolhive-cnpg-v3
   externalClusters:
     - name: backup-source
       plugin:
         name: barman-cloud.cloudnative-pg.io
         parameters:
           barmanObjectName: toolhive-cnpg-s3
-          serverName: toolhive-cnpg-v2
+          serverName: toolhive-cnpg-v3
   postgresql:
     parameters:
       shared_buffers: 128MB
