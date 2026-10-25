@@ -24,6 +24,7 @@ resources:
   - ./kubectl-mcp/ks.yaml
   - ./kubesearch-mcp/ks.yaml
   - ./open-webui/ks.yaml
+  - ./rea-mcp/ks.yaml
   - ./searxng/ks.yaml
   - ./talos-mcp/ks.yaml
   - ./toolhive/ks.yaml
