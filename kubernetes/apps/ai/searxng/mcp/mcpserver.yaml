@@ -4,6 +4,15 @@ apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   name: searxng-mcp
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: "SearXNG"
+    toolhive.stacklok.dev/registry-url: "http://mcp-searxng-mcp-proxy.ai.svc.cluster.local:8080/mcp"
+    toolhive.stacklok.dev/registry-description: "Privacy-respecting metasearch and web URL content fetching powered by self-hosted SearXNG."
+    toolhive.stacklok.dev/tools: |
+      ["searxng_web_search","searxng_search_suggestions","searxng_instance_info","web_url_read"]
+    toolhive.stacklok.dev/tool-definitions: |
+      [{"name":"searxng_web_search","description":"Searches the web using SearXNG and returns a list of results, each with a title, URL, and content snippet. CRITICAL: The required parameter name is exactly `..."},{"name":"searxng_search_suggestions","description":"Returns autocomplete suggestions from the configured SearXNG instance. Use this to refine vague or partial queries before searching."},{"name":"searxng_instance_info","description":"Discovers capabilities from all reachable configured SearXNG instances via /config, including categories.common/available, engines.common/available, defaults..."},{"name":"web_url_read","description":"Fetches a URL and returns readable content as markdown. Content-type aware: HTML is converted to markdown; JSON is pretty-printed; plain text, YAML, TOML, an..."}]
 spec:
   image: docker.io/isokoliuk/mcp-searxng:2.7.0
   transport: stdio

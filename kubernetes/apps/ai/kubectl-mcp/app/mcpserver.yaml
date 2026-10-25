@@ -4,6 +4,15 @@ apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   name: kubectl-mcp
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: "Kubectl"
+    toolhive.stacklok.dev/registry-url: "http://mcp-kubectl-mcp-proxy.ai.svc.cluster.local:8080/mcp"
+    toolhive.stacklok.dev/registry-description: "Read-only Kubernetes cluster inspection, pod logs, events, resource health, and diagnostics via kubectl."
+    toolhive.stacklok.dev/tools: |
+      ["kubectl_get","kubectl_logs","kubectl_top","detect_ecosystem","helm_list","helm_status","helm_history","helm_get","kubectl_describe","kubectl_generic","diagnose_pod_crash","detect_pending_pods","list_contexts","health_check","kubectl_explain","get_api_resources"]
+    toolhive.stacklok.dev/tool-definitions: |
+      [{"name":"kubectl_get","description":"List or get any Kubernetes resource, including custom resources (kubectl get)."},{"name":"kubectl_logs","description":"Get container logs (kubectl logs)."},{"name":"kubectl_top","description":"CPU and memory usage of pods or nodes from metrics-server (kubectl top)."},{"name":"detect_ecosystem","description":"Detect installed operators (Flux, Argo CD, cert-manager, Kyverno, Istio, ...) and local CLIs, and report"},{"name":"helm_list","description":"List Helm releases with optional filtering."},{"name":"helm_status","description":"Get the status of a Helm release."},{"name":"helm_history","description":"Get the revision history of a Helm release."},{"name":"helm_get","description":"Get details of a Helm release: values, manifest, notes, hooks, or all."},{"name":"kubectl_describe","description":"Describe a Kubernetes resource in detail."},{"name":"kubectl_generic","description":"Execute any kubectl command. Use with caution."},{"name":"diagnose_pod_crash","description":"Automated diagnosis of pod crash loops and failures."},{"name":"detect_pending_pods","description":"Find pending pods and explain why they are not scheduled."},{"name":"list_contexts","description":"List all available kubectl contexts with detailed info."},{"name":"health_check","description":"Perform a cluster health check."},{"name":"kubectl_explain","description":"Explain a Kubernetes resource."},{"name":"get_api_resources","description":"Get available API resources."}]
 spec:
   image: docker.io/rohitghumare64/kubectl-mcp-server:2.0.0@sha256:f1f57aa5d4952f3c49e4d9bb8071a143d0812bdc8253922d51eeca8a2615ea29
   transport: streamable-http

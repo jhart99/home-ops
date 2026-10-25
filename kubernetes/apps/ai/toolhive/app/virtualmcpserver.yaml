@@ -14,11 +14,20 @@ spec:
       name: oidc-client-secret
       key: clientSecret
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/toolhive.stacklok.dev/virtualmcpserver_v1alpha1.json
-apiVersion: toolhive.stacklok.dev/v1alpha1
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/toolhive.stacklok.dev/virtualmcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: VirtualMCPServer
 metadata:
   name: vmcp-oauth
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: "MCP Gateway (OAuth)"
+    toolhive.stacklok.dev/registry-url: "https://mcp.rnatr.com/mcp"
+    toolhive.stacklok.dev/registry-description: "External OIDC-authenticated Virtual MCP Server gateway aggregating all in-cluster MCP tools with semantic tool optimization."
+    toolhive.stacklok.dev/tools: |
+      ["find_tool","call_tool"]
+    toolhive.stacklok.dev/tool-definitions: |
+      [{"name":"find_tool","description":"Search and discover available MCP tools across all aggregated backend servers using semantic and keyword matching."},{"name":"call_tool","description":"Execute a discovered MCP tool by name with its required parameters."}]
 spec:
   groupRef:
     name: mcp-tools
@@ -57,11 +66,20 @@ spec:
   telemetryConfigRef:
     name: prometheus
 ---
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/toolhive.stacklok.dev/virtualmcpserver_v1alpha1.json
-apiVersion: toolhive.stacklok.dev/v1alpha1
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/toolhive.stacklok.dev/virtualmcpserver_v1beta1.json
+apiVersion: toolhive.stacklok.dev/v1beta1
 kind: VirtualMCPServer
 metadata:
   name: mcp-gateway-internal
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: "MCP Gateway (Internal)"
+    toolhive.stacklok.dev/registry-url: "http://vmcp-mcp-gateway-internal.ai.svc.cluster.local:4483/mcp"
+    toolhive.stacklok.dev/registry-description: "Internal Virtual MCP Server gateway aggregating all in-cluster MCP tools with semantic tool optimization."
+    toolhive.stacklok.dev/tools: |
+      ["find_tool","call_tool"]
+    toolhive.stacklok.dev/tool-definitions: |
+      [{"name":"find_tool","description":"Search and discover available MCP tools across all aggregated backend servers using semantic and keyword matching."},{"name":"call_tool","description":"Execute a discovered MCP tool by name with its required parameters."}]
 spec:
   groupRef:
     name: mcp-tools

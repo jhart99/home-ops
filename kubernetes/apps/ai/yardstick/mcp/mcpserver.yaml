@@ -4,6 +4,15 @@ apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
   name: yardstick-mcp
+  annotations:
+    toolhive.stacklok.dev/registry-export: "true"
+    toolhive.stacklok.dev/registry-title: "Yardstick"
+    toolhive.stacklok.dev/registry-url: "http://mcp-yardstick-mcp-proxy.ai.svc.cluster.local:8080/mcp"
+    toolhive.stacklok.dev/registry-description: "Deterministic MCP test and echo server for validating MCP transports and tool invocations."
+    toolhive.stacklok.dev/tools: |
+      ["echo"]
+    toolhive.stacklok.dev/tool-definitions: |
+      [{"name":"echo","description":"Echo back an alphanumeric string for deterministic testing. Also echoes back any _meta field from the request for testing metadata propagation."}]
 spec:
   image: ghcr.io/stackloklabs/yardstick/yardstick-server:1.3.0
   transport: streamable-http
