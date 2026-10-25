@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: &name grafana
+  name: &name grafana-mcp
 spec:
   image: grafana/mcp-grafana:2.1.1
   transport: stdio

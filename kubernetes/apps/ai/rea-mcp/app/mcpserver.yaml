@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: rea
+  name: rea-mcp
 spec:
   # Built by .github/workflows/build-rea-mcp.yaml from images/rea-mcp/Dockerfile.
   # NOTE: append @sha256:<digest> (the workflow prints it) once the first build

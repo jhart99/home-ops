@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: talos
+  name: talos-mcp
 spec:
   image: registry.erwanleboucher.dev/eleboucher/talos-mcp:0.0.2
   transport: streamable-http

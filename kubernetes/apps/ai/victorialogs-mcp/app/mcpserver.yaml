@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: &name victorialogs
+  name: &name victorialogs-mcp
   annotations:
     toolhive.stacklok.dev/registry-export: "true"
     toolhive.stacklok.dev/registry-title: "Victorialogs"

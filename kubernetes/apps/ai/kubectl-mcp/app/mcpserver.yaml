@@ -3,7 +3,7 @@
 apiVersion: toolhive.stacklok.dev/v1beta1
 kind: MCPServer
 metadata:
-  name: kubectl
+  name: kubectl-mcp
 spec:
   image: docker.io/rohitghumare64/kubectl-mcp-server:2.0.0@sha256:f1f57aa5d4952f3c49e4d9bb8071a143d0812bdc8253922d51eeca8a2615ea29
   transport: streamable-http
