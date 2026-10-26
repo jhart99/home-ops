@@ -62,6 +62,7 @@ spec:
             requests:
               memory: 256Mi
             limits:
+              cpu: 1000m
               memory: 2Gi
   telemetryConfigRef:
     name: prometheus
@@ -110,6 +111,7 @@ spec:
             requests:
               memory: 256Mi
             limits:
+              cpu: 1000m 
               memory: 2Gi
   telemetryConfigRef:
     name: prometheus
