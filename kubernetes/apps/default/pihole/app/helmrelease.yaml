@@ -59,7 +59,7 @@ spec:
           exporter: &exporter
             image:
               repository: docker.io/ekofr/pihole-exporter
-              tag: v1.2.0
+              tag: v1.3.0
             env: &exporterEnv
               PIHOLE_HOSTNAME:
                 valueFrom:
