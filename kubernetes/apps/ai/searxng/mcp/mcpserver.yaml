@@ -14,7 +14,7 @@ metadata:
     toolhive.stacklok.dev/tool-definitions: |
       [{"name":"searxng_web_search","description":"Searches the web using SearXNG and returns a list of results, each with a title, URL, and content snippet. CRITICAL: The required parameter name is exactly `..."},{"name":"searxng_search_suggestions","description":"Returns autocomplete suggestions from the configured SearXNG instance. Use this to refine vague or partial queries before searching."},{"name":"searxng_instance_info","description":"Discovers capabilities from all reachable configured SearXNG instances via /config, including categories.common/available, engines.common/available, defaults..."},{"name":"web_url_read","description":"Fetches a URL and returns readable content as markdown. Content-type aware: HTML is converted to markdown; JSON is pretty-printed; plain text, YAML, TOML, an..."}]
 spec:
-  image: docker.io/isokoliuk/mcp-searxng:2.8.1
+  image: docker.io/isokoliuk/mcp-searxng:2.9.0
   transport: stdio
   groupRef:
     name: mcp-tools
