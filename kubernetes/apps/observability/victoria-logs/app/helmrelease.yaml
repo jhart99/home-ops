@@ -15,7 +15,7 @@ spec:
       persistentVolume:
         enabled: true
         storageClassName: ceph-fast
-        size: 20Gi
+        size: 30Gi
       retentionPeriod: 14d
       route:
         enabled: true
