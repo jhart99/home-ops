@@ -14,7 +14,7 @@
 # amd64 only: REA's Ghidra admission wants a native decompiler matching the host
 # (linux_x86_64) and the public release archive ships no linux_arm_64 build, so
 # the image is deliberately not built for the arm64 node.
-FROM node:24-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205
+FROM node:24-bookworm-slim@sha256:be8204d4bd327363357f532187b752ff62759c31bedf98e9e18fc08c9cbd605c
 
 ARG REA_VERSION=6.8.0
 ARG GHIDRA_VERSION=12.1.4
