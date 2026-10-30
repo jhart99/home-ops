@@ -9,7 +9,7 @@ components:
 
 resources:
   - ./namespace.yaml
-  - ./agentmemory/ks.yaml
+  # - ./agentmemory/ks.yaml
   - ./comfyui/ks.yaml
   - ./comfyui-mcp/ks.yaml
   - ./context7-mcp/ks.yaml
