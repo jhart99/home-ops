@@ -5,17 +5,24 @@ kind: TalosUpgrade
 metadata:
   name: talos
 spec:
-  talos:
-    # renovate: datasource=docker depName=ghcr.io/siderolabs/talos
-    version: v1.14.5
-  policy:
-    rebootMode: powercycle
   healthChecks:
     - apiVersion: volsync.backube/v1alpha1
       kind: ReplicationSource
       expr: |-
         status.conditions.filter(c, c.type == "Synchronizing").all(c, c.status == "False")
+      timeout: 30m
     - apiVersion: ceph.rook.io/v1
       kind: CephCluster
       expr: |-
         status.ceph.health in ['HEALTH_OK']
+      timeout: 30m
+  policy:
+    rebootMode: powercycle
+    drainTimeout: 15m
+  talos:
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/talos
+    version: v1.14.5
+  talosctl:
+    image:
+      pullPolicy: IfNotPresent
+      repository: ghcr.io/siderolabs/talosctl
