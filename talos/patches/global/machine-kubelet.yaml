@@ -1,6 +1,9 @@
 machine:
   kubelet:
     extraConfig:
+      maxPods: 500
+      kubeAPIQPS: 100
+      kubeAPIBurst: 200
       serializeImagePulls: false
     nodeIP:
       validSubnets:

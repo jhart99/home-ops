@@ -1,7 +1,8 @@
 machine:
   sysctls:
-    fs.inotify.max_user_watches: "1048576"     # Watchdog
+    fs.file-max: "2097152"
     fs.inotify.max_user_instances: "8192"      # Watchdog
+    fs.inotify.max_user_watches: "1048576"     # Watchdog
     net.ipv4.neigh.default.gc_thresh1: "4096"  # Prevent ARP cache overflows
     net.ipv4.neigh.default.gc_thresh2: "8192"  # Prevent ARP cache overflows
     net.ipv4.neigh.default.gc_thresh3: "16384" # Prevent ARP cache overflows
