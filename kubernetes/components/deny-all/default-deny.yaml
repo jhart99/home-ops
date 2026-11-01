@@ -1,22 +1,40 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
-# Default deny all ingress to pods in this namespace
+# Baseline per-namespace ingress policy (AUDIT MODE: enableDefaultDeny=false).
+# Selects all pods in the namespace so pods without a dedicated CiliumNetworkPolicy
+# still enter Cilium policy auditing and emit Hubble PolicyVerdict (match="all") metrics.
+# Match selector is a non-existent label so zero traffic matches at tier 200; when
+# enableDefaultDeny is flipped to true, this acts as a strict default-deny-ingress.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: default-deny-ingress
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector: {}
   ingress:
-    - {}
+    - fromEndpoints:
+        - matchLabels:
+            io.cilium.policy/audit-noop: "true"
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
-# Default deny all egress from pods in this namespace
+# Baseline per-namespace egress policy (AUDIT MODE: enableDefaultDeny=false).
+# Selects all pods in the namespace so pods without a dedicated CiliumNetworkPolicy
+# still enter Cilium policy auditing and emit Hubble PolicyVerdict (match="all") metrics.
+# Match selector is a non-existent label so zero traffic matches at tier 200; when
+# enableDefaultDeny is flipped to true, this acts as a strict default-deny-egress.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: default-deny-egress
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector: {}
   egress:
-    - {}
+    - toEndpoints:
+        - matchLabels:
+            io.cilium.policy/audit-noop: "true"

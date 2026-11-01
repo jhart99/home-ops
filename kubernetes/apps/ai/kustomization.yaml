@@ -5,6 +5,7 @@ kind: Kustomization
 namespace: ai
 
 components:
+  - ../../components/deny-all
   - ../../components/sops
 
 resources:

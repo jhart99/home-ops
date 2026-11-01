@@ -6,7 +6,7 @@ namespace: system-upgrade
 
 components:
   - ../../components/alerts
-  # - ../../components/deny-all
+  - ../../components/deny-all
   # - ../../components/egress
 
 resources:

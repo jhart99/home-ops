@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: development
 
 components:
+  - ../../components/deny-all
   - ../../components/sops
 
 resources:

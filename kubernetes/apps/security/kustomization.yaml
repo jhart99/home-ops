@@ -6,6 +6,7 @@ namespace: security
 
 components:
   - ../../components/alerts
+  - ../../components/deny-all
   - ../../components/sops
 
 resources:
