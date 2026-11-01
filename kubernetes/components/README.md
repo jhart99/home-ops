@@ -76,9 +76,10 @@ Adds a Cilium `EgressGatewayPolicy` to route a namespace's egress traffic throug
 
 ### `deny-all/`
 
-Adds default-deny `CiliumNetworkPolicy` resources for both ingress and egress. Blocks all traffic to/from pods in the namespace unless explicitly allowed by additional policies.
+Adds baseline per-namespace `CiliumNetworkPolicy` resources (`default-deny-ingress` and `default-deny-egress`) selecting `endpointSelector: {}` across the namespace.
 
-**Use when**: A namespace should follow least-privilege network access. Always pair with specific allow policies (either via the `egress` component or per-app CNPs).
+* **Audit Mode (`enableDefaultDeny: false`, current default)**: Forces Cilium to enable policy evaluation (`policy-enabled: both`) on every pod in the namespace using a no-op selector (`io.cilium.policy/audit-noop: "true"`) so that pods without a dedicated CNP still emit Hubble `PolicyVerdict` (`match="all"`) metrics without dropping traffic.
+* **Enforce Mode (`enableDefaultDeny: true`)**: Blocks all ingress and egress traffic to/from pods in the namespace unless explicitly allowed by another `CiliumNetworkPolicy`.
 
 Reference in `kustomization.yaml`:
 ```yaml
