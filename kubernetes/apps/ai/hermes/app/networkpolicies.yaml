@@ -83,6 +83,13 @@ spec:
         - ports:
             - port: "4000"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+      toPorts:
+        - ports:
+            - port: "4483"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:

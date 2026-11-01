@@ -103,6 +103,13 @@ spec:
         - ports:
             - port: "4483"
               protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "4483"
+              protocol: TCP
     # kubelet liveness/readiness probes (/health) arrive from the node
     - fromEntities:
         - host
