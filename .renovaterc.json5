@@ -67,6 +67,124 @@
       minimumGroupSize: 3,
     },
     {
+      description: 'Tuppr Group',
+      groupName: 'tuppr',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/tuppr/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Immich Group',
+      groupName: 'immich',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/immich-server/',
+        '/immich-machine-learning/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Authentik Group',
+      groupName: 'authentik',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/goauthentik/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Rook-Ceph Group',
+      groupName: 'rook-ceph',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/rook-ceph/',
+        '/rook-ceph-cluster/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Actions Runner Controller Group',
+      groupName: 'actions-runner-controller',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/gha-runner-scale-set/',
+        '/gha-runner-scale-set-controller/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Intel Device Plugins Group',
+      groupName: 'intel-device-plugins',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/intel-device-plugins-operator/',
+        '/intel-device-plugins-gpu/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'ToolHive Operator Group',
+      groupName: 'toolhive-operator',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/toolhive-operator/',
+        '/toolhive-operator-crds/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
+      description: 'Talos Group',
+      groupName: 'talos',
+      matchDatasources: [
+        'docker',
+      ],
+      matchPackageNames: [
+        '/siderolabs\\/talos$/',
+        '/siderolabs\\/installer$/',
+      ],
+      group: {
+        commitMessageTopic: '{{{groupName}}} group',
+      },
+      minimumGroupSize: 2,
+    },
+    {
       description: 'Auto-merge GitHub Actions',
       matchManagers: [
         'github-actions',
