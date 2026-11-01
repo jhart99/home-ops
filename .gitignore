@@ -19,5 +19,6 @@ talosconfig
 .private/
 .task/
 .venv/
+.gemini/sandbox.venv/
 .DS_Store
 Thumbs.db

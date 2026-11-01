@@ -135,3 +135,53 @@ After changing `topf.yaml` or patches, apply with `task talos:apply` or `task ta
 
 - **flux-local** GitHub Action (`flux-local test` + `flux-local diff`) runs on every PR touching `kubernetes/**` to validate Helm and Kustomize configs and post diffs as PR comments.
 - **Renovate** runs on weekends and opens PRs for container images, Helm charts, GitHub Actions, and mise tools. Semantic commit types are enforced (feat/fix/chore). SOPS-encrypted files are excluded from Renovate scanning.
+
+## Cilium NetworkPolicy Auditing & Diagnostics
+
+The cluster is migrating toward strict default-deny Cilium NetworkPolicies. All policies currently run in **audit mode** (`enableDefaultDeny: { ingress: false, egress: false }`, annotated with `policy.cilium.io/audit-mode: "true"`).
+
+### Policy Verdicts
+In Hubble and the Grafana **Cilium NetworkPolicy Audit** dashboard (`uid: cilium-netpol-audit`):
+- **Accounted (`match=~"l3-l4|l3-only|l4-only"`)**: Flows explicitly permitted by an installed policy rule.
+- **Unaccounted (`match="all"`)**: Flows that fell through to the default audit allow rule. **These will be dropped once default-deny enforcement is turned on.**
+
+### Diagnostic Scripts (`scripts/`)
+Two zero-dependency Python tools automate metric queries and node-level BPF inspection:
+
+1. **`scripts/cilium-netpol-audit.py`** (Prometheus & Hubble metric auditor; automatically sets up `kubectl port-forward`):
+   ```sh
+   # Show top unaccounted flows (match="all") cluster-wide or per-namespace
+   ./scripts/cilium-netpol-audit.py unaccounted
+   ./scripts/cilium-netpol-audit.py unaccounted -n observability -d egress
+
+   # Summary of accounted vs unaccounted rate and coverage percentage
+   ./scripts/cilium-netpol-audit.py summary -n observability
+
+   # Discover all active Prometheus scrape target ports partitioned by entity (cluster vs node)
+   ./scripts/cilium-netpol-audit.py targets -v
+   ```
+
+2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints & BPF tables):
+   ```sh
+   # Inspect by pod name or label selector
+   ./scripts/cilium-endpoint-inspect.py prometheus-kube-prometheus-stack-0 -n observability
+   ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000
+
+   # Show only BPF rules with active traffic (matched packets > 0)
+   ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
+   ```
+
+### Critical Rules & Gotchas
+- **`kubectl apply` 3-Way Map Merging**: When changing `matchLabels` keys in a CNP (e.g. from `app.kubernetes.io/name: foo` to `app: foo`), `kubectl apply` merges the maps and retains both labels, preventing pods from matching. **Always use `kubectl replace -f <manifest>`** or delete/recreate when modifying label keys.
+- **Cilium Port Range Syntax**: The v2 CRD requires `port: "<start>"` as a string and `endPort: <end>` as an integer:
+  ```yaml
+  toPorts:
+    - ports:
+        - port: "8080"
+          endPort: 8082
+          protocol: TCP
+  ```
+  *(Do NOT use `port: "8080-8082"`, which fails with `strconv.ParseUint: invalid syntax`.)*
+- **Scrape Egress Requires Node Entities**: Node-level metrics (kubelet `10250`, node-exporter `9100`, ceph `9926/9283`, cilium `9962-9965`, etcd `2381`) bind to node IPs (`192.168.1.x`), which are classified as `host` or `remote-node`, **not** `cluster`. Scrape egress rules must specify `toEntities: [cluster, host, remote-node]`.
+- **`toEntities` Without Ports Causes `match="all"`**: Specifying `toEntities: [cluster]` without `toPorts` places the rule in wildcard `port: 0, protocol: ANY`, causing Hubble to evaluate flows against the default fallback (`match="all"`). Explicit `toPorts` are required for L4 accounting.
+- **DSR & Return Traffic**: In Cilium DSR mode, reply packets from Service ClusterIPs or UDP DNS arrive on client ephemeral ports. Ingress policies for servers receiving replies should permit L3 ingress without restrictive `toPorts`.
