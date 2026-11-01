@@ -44,6 +44,20 @@ spec:
       app.kubernetes.io/name: authentik
   egress:
     # CNPG cluster authentik-db (same namespace, see ../database)
+    - toServices:
+        - k8sService:
+            serviceName: authentik-db-rw
+            namespace: security
+        - k8sService:
+            serviceName: authentik-db-r
+            namespace: security
+        - k8sService:
+            serviceName: authentik-db-ro
+            namespace: security
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             cnpg.io/cluster: authentik-db
@@ -93,14 +107,24 @@ spec:
         - ports:
             - port: "9000"
               protocol: TCP
-    # in-cluster consumers (oauth2proxy OIDC flow, app callbacks) + prometheus scrape
-    # (server/worker metrics + serviceMonitor)
-    # TODO(enforce phase): narrow to real callers and the metrics port in Hubble.
-    - fromEntities:
-        - cluster
+    # in-cluster consumers: authentik internal pod-to-pod
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
       toPorts:
         - ports:
             - port: "9000"
               protocol: TCP
+    # same-node Service RevNAT return traffic from database
+    - fromEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: authentik-db
+    # prometheus scrape (server/worker metrics + serviceMonitor)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
             - port: "9300"
               protocol: TCP
