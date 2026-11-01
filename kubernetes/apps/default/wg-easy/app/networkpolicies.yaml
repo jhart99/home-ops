@@ -129,3 +129,48 @@ spec:
   egress:
     - toEntities:
         - world
+---
+# Allow wg-easy (and connected VPN clients) to resolve DNS via Pi-hole.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-pihole-dns
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: pihole
+            namespace: default
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            app.kubernetes.io/name: pihole
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toCIDR:
+        - 192.168.30.53/32
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
