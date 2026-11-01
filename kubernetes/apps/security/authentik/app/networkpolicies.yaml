@@ -44,13 +44,13 @@ spec:
       app.kubernetes.io/name: authentik
   egress:
     # CNPG cluster authentik-db (same namespace, see ../database)
-    - toEntities:
-        - cluster
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: authentik-db
       toPorts:
         - ports:
             - port: "5432"
               protocol: TCP
-      # TODO(enforce phase): scope to the authentik-db pod labels (cnpg.io/cluster).
     # SMTP via smtp-relay (authentik.email.host, port 25, no TLS)
     - toEndpoints:
         - matchLabels:
