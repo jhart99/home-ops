@@ -38,7 +38,7 @@ spec:
     quantization: compressed-tensors
     maxModelLen: 131072
     kvCacheDtype: fp8_e4m3
-    gpuMemoryUtilization: 0.4
+    gpuMemoryUtilization: 0.7
     tensorParallelSize: 1
     enablePrefixCaching: true
     enableChunkedPrefill: true
