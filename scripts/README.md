@@ -32,17 +32,23 @@ This script is typically called via `task bootstrap:apps`. It performs the follo
 Audits Cilium NetworkPolicies against live Prometheus & Hubble metrics. Automatically manages `kubectl port-forward` to Prometheus if not already answering locally.
 
 **Commands:**
-- `unaccounted`: Lists flows matching `match="all"` (which would be dropped under default-deny).
+- `unaccounted`: Lists flows matching `match="all"` (which would be dropped under default-deny). Supports `-n / --namespace`, `-W / --workload`, `-d / --direction`, `-w / --window`, `--top`.
   ```bash
-  # Check unaccounted flows cluster-wide
+  # Check unaccounted flows cluster-wide or per-workload
   ./scripts/cilium-netpol-audit.py unaccounted
-
-  # Filter by namespace and direction
   ./scripts/cilium-netpol-audit.py unaccounted -n observability -d egress
+  ./scripts/cilium-netpol-audit.py unaccounted -W wg-easy
   ```
-- `summary`: Prints accounted (`l3-l4`, `l3-only`, `l4-only`) vs unaccounted (`all`) flow rates and coverage percentage.
+- `verdicts`: Displays live flow verdict rates broken down by match type (`l3-l4`, `l3-only`, `l4-only`, `all`). Supports filtering by `-W / --workload`, `-n / --namespace`, `-m / --match`.
+  ```bash
+  # Check active verdicts for a specific workload
+  ./scripts/cilium-netpol-audit.py verdicts -W wg-easy
+  ./scripts/cilium-netpol-audit.py verdicts -n observability -m l3-l4
+  ```
+- `summary`: Prints accounted (`l3-l4`, `l3-only`, `l4-only`) vs unaccounted (`all`) flow rates and coverage percentage for a namespace or workload.
   ```bash
   ./scripts/cilium-netpol-audit.py summary -n observability
+  ./scripts/cilium-netpol-audit.py summary -W wg-easy
   ```
 - `targets`: Queries Prometheus active scrape targets to extract required scrape ports partitioned by cluster pods vs host/node daemons.
   ```bash
@@ -51,11 +57,11 @@ Audits Cilium NetworkPolicies against live Prometheus & Hubble metrics. Automati
 
 ### `cilium-endpoint-inspect.py`
 
-Maps a Kubernetes Pod to its Cilium Endpoint ID, Security Identity, and node-level BPF policy table.
+Maps a Kubernetes Pod to its Cilium Endpoint ID, Security Identity, node-level BPF policy table, and live Hubble flow streams.
 
 **Usage:**
 ```bash
-# Inspect by pod name
+# Inspect BPF policy rules by pod name
 ./scripts/cilium-endpoint-inspect.py prometheus-kube-prometheus-stack-0 -n observability
 
 # Inspect by label selector and filter for a specific port
@@ -63,6 +69,12 @@ Maps a Kubernetes Pod to its Cilium Endpoint ID, Security Identity, and node-lev
 
 # Show only rules with active traffic (matched packets > 0)
 ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
+
+# View live Hubble flows directly for the pod without knowing which node it runs on
+./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
+
+# Filter Hubble flows for policy fallthrough (match='all' or dropped)
+./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --unmatched-only
 ```
 
 ### `lib/common.sh`

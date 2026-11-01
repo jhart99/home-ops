@@ -13,20 +13,26 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
 
 - **Audit Prometheus & Hubble Metrics**:
   ```bash
-  # Check top unaccounted flows (match="all")
-  ./scripts/cilium-netpol-audit.py unaccounted [-n <namespace>] [-d ingress|egress]
+  # Check top unaccounted flows (match="all") cluster-wide, by namespace, or by workload
+  ./scripts/cilium-netpol-audit.py unaccounted [-n <namespace>] [-W <workload>] [-d ingress|egress]
+
+  # View live flow verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
+  ./scripts/cilium-netpol-audit.py verdicts [-W <workload>] [-n <namespace>] [-m <match_type>]
 
   # Get accounted vs unaccounted summary and coverage percentage
-  ./scripts/cilium-netpol-audit.py summary [-n <namespace>]
+  ./scripts/cilium-netpol-audit.py summary [-n <namespace>] [-W <workload>]
 
   # Inspect required Prometheus scrape ports (partitioned by cluster pods vs host/node daemons)
   ./scripts/cilium-netpol-audit.py targets [-v]
   ```
 
-- **Inspect Node-Level BPF Policy Table for Any Pod**:
+- **Inspect Node-Level BPF Policy Table and Live Hubble Flows for Any Pod**:
   ```bash
   # Maps pod to node, Cilium agent, endpoint ID, and realized BPF rules
   ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] [-p <port>] [--active-only]
+
+  # View live Hubble flows directly for the pod
+  ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] -F [--last 30] [--unmatched-only]
   ```
 
 ## 3. Critical Cilium Implementation Rules

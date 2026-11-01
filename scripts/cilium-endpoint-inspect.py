@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Cilium Endpoint & BPF Policy Inspector CLI
 
-Bridges Kubernetes Pods to their underlying Cilium Endpoint and BPF Policy
-tables on the respective cluster node. Inspects realized L3/L4 rules,
-port mappings, and live packet/byte counters.
+Bridges Kubernetes Pods to their underlying Cilium Endpoint, BPF Policy
+tables, and Hubble flow streams on the respective cluster node.
 """
 
 from __future__ import annotations
@@ -13,6 +12,15 @@ import json
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional, Tuple
+
+
+MATCH_TYPE_NAMES = {
+    0: "NONE",
+    1: "L3_ONLY",
+    2: "L4_ONLY",
+    3: "L3_L4",
+    4: "ALL (audit)",
+}
 
 
 def run_cmd(cmd: List[str]) -> str:
@@ -29,7 +37,6 @@ def find_pod(
     if label_selector:
         cmd = ["kubectl", "get", "pods", "-n", namespace, "-l", label_selector, "-o", "json"]
     else:
-        # Check if name is formatted as namespace/pod
         if "/" in name_or_query:
             namespace, name_or_query = name_or_query.split("/", 1)
         cmd = ["kubectl", "get", "pod", "-n", namespace, name_or_query, "-o", "json"]
@@ -113,21 +120,142 @@ def get_bpf_policy(cilium_pod: str, endpoint_id: int) -> List[str]:
     return raw.splitlines()
 
 
+def get_hubble_flows(
+    cilium_pod: str,
+    pod_full_name: str,
+    last: int = 30,
+    direction: str = "both",
+    unmatched_only: bool = False,
+    non_reply_only: bool = False,
+) -> List[Dict[str, Any]]:
+    """Retrieves recent Hubble flows for the pod via the node's Cilium agent."""
+    cmd = [
+        "kubectl",
+        "exec",
+        "-n",
+        "kube-system",
+        cilium_pod,
+        "-c",
+        "cilium-agent",
+        "--",
+        "hubble",
+        "observe",
+        "--pod",
+        pod_full_name,
+        "--last",
+        str(last),
+        "-o",
+        "json",
+    ]
+    raw = run_cmd(cmd)
+    flows = []
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            flow_data = json.loads(line).get("flow", {})
+            if not flow_data:
+                continue
+
+            td = flow_data.get("traffic_direction", "").lower()
+            if direction != "both" and td != direction:
+                continue
+
+            is_reply = flow_data.get("is_reply", False)
+            if non_reply_only and is_reply:
+                continue
+
+            pmt = flow_data.get("policy_match_type", 0)
+            if unmatched_only and pmt not in (0, 4):
+                continue
+
+            flows.append(flow_data)
+        except Exception:
+            continue
+    return flows
+
+
+def format_endpoint_summary(ep: Dict[str, Any]) -> str:
+    """Formats source or destination endpoint representation."""
+    if not ep:
+        return "<unknown>"
+    pod = ep.get("pod_name")
+    ns = ep.get("namespace")
+    if pod and ns:
+        return f"{ns}/{pod}"
+    elif pod:
+        return pod
+    labels = ep.get("labels", [])
+    for l in labels:
+        if l.startswith("reserved:"):
+            return l
+    identity = ep.get("identity")
+    return f"id:{identity}" if identity else "<unknown>"
+
+
+def print_flows_table(flows: List[Dict[str, Any]]) -> None:
+    """Prints formatted table of Hubble flows."""
+    if not flows:
+        print("\nNo flows matched the filter criteria.")
+        return
+
+    print(f"\n{'TIME':<12} {'DIR':<7} {'VERDICT':<9} {'MATCH_TYPE':<12} {'SOURCE':<30} {'DESTINATION':<30} {'PORT':<10} {'SUMMARY'}")
+    print("-" * 125)
+
+    for f in flows:
+        raw_time = f.get("time", "")
+        short_time = raw_time[11:19] if len(raw_time) >= 19 else raw_time
+        direction = f.get("traffic_direction", "")[:6]
+        verdict = f.get("verdict", "")
+        pmt = f.get("policy_match_type", 0)
+        match_str = MATCH_TYPE_NAMES.get(pmt, str(pmt))
+        src = format_endpoint_summary(f.get("source", {}))
+        dst = format_endpoint_summary(f.get("destination", {}))
+
+        l4 = f.get("l4", {})
+        port = ""
+        proto = ""
+        if "TCP" in l4:
+            proto = "TCP"
+            port = str(l4["TCP"].get("destination_port", ""))
+        elif "UDP" in l4:
+            proto = "UDP"
+            port = str(l4["UDP"].get("destination_port", ""))
+        elif "ICMPv4" in l4 or "ICMPv6" in l4:
+            proto = "ICMP"
+
+        port_str = f"{port}/{proto}" if port else proto
+        summary = f.get("Summary", "")
+
+        print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<30} {dst:<30} {port_str:<10} {summary}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Inspect a pod's Cilium Endpoint ID, Security Identity, and realized BPF policy rules."
+        description="Inspect a pod's Cilium Endpoint ID, Security Identity, realized BPF policy rules, and live Hubble flows."
     )
     parser.add_argument("pod", nargs="?", help="Pod name or namespace/name")
     parser.add_argument("-n", "--namespace", default="default", help="Kubernetes namespace (default: default)")
     parser.add_argument("-l", "--selector", help="Label selector (e.g. app=grafana)")
     parser.add_argument("-p", "--port", help="Filter BPF rules by port (e.g. 80, 3000, 9100)")
     parser.add_argument(
-        "-d", "--direction", choices=["ingress", "egress", "both"], default="both", help="Filter BPF direction"
+        "-d", "--direction", choices=["ingress", "egress", "both"], default="both", help="Filter direction"
     )
     parser.add_argument(
-        "--active-only", action="store_true", help="Only show rules with matched packets > 0"
+        "--active-only", action="store_true", help="Only show BPF rules with matched packets > 0"
     )
     parser.add_argument("--json", action="store_true", help="Output raw endpoint JSON")
+
+    # Hubble flows inspection options
+    parser.add_argument("-F", "--flows", action="store_true", help="Inspect recent live Hubble flows for the pod")
+    parser.add_argument("--last", type=int, default=30, help="Number of Hubble flows to inspect (default: 30)")
+    parser.add_argument(
+        "--unmatched-only", action="store_true", help="Filter Hubble flows for policy fallthrough (match='all' or none)"
+    )
+    parser.add_argument(
+        "--non-reply-only", action="store_true", help="Filter out TCP reply packets to focus on initiated traffic"
+    )
 
     args = parser.parse_args()
 
@@ -164,13 +292,25 @@ def main() -> None:
 
     ep_id = ep.get("id")
     sec_id = ep.get("status", {}).get("identity", {}).get("id")
-    policy_status = ep.get("status", {}).get("policy", {})
     state = ep.get("status", {}).get("state")
 
     print(f"Cilium:    {cilium_pod} (Endpoint ID: {ep_id}, Security Identity: {sec_id}, State: {state})")
 
     if args.json:
         print("\n" + json.dumps(ep, indent=2))
+        return
+
+    # If --flows is requested, run Hubble flow inspection
+    if args.flows:
+        flows = get_hubble_flows(
+            cilium_pod,
+            f"{pod_ns}/{pod_name}",
+            last=args.last,
+            direction=args.direction,
+            unmatched_only=args.unmatched_only,
+            non_reply_only=args.non_reply_only,
+        )
+        print_flows_table(flows)
         return
 
     try:
@@ -202,13 +342,9 @@ def main() -> None:
             continue
 
         if args.active_only:
-            # Check PACKETS column
-            # Header: POLICY DIRECTION LABELS PORT/PROTO PROXY AUTH BYTES PACKETS PREFIX COOKIE
-            # If PACKETS is "-" or "0", skip
             tokens = [t for t in parts if t.isdigit()]
             if not tokens:
                 continue
-            # Usually bytes and packets are adjacent numbers
             if len(tokens) >= 2 and tokens[1] == "0":
                 continue
 

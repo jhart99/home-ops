@@ -150,25 +150,36 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
 
 1. **`scripts/cilium-netpol-audit.py`** (Prometheus & Hubble metric auditor; automatically sets up `kubectl port-forward`):
    ```sh
-   # Show top unaccounted flows (match="all") cluster-wide or per-namespace
+   # Show top unaccounted flows (match="all") cluster-wide, per-namespace, or per-workload
    ./scripts/cilium-netpol-audit.py unaccounted
    ./scripts/cilium-netpol-audit.py unaccounted -n observability -d egress
+   ./scripts/cilium-netpol-audit.py unaccounted -W wg-easy
+
+   # View active traffic verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
+   ./scripts/cilium-netpol-audit.py verdicts -W wg-easy
 
    # Summary of accounted vs unaccounted rate and coverage percentage
    ./scripts/cilium-netpol-audit.py summary -n observability
+   ./scripts/cilium-netpol-audit.py summary -W wg-easy
 
    # Discover all active Prometheus scrape target ports partitioned by entity (cluster vs node)
    ./scripts/cilium-netpol-audit.py targets -v
    ```
 
-2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints & BPF tables):
+2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints, BPF tables, and Hubble flows):
    ```sh
-   # Inspect by pod name or label selector
+   # Inspect BPF rules by pod name or label selector
    ./scripts/cilium-endpoint-inspect.py prometheus-kube-prometheus-stack-0 -n observability
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000
 
    # Show only BPF rules with active traffic (matched packets > 0)
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
+
+   # View live Hubble flows directly for the pod without knowing which node it runs on
+   ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
+
+   # Filter Hubble flows for policy fallthrough (match='all' or dropped)
+   ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --unmatched-only
    ```
 
 ### Critical Rules & Gotchas
