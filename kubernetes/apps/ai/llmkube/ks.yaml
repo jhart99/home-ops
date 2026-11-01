@@ -30,9 +30,15 @@ spec:
       namespace: ai
   interval: 1h
   path: "./kubernetes/apps/ai/llmkube/models"
+  components:
+    - ../../../../components/volsync
   postBuild:
     substitute:
       APP: llmkube-models
+      VOLSYNC_CAPACITY: 20Gi
+    substituteFrom:
+      - name: cluster-secrets
+        kind: Secret
   prune: true
   sourceRef:
     kind: GitRepository

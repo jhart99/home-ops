@@ -46,6 +46,14 @@ spec:
     cpu: "1"
     memory: 78Gi
     memoryLimit: 84Gi
+  endpoint:
+    port: 8000
+    type: ClusterIP
+  env:
+    - name: VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS
+      value: "0"
+    - name: TRITON_CACHE_DIR
+      value: /root/.cache/triton
   extraArgs:
     - --served-model-name
     - qwen38-27b-nvfp4
@@ -54,9 +62,13 @@ spec:
     - qwen3_coder
     - --reasoning-parser
     - qwen3
-  endpoint:
-    port: 8000
-    type: ClusterIP
+  extraVolumes:
+    - name: vllm-cache
+      persistentVolumeClaim:
+        claimName: llmkube-models
+  extraVolumeMounts:
+    - name: vllm-cache
+      mountPath: /root/.cache
   probeOverrides:
     startup:
       httpGet:
