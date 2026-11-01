@@ -29,7 +29,7 @@ spec:
               protocol: TCP
 ---
 # Gateways call LiteLLM for embeddings (embeddingService -> litellm:4000), do OIDC
-# discovery against auth.rnatr.com, and proxy to the per-server MCP pods (80/8080).
+# discovery against auth.rnatr.com, talk to kube-apiserver, and proxy to the per-server MCP pods (80/8080).
 # TODO(enforce phase): replace the cluster rule with the concrete MCP endpoints and
 # world:443 with the OIDC issuer FQDN observed in Hubble.
 apiVersion: cilium.io/v2
@@ -45,12 +45,23 @@ spec:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
   egress:
+    - toEntities:
+        - kube-apiserver
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: litellm
       toPorts:
         - ports:
             - port: "4000"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            toolhive: "true"
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "8080"
               protocol: TCP
     - toEntities:
         - cluster
