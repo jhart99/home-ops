@@ -55,7 +55,7 @@ spec:
         # view used for the #1539 netpol audit windows.
         enabled:
           - dns:query;ignoreAAAA
-          - drop:labelsContext=source_namespace,destination_namespace
+          - drop:labelsContext=source_namespace,source_workload,destination_namespace,destination_workload
           - tcp
           - flow:labelsContext=source_namespace,destination_namespace,traffic_direction
           - icmp
@@ -63,7 +63,7 @@ spec:
           # hubble_policy_verdicts_total: counts policy allow/deny verdicts per
           # direction/match - shows exactly which audit-mode CNPs are matching
           # real traffic, across all namespaces at once.
-          - policy
+          - policy:labelsContext=source_namespace,source_workload,destination_namespace,destination_workload,traffic_direction
         serviceMonitor:
           enabled: true
         dashboards:
