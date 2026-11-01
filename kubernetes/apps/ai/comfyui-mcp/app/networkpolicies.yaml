@@ -29,6 +29,7 @@ spec:
               protocol: TCP
 ---
 # Drives the ComfyUI API; npx-based tooling may fetch packages over HTTPS.
+# ToolHive proxy connects to kube-apiserver and forwards to backend MCP pod on 80.
 # TODO(enforce phase): keep 8188 scoped to comfyui, tighten world:443 to FQDNs seen in Hubble.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -43,6 +44,15 @@ spec:
     matchLabels:
       toolhive-name: comfyui-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: comfyui-mcp
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: comfyui

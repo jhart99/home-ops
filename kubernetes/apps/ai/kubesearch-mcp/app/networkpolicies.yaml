@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: kubesearch
+      toolhive-name: kubesearch-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -27,13 +27,12 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# kubesearch indexes/searches Kubernetes objects.
-# TODO(enforce phase): verify in Hubble that this is only kube-apiserver traffic; if it
-# also reads Git sources over HTTPS, add an explicit world:443 rule for those FQDNs.
+# kubesearch indexes/searches Kubernetes objects, queries kubesearch.dev, and clones
+# public repositories via Git over HTTPS. ToolHive proxy (8080) talks to backend pod (3000).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: kubesearch-allow-k8s-api
+  name: kubesearch-allow-egress
   namespace: ai
 spec:
   enableDefaultDeny:
@@ -41,10 +40,25 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: kubesearch
+      toolhive-name: kubesearch-mcp
   egress:
     - toEntities:
         - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: kubesearch-mcp
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
 ---
 # kubelet /health probes (8080 on the gateway Deployment, 3000/mcp on the server
 # StatefulSet) from the node; toolhive gateways call the server.
@@ -60,7 +74,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: kubesearch
+      toolhive-name: kubesearch-mcp
   ingress:
     - fromEntities:
         - host

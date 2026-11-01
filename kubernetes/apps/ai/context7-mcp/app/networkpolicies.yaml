@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: context7
+      toolhive-name: context7-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -27,7 +27,8 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# context7 resolves library docs upstream over HTTPS.
+# context7 resolves library docs upstream over HTTPS; ToolHive proxy accesses k8s API
+# and forwards to the backend MCP pod.
 # TODO(enforce phase): replace world:443 with the context7 API FQDNs seen in Hubble.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -40,8 +41,17 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: context7
+      toolhive-name: context7-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: context7-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:
@@ -64,7 +74,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: context7
+      toolhive-name: context7-mcp
   ingress:
     - fromEntities:
         - host

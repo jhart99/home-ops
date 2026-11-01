@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: yardstick
+      toolhive-name: yardstick-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -28,8 +28,7 @@ spec:
               protocol: TCP
 ---
 # Yardstick drives benchmark traffic against in-cluster endpoints and over HTTPS.
-# TODO(enforce phase): inventory the real targets in Hubble and split into concrete
-# cluster endpoints plus pinned world FQDNs.
+# ToolHive proxy connects to kube-apiserver and forwards to backend MCP pod on 8080.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -41,8 +40,17 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: yardstick
+      toolhive-name: yardstick-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: yardstick-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toEntities:
         - cluster
     - toEntities:
@@ -67,7 +75,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: yardstick
+      toolhive-name: yardstick-mcp
   ingress:
     - fromEntities:
         - host

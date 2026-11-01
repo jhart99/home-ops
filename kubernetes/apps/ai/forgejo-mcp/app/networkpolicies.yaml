@@ -28,6 +28,7 @@ spec:
               protocol: TCP
 ---
 # Forgejo REST API over HTTP, in-cluster service forgejo-http in namespace default.
+# ToolHive proxy connects to kube-apiserver and forwards to backend MCP pod on 8080.
 # TODO(enforce phase): scope this down to the forgejo-http endpoints instead of the
 # whole default namespace, and widen it (world:443) if FORGEJO_URL is ever pointed
 # at a public Forgejo host instead.
@@ -44,6 +45,15 @@ spec:
     matchLabels:
       toolhive-name: forgejo-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: forgejo-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: default

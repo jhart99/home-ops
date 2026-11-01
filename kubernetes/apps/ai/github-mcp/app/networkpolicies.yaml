@@ -27,7 +27,8 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# GitHub REST/GraphQL API over HTTPS.
+# GitHub REST/GraphQL API over HTTPS. ToolHive proxy connects to kube-apiserver
+# and forwards to backend MCP pod on 8080.
 # TODO(enforce phase): replace world:443 with api.github.com/github.com toFQDNs.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -42,6 +43,15 @@ spec:
     matchLabels:
       toolhive-name: github-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: github-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:

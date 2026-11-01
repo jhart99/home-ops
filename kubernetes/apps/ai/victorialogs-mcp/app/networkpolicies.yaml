@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: victorialogs
+      toolhive-name: victorialogs-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -28,9 +28,8 @@ spec:
               protocol: TCP
 ---
 # Queries VictoriaLogs in observability (VICTORIA_LOGS_URL ->
-# victoria-logs-server.observability.svc:9428).
-# TODO(enforce phase): replace the namespace-wide rule with the victoria-logs-server
-# pod selector observed in Hubble.
+# victoria-logs-server.observability.svc:9428). ToolHive proxy connects to kube-apiserver
+# and forwards to backend MCP pod on 8081.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -42,8 +41,17 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: victorialogs
+      toolhive-name: victorialogs-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: victorialogs-mcp
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
@@ -52,7 +60,7 @@ spec:
             - port: "9428"
               protocol: TCP
 ---
-# kubelet /health probes (8080) from the node; toolhive gateways call the server.
+# kubelet /health probes (8080 on proxy, 8081 on server) from the node; toolhive gateways call the server.
 # TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -65,7 +73,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: victorialogs
+      toolhive-name: victorialogs-mcp
   ingress:
     - fromEntities:
         - host
@@ -74,9 +82,13 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+            - port: "8081"
+              protocol: TCP
     - fromEntities:
         - cluster
       toPorts:
         - ports:
             - port: "8080"
+              protocol: TCP
+            - port: "8081"
               protocol: TCP

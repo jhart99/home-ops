@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: talos
+      toolhive-name: talos-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -27,13 +27,12 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# Talos MCP reaches the Talos API on the node addresses (port 50000), same CIDR as the
-# tuppr upgrade policy.
-# TODO(enforce phase): confirm the node CIDR in Hubble if it is not 192.168.1.0/24.
+# Talos MCP reaches the Talos API on the node addresses (port 50000). ToolHive proxy
+# runner connects to kube-apiserver and forwards to backend MCP pod on 8080.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: talos-mcp-allow-talos-api
+  name: talos-mcp-allow-egress
   namespace: ai
 spec:
   enableDefaultDeny:
@@ -41,8 +40,17 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: talos
+      toolhive-name: talos-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: talos-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toCIDR:
         - 192.168.1.0/24
       toPorts:
@@ -63,7 +71,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: talos
+      toolhive-name: talos-mcp
   ingress:
     - fromEntities:
         - host

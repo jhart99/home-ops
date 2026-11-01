@@ -14,7 +14,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: grafana
+      toolhive-name: grafana-mcp
   egress:
     - toEndpoints:
         - matchLabels:
@@ -27,9 +27,8 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# Grafana HTTP API over HTTPS (URL/token come from the MCP server config).
-# TODO(enforce phase): tighten world:443 to the Grafana FQDN (in-cluster or rnatr.com)
-# observed in Hubble.
+# Grafana HTTP API over HTTP (in-cluster grafana-service in observability:3000) or HTTPS.
+# ToolHive proxy connects to kube-apiserver and forwards to backend MCP pod on 8080.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -41,8 +40,24 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: grafana
+      toolhive-name: grafana-mcp
   egress:
+    - toEntities:
+        - kube-apiserver
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            toolhive-name: grafana-mcp
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:
@@ -65,7 +80,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      toolhive-name: grafana
+      toolhive-name: grafana-mcp
   ingress:
     - fromEntities:
         - host
