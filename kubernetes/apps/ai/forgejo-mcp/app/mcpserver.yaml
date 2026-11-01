@@ -37,5 +37,9 @@ spec:
     limits:
       cpu: 200m
       memory: 256Mi
+  podTemplateSpec:
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
   groupRef:
     name: mcp-tools
