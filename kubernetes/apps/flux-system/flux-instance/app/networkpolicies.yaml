@@ -1,0 +1,413 @@
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
+# is flipped on in a follow-up PR for this namespace.
+---
+# kustomize-controller
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kustomize-controller-allow-dns
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: kustomize-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# kustomize-controller reconciles all Kubernetes manifests via the API server.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kustomize-controller-allow-k8s-api
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: kustomize-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# kustomize-controller fetches source artifacts from source-controller (9090)
+# and delivers event notifications to notification-controller (9090).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kustomize-controller-allow-flux-system
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: kustomize-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: flux
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+---
+# kubelet probes on 9440; Prometheus scrapes metrics on 8080.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kustomize-controller-allow-ingress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: kustomize-controller
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9440"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# helm-controller
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: helm-controller-allow-dns
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: helm-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: helm-controller-allow-k8s-api
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: helm-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: helm-controller-allow-flux-system
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: helm-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: flux
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: helm-controller-allow-ingress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: helm-controller
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9440"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# source-controller
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: source-controller-allow-dns
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: source-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: source-controller-allow-k8s-api
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: source-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: source-controller-allow-egress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: source-controller
+  egress:
+    # Git over SSH (22) and HTTPS (443), OCI/Helm registries over HTTPS (443) and HTTP (80)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "22"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+    # Internal Forgejo service in default namespace
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    # Event notifications to notification-controller
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: flux
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: source-controller-allow-ingress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: source-controller
+  ingress:
+    # Artifact requests from kustomize-controller and helm-controller
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: flux
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9440"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+---
+# notification-controller
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: notification-controller-allow-dns
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: notification-controller
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: notification-controller-allow-k8s-api
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: notification-controller
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: notification-controller-allow-egress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: notification-controller
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    - toEntities:
+        - cluster
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: notification-controller-allow-ingress
+  namespace: flux-system
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/component: notification-controller
+  ingress:
+    # Event delivery from flux controllers
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: flux
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    # Webhook receiver ingress from Envoy gateway (port 9292)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "9292"
+              protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9440"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP

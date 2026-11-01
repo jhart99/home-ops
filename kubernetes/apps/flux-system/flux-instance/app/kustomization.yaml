@@ -5,6 +5,7 @@ resources:
   - ./backendtrafficpolicy.yaml
   - ./helmrelease.yaml
   - ./httproute.yaml
+  - ./networkpolicies.yaml
   - ./ocirepository.yaml
   - ./receiver.yaml
   - ./secret.sops.yaml
