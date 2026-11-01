@@ -27,6 +27,16 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: kube-dns
+            namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
 ---
 # Gateways call LiteLLM for embeddings (embeddingService -> litellm:4000), do OIDC
 # discovery against auth.rnatr.com, talk to kube-apiserver, and proxy to the per-server MCP pods (80/8080).
@@ -96,6 +106,16 @@ spec:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
   ingress:
+    # Response traffic from in-cluster MCP proxies and CoreDNS (ephemeral return ports)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
+            toolhive: "true"
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+    # Ingress to virtualmcpserver on port 4483
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
