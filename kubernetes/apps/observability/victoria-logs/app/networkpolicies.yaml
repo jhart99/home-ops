@@ -21,7 +21,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: victoria-logs
+      app.kubernetes.io/name: victoria-logs-single
   egress:
     - toEndpoints:
         - matchLabels:
@@ -54,7 +54,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: victoria-logs
+      app.kubernetes.io/name: victoria-logs-single
   ingress:
     - fromEntities:
         - cluster
@@ -92,7 +92,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: victoria-logs
+      app.kubernetes.io/name: victoria-logs-single
   ingress:
     - fromEndpoints:
         - matchLabels:
