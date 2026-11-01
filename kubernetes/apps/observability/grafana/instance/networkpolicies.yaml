@@ -6,7 +6,7 @@
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
 # Policies for the Grafana instance (deployment created by the grafana-operator
-# from the Grafana CR; the operator labels it app.kubernetes.io/name: grafana).
+# from the Grafana CR; the operator labels it app: grafana).
 # Allow grafana to resolve DNS via kube-dns
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -23,7 +23,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
+      app: grafana
   egress:
     - toEndpoints:
         - matchLabels:
@@ -53,7 +53,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
+      app: grafana
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -95,7 +95,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: grafana
+      app: grafana
   egress:
     - toEntities:
         - cluster
