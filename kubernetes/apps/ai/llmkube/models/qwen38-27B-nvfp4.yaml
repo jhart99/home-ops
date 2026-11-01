@@ -44,7 +44,8 @@ spec:
     enableChunkedPrefill: true
   resources:
     cpu: "1"
-    memory: 16Gi
+    memory: 78Gi
+    memoryLimit: 84Gi
   extraArgs:
     - --served-model-name
     - qwen38-27b-nvfp4
