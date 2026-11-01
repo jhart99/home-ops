@@ -136,12 +136,9 @@ spec:
         - kube-apiserver
 ---
 # Prometheus scrapes OUTWARD into every other namespace (ServiceMonitors,
-# PodMonitors, Probes and scrape configs cluster-wide, plus Alertmanager and
-# remote-write endpoints). Enumerating the scrape-target set here is neither
-# feasible nor useful in audit mode.
-# TODO(enforce phase): scope this from the observed scrape flows - candidates
-# are toEntities [cluster] on the discovered metrics ports plus a small set of
-# world targets (external scrape configs, if any).
+# PodMonitors, Probes and scrape configs cluster-wide, plus Alertmanager,
+# node exporters, and host daemons). Scrape targets are cluster pods,
+# localhost/hostNetwork daemons, and remote nodes.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -159,6 +156,66 @@ spec:
   egress:
     - toEntities:
         - cluster
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "2020"
+              protocol: TCP
+            - port: "2381"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "4483"
+              protocol: TCP
+            - port: "5656"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
+            - port: "7979"
+              protocol: TCP
+            - port: "8080"
+              endPort: 8082
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+            - port: "9090"
+              endPort: 9094
+              protocol: TCP
+            - port: "9100"
+              protocol: TCP
+            - port: "9115"
+              protocol: TCP
+            - port: "9153"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+            - port: "9283"
+              protocol: TCP
+            - port: "9300"
+              protocol: TCP
+            - port: "9402"
+              protocol: TCP
+            - port: "9428"
+              protocol: TCP
+            - port: "9617"
+              protocol: TCP
+            - port: "9633"
+              protocol: TCP
+            - port: "9926"
+              protocol: TCP
+            - port: "9962"
+              endPort: 9965
+              protocol: TCP
+            - port: "10250"
+              protocol: TCP
+            - port: "10257"
+              endPort: 10259
+              protocol: TCP
+            - port: "19001"
+              protocol: TCP
 ---
 # Allow ingress to the prometheus server (port 9090):
 #   - from the envoy-internal proxies (prometheus.${SECRET_DOMAIN} HTTPRoute);
