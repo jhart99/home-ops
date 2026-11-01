@@ -108,3 +108,24 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
+---
+# Allow wg-easy to route outbound VPN client traffic to the internet (world).
+# VPN clients tunnel through wg-easy to reach external services. Internal cluster
+# pod and service networks remain disallowed.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-world-egress
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toEntities:
+        - world
