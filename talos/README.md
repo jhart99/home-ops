@@ -24,15 +24,16 @@ Current versions are pinned in `topf.yaml` and automatically updated by Renovate
 
 ## Node Summary
 
-| Node | Role | IP | Arch | Install Disk | Notes |
-|------|------|----|------|--------------|-------|
-| talos-cp-1 | control-plane | 192.168.1.11 | x86 | `/dev/disk/by-id/nvme-eui.0025388c91511427` | Mellanox NIC, VLAN 10/100 |
-| talos-cp-2 | control-plane | 192.168.1.12 | x86 | `/dev/disk/by-id/nvme-eui.002538d921a1a1e3` | Mellanox NIC, VLAN 10/100 |
-| talos-cp-3 | control-plane | 192.168.1.13 | x86 | `/dev/disk/by-id/nvme-eui.001b448b4679b087` | Mellanox NIC, VLAN 10/100 |
-| talos-worker-5 | worker | 192.168.1.18 | ARM64 | `/dev/nvme0n1` | NVIDIA GPU (DGX Spark), Mellanox NIC |
-| talos-worker-6 | worker | 192.168.1.19 | x86 | `/dev/sda` | General Purpose SSD |
+| Node | Role | IP | Arch | Pod CIDR | Max Pods | Install Disk | Notes |
+|------|------|----|------|----------|----------|--------------|-------|
+| talos-cp-1 | control-plane | 192.168.1.11 | x86_64 | `10.42.20.0/22` | 500 | `/dev/disk/by-id/nvme-eui.0025388c91511427` | Mellanox NIC, VLAN 10/100 |
+| talos-cp-2 | control-plane | 192.168.1.12 | x86_64 | `10.42.16.0/22` | 500 | `/dev/disk/by-id/nvme-eui.002538d921a1a1e3` | Mellanox NIC, VLAN 10/100 |
+| talos-cp-3 | control-plane | 192.168.1.13 | x86_64 | `10.42.12.0/22` | 500 | `/dev/disk/by-id/nvme-eui.001b448b4679b087` | Mellanox NIC, VLAN 10/100 |
+| talos-worker-5 | worker | 192.168.1.18 | ARM64 | `10.42.8.0/22` | 500 | `/dev/nvme0n1` | NVIDIA GPU (DGX Spark), Mellanox NIC |
+| talos-worker-6 | worker | 192.168.1.19 | x86_64 | `10.42.0.0/22` | 500 | `/dev/sda` | General Purpose SSD |
 
 **External LB**: `192.168.1.75`, **Internal VIP**: `192.168.1.5` (control plane HA)
+**Networks**: Pod CIDR `10.42.0.0/16` (`/22` per-node CIDR mask), Service CIDR `10.43.0.0/16`
 
 ## Schematics
 
@@ -58,13 +59,13 @@ Global patches (`all/`):
 - `01-cluster.yaml` — machine certSANs, pod/service subnets (`KubeNetworkConfig`), disable built-in Flannel CNI (`KubeFlannelCNIConfig`)
 - `02-hostname.yaml.tpl` — static `HostnameConfig` from `nodes[].host`
 - `03-machine-files.yaml` — containerd CRI customization (`CRICustomizationConfig`)
-- `04-machine-kubelet.yaml` — kubelet configuration (`KubeletConfig`, `KubeNodeConfig`)
+- `04-machine-kubelet.yaml` — kubelet configuration (`KubeletConfig` with `maxPods: 500`, `kubeAPIQPS: 100`, `kubeAPIBurst: 200`, and `KubeNodeConfig`)
 - `05-machine-network.yaml` — DNS resolver settings (`ResolverConfig`)
-- `06-machine-sysctls.yaml` — kernel parameters (`SysctlConfig`)
+- `06-machine-sysctls.yaml` — kernel parameters (`SysctlConfig`, including `fs.file-max: 2097152`)
 - `07-machine-time.yaml` — NTP configuration (`TimeSyncConfig`)
 
 Control plane patches (`control-plane/`):
-- `01-cluster.yaml` — etcd, API server, controller manager, scheduler, CoreDNS, kube-proxy, and control-plane scheduling settings
+- `01-cluster.yaml` — etcd, API server, controller manager (`node-cidr-mask-size-ipv4: "22"`), scheduler, CoreDNS, kube-proxy, and control-plane scheduling settings
 - `02-machine-features.yaml` — Kubernetes Talos API access (`KubeTalosAPIAccessConfig`)
 - `03-machine-diskencryption.yaml` — LUKS2 + TPM disk encryption config (`VolumeConfig`, currently commented out)
 

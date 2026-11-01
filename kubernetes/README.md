@@ -38,15 +38,21 @@ apps/<namespace>/<app-name>/
 
 | Namespace | Purpose |
 |-----------|---------|
-| `kube-system` | Core cluster infrastructure (CNI, DNS, storage drivers, GPU plugins) |
+| `kube-system` | Core cluster infrastructure (CNI, DNS, storage drivers, GPU plugins & DRA drivers) |
 | `network` | Ingress, DNS, Cloudflare tunnel |
-| `cert-manager` | TLS certificate management |
-| `rook-ceph` | Distributed block storage |
+| `cert-manager` | TLS certificate management & trust distribution |
+| `external-secrets` | External Secrets Operator |
+| `rook-ceph` | Distributed block, filesystem, and object storage |
 | `openebs-system` | Local persistent storage |
 | `volsync-system` | Volume backup and restore |
-| `database` | Database operators (CloudNative-PG, Dragonfly) |
+| `system-upgrade` | Automated Talos and Kubernetes upgrades (Tuppr) |
+| `database` | Database operators (CloudNative-PG, Dragonfly, OpenSearch) |
 | `observability` | Monitoring, logging, alerting |
-| `security` | Authentication (Authentik, OAuth2 proxy) |
+| `security` | Authentication & security scanning (Authentik, OAuth2 proxy, Trivy) |
+| `ai` | AI workloads, LLM inference (LLMKube, LiteLLM), agents (Hermes), and ToolHive MCP servers |
+| `communication` | Matrix homeserver (Tuwunel), Signal CLI, and SMTP relay |
+| `development` | Developer tools (Atuin, Backstage, Coder) |
+| `rustfs` | S3-compatible object storage (RustFS) |
 | `actions-runner-system` | GitHub Actions self-hosted runners |
 | `flux-system` | Flux operator and instance |
 | `default` | User applications |

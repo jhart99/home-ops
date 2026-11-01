@@ -16,15 +16,15 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 
 | Component | Details |
 |-----------|---------|
-| OS | Talos Linux v1.12.6 |
-| Kubernetes | v1.35.3 |
-| CNI | Cilium (eBPF, WireGuard encryption) |
-| GitOps | FluxCD |
-| Secrets | SOPS + age |
-| Storage | Rook-Ceph (block), OpenEBS (local), NFS |
-| Ingress | Envoy Gateway |
-| DNS | k8s-gateway (internal), Cloudflare (external) |
-| Certificates | cert-manager |
+| OS | Talos Linux v1.14.5 (managed via [TOPF](https://github.com/postfinance/topf) & [Tuppr](https://github.com/home-operations/tuppr)) |
+| Kubernetes | v1.37.2 |
+| CNI | Cilium (eBPF, WireGuard encryption, BGP, L2 announcements) |
+| GitOps | FluxCD (Flux Operator) |
+| Secrets | SOPS + age & External Secrets |
+| Storage | Rook-Ceph (block/filesystem/object), OpenEBS (local), NFS |
+| Ingress | Envoy Gateway (internal & external) |
+| DNS | k8s-gateway (internal), UniFi/OpenWrt DNS, Cloudflare (external) |
+| Certificates | cert-manager + trust-manager + cert-manager-csi-driver |
 | Backups | VolSync + Kopia |
 
 ## Hardware
@@ -33,22 +33,18 @@ My personal Kubernetes homelab cluster managed entirely through GitOps. Built on
 
 | Node | IP | Disk | Notes |
 |------|----|------|-------|
-| talos-cp-1 | 192.168.1.11 | NVMe | Mellanox NIC, MTU 9000 |
-| talos-cp-2 | 192.168.1.12 | NVMe | Mellanox NIC, MTU 9000 |
-| talos-cp-3 | 192.168.1.13 | NVMe | Mellanox NIC, MTU 9000 |
+| talos-cp-1 | 192.168.1.11 | NVMe | x86_64, Intel iGPU, Mellanox NIC, MTU 9000 |
+| talos-cp-2 | 192.168.1.12 | NVMe | x86_64, Intel iGPU, Mellanox NIC, MTU 9000 |
+| talos-cp-3 | 192.168.1.13 | NVMe | x86_64, Intel iGPU, Mellanox NIC, MTU 9000 |
 
-**6 Worker Nodes**
+**2 Worker Nodes**
 
 | Node | IP | Disk | Notes |
 |------|----|------|-------|
-| talos-worker-1 | 192.168.1.14 | eMMC | ARM (Raspberry Pi-class) |
-| talos-worker-2 | 192.168.1.15 | eMMC | ARM (Raspberry Pi-class) |
-| talos-worker-3 | 192.168.1.16 | eMMC | ARM (Raspberry Pi-class) |
-| talos-worker-4 | 192.168.1.17 | eMMC | ARM (Raspberry Pi-class) |
 | talos-worker-5 | 192.168.1.18 | NVMe | ARM64, NVIDIA GPU, Mellanox NIC (DGX Spark) |
-| talos-worker-6 | 192.168.1.19 | SSD | x86 (General Purpose) |
+| talos-worker-6 | 192.168.1.19 | SSD | x86_64 (General Purpose) |
 
-**Networks**: Pod CIDR `10.42.0.0/16`, Service CIDR `10.43.0.0/16`. Control plane and worker-5 use VLANs 10 (`192.168.2.x`) and 100 (`192.168.100.x`) with jumbo frames (MTU 9000).
+**Networks**: Pod CIDR `10.42.0.0/16` (`/22` per-node CIDR mask, `maxPods: 500`), Service CIDR `10.43.0.0/16`. Control plane and worker-5 use VLANs 10 (`192.168.2.x`) and 100 (`192.168.100.x`) with jumbo frames (MTU 9000).
 
 ## Repository Structure
 
@@ -158,7 +154,7 @@ task talos:reset   # DESTRUCTIVE: resets all nodes to maintenance mode
 
 ## Secrets
 
-Secrets are encrypted with SOPS using an age key at `age.key`. Files matching `*.sops.yaml` are encrypted.
+Secrets are encrypted with SOPS using an age key at `age.key`. Files matching `*.sops.yaml` as well as `talos/secrets.yaml` are encrypted.
 
 ```sh
 # Encrypt a new secret file in-place

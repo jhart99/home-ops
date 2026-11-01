@@ -36,10 +36,10 @@ task talos:reset                  # Reset all nodes back to maintenance mode (DE
 
 ## Cluster Architecture
 
-**3 control plane nodes** (192.168.1.11-13, External LB at 192.168.1.75, Internal VIP at 192.168.1.5) + **5 worker nodes** (192.168.1.14-18):
-- Workers 1-4 are ARM (Raspberry Pi-class, eMMC storage)
-- Worker 5 is ARM64 (DGX Spark) with NVIDIA GPU and Mellanox NIC
-- Pod network: `10.42.0.0/16`, Service network: `10.43.0.0/16`
+**3 control plane nodes** (192.168.1.11-13, External LB at 192.168.1.75, Internal VIP at 192.168.1.5) + **2 worker nodes** (192.168.1.18-19):
+- Worker 5 (`talos-worker-5`, 192.168.1.18) is ARM64 (DGX Spark) with NVIDIA GPU and Mellanox NIC
+- Worker 6 (`talos-worker-6`, 192.168.1.19) is x86_64 general purpose worker
+- Pod network: `10.42.0.0/16` (`/22` per-node CIDR mask, `maxPods: 500`), Service network: `10.43.0.0/16`
 
 **Network layout**: Control plane and worker-5 nodes use Mellanox NICs (`mlx5`) with jumbo frames (MTU 9000) and two VLANs (VLAN 10 @ 192.168.2.x, VLAN 100 @ 192.168.100.x). Layer2 VIPs provide HA for gateways.
 
@@ -67,15 +67,17 @@ Located in `kubernetes/components/`, these are referenced in app `ks.yaml` files
 
 - **`sops`** — Deploys `cluster-secrets` Secret (encrypted); needed by any app using `substituteFrom: cluster-secrets`
 - **`volsync`** — Adds PVC + VolSync replication resources; used by stateful apps that need backup/restore. Requires `APP` and `VOLSYNC_CAPACITY` substitution vars.
+- **`intel-gpu`** — Adds a DRA `ResourceClaimTemplate` for Intel GPU access
 - **`nfs-scaler`** — KEDA ScaledObject for NFS-backed workloads
 - **`vpn`** — Cilium EgressGatewayPolicy for VPN routing
+- **`deny-all` / `egress`** — Baseline CiliumNetworkPolicies for default-deny and common DNS/API egress
 - **`alerts`** — Flux Alertmanager/GitHub status alert configs
 
 ## Secrets (SOPS)
 
-Files matching `*.sops.yaml` are SOPS-encrypted with an age key stored at `age.key` (root of repo).
+Files matching `*.sops.yaml` and `talos/secrets.yaml` are SOPS-encrypted with an age key stored at `age.key` (root of repo).
 
-- **`talos/*.sops.yaml`**: Entire file is MAC-only encrypted (full file encryption)
+- **`talos/secrets.yaml` and `talos/*.sops.yaml`**: Entire file is MAC-only encrypted (full file encryption)
 - **`kubernetes/*.sops.yaml` and `bootstrap/*.sops.yaml`**: Only `data` and `stringData` fields are encrypted (the rest of the YAML is plaintext)
 
 To encrypt a new secret file:
@@ -104,16 +106,23 @@ After changing `topf.yaml` or patches, apply with `task talos:apply` or `task ta
 
 | Namespace | Contents |
 |-----------|---------|
-| `kube-system` | cilium, coredns, csi-driver-nfs, metrics-server, multus, node-feature-discovery, reloader, spegel, intel/nvidia device plugins |
-| `network` | envoy-gateway (HTTP routing), cloudflare-tunnel, cloudflare-dns, k8s-gateway, unifi |
-| `cert-manager` | TLS certificate management |
-| `rook-ceph` | Distributed block storage |
+| `kube-system` | cilium, coredns, csi-driver-nfs, descheduler, etcd-defrag, metrics-server, multus, node-feature-discovery, reloader, snapshot-controller, spegel, intel/nvidia device plugins & DRA drivers |
+| `network` | envoy-gateway (HTTP routing), cloudflare-tunnel, cloudflare-dns, k8s-gateway, openwrt-dns, unifi-dns |
+| `cert-manager` | cert-manager, trust-manager, cert-manager-csi-driver |
+| `external-secrets` | External Secrets Operator |
+| `rook-ceph` | Distributed block, filesystem, and object storage |
 | `openebs-system` | OpenEBS local storage |
-| `volsync-system` | Volume backup/restore |
-| `observability` | kube-prometheus-stack, grafana, victoria-logs, gatus, fluent-bit, keda, etc. |
-| `security` | Security tooling |
-| `database` | Database workloads |
-| `default` | User apps: forgejo, freshrss, immich, paperless, pihole, wg-easy, etc. |
+| `volsync-system` | Volume backup/restore (VolSync + Kopia) |
+| `system-upgrade` | Automated Talos and Kubernetes upgrades via Tuppr |
+| `observability` | kube-prometheus-stack, grafana, victoria-logs, gatus, fluent-bit, keda, kromgo, blackbox-exporter, smartctl-exporter, unpoller, silence-operator |
+| `security` | authentik, oauth2proxy, trivy |
+| `database` | cloudnative-pg, dragonfly, opensearch-operator |
+| `ai` | toolhive (MCP operator/registry/UI), MCP servers (forgejo, github, grafana, kubectl, kubesearch, talos, victorialogs, comfyui, context7, rea, searxng, yardstick), hermes, llmkube, litellm, open-webui, comfyui, agentmemory, searxng |
+| `communication` | tuwunel (Matrix), signal-cli, smtp-relay |
+| `development` | atuin, backstage, coder |
+| `rustfs` | RustFS object storage |
+| `actions-runner-system` | GitHub Actions Runner Controller and self-hosted runner scale sets |
+| `default` | User apps: blog, forgejo, forgejo-runner, freshrss, home-assistant, immich, mosquitto, paperless, pihole, renovate, wg-easy, whoami, zigbee, zwave |
 
 ## HTTP Routing
 

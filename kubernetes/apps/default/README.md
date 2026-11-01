@@ -6,21 +6,18 @@ General purpose user applications and services. This namespace contains most of 
 
 | App | Description | Components |
 |-----|-------------|------------|
-| **devshell** | Interactive pod for debugging and administrative tasks. | `pod`, `serviceaccount` |
-| **forgejo** | Lightweight self-hosted Git service (Gitea fork). | `helmrelease`, `postgresql`, `storage` |
-| **forgejo-runner** | CI/CD runner for Forgejo actions. | `deployment` |
+| **blog** | Personal blog site. | `helmrelease`, `httproute` |
+| **forgejo** | Lightweight self-hosted Git service (Gitea fork). | `helmrelease`, `postgresql`, `dragonfly`, `storage` |
+| **forgejo-runner** | CI/CD runner for Forgejo actions. | `helmrelease`, `statefulset` |
 | **freshrss** | Self-hosted RSS feed aggregator. | `helmrelease`, `postgresql` |
-| **home-assistant** | Core home automation hub with Zigbee/Z-Wave integration. | `helmrelease`, `hostnetwork`, `usb-passthrough` |
-| **immich** | High-performance self-hosted photo and video management. | `helmrelease`, `postgresql`, `redis`, `machine-learning` |
+| **home-assistant** | Core home automation hub with Zigbee/Z-Wave integration. | `helmrelease`, `multus`, `storage` |
+| **immich** | High-performance self-hosted photo and video management. | `helmrelease`, `postgresql`, `dragonfly`, `machine-learning` |
 | **mosquitto** | MQTT broker for IoT device communication. | `helmrelease` |
-| **ollama** | API for running large language models (LLMs) locally. | `deployment`, `nvidia-gpu` |
-| **open-webui** | Web interface for interacting with Ollama. | `helmrelease` |
-| **paperless** | Document management system for scanning and archiving. | `helmrelease`, `postgresql`, `redis` |
+| **paperless** | Document management system for scanning and archiving. | `helmrelease`, `postgresql`, `dragonfly` |
 | **pihole** | Network-wide ad blocking and DNS resolution. | `helmrelease`, `loadbalancer-ip` |
-| **renovate** | Automated dependency update bot for this repository. | `cronjob` |
-| **smtp-relay** | Internal relay for cluster services to send emails. | `deployment` |
+| **renovate** | Automated dependency update operator and jobs (GitHub & Forgejo). | `helmrelease`, `dragonfly` |
 | **wg-easy** | Web UI for managing WireGuard VPN clients. | `helmrelease`, `udp-ingress` |
-| **whoami** | Simple HTTP information service (Go-based). | `deployment`, `httproute` |
+| **whoami** | Simple HTTP information service (Go-based). | `helmrelease`, `httproute` |
 | **zigbee** | Zigbee2MQTT bridge for Zigbee IoT devices. | `helmrelease`, `usb-passthrough` |
 | **zwave** | Z-Wave JS UI bridge for Z-Wave IoT devices. | `helmrelease`, `usb-passthrough` |
 
