@@ -25,7 +25,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: rook-ceph
+      app: rook-ceph-operator
   egress:
     - toEndpoints:
         - matchLabels:
@@ -53,7 +53,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: rook-ceph
+      app: rook-ceph-operator
   egress:
     - toEntities:
         - kube-apiserver
@@ -76,10 +76,11 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: rook-ceph
+      app: rook-ceph-operator
   egress:
     - toEntities:
         - cluster
+        - host
         - remote-node
       toPorts:
         - ports:
@@ -91,9 +92,11 @@ spec:
               protocol: TCP
             - port: "3300"
               protocol: UDP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: TCP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: UDP
 ---
 # Allow Prometheus (observability) to scrape the operator metrics endpoint.
@@ -113,7 +116,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: rook-ceph
+      app: rook-ceph-operator
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -140,7 +143,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: rook-ceph
+      app: rook-ceph-operator
   ingress:
     - fromEntities:
         - kube-apiserver

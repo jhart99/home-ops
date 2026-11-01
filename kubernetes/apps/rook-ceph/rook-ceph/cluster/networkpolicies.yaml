@@ -113,6 +113,7 @@ spec:
   ingress:
     - fromEntities:
         - cluster
+        - host
         - remote-node
       toPorts:
         - ports:
@@ -124,13 +125,16 @@ spec:
               protocol: TCP
             - port: "3300"
               protocol: UDP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: TCP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: UDP
   egress:
     - toEntities:
         - cluster
+        - host
         - remote-node
       toPorts:
         - ports:
@@ -142,9 +146,11 @@ spec:
               protocol: TCP
             - port: "3300"
               protocol: UDP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: TCP
-            - port: "6800-7300"
+            - port: "6800"
+              endPort: 7300
               protocol: UDP
 ---
 # Allow the Ceph dashboard (mgr, port 7000) via the envoy-internal HTTPRoute
