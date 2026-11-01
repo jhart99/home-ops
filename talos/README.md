@@ -1,38 +1,36 @@
 # talos/
 
-Talos Linux node configuration managed with [talhelper](https://budimanjojo.github.io/talhelper/latest/). All node configs are generated from `talconfig.yaml` — never edit the generated output in `clusterconfig/` directly.
+Talos Linux node configuration managed with [TOPF](https://github.com/postfinance/topf). Configuration is composed from `topf.yaml` and layered patch directories (`all/`, `control-plane/`, `node/<host>/`).
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `talconfig.yaml` | Node definitions: IPs, install disks, extensions, patches |
-| `talenv.yaml` | Talos and Kubernetes version pins (Renovate-managed) |
-| `talsecret.sops.yaml` | Encrypted cluster secrets (machine tokens, CA certs) |
+| File / Directory | Purpose |
+|------------------|---------|
+| `topf.yaml` | Cluster & node definitions, Talos and Kubernetes version pins (Renovate-managed), and schematic references |
+| `secrets.yaml` | SOPS-encrypted cluster secrets bundle (machine tokens, CA certs) |
 | `schematic.yaml` | Image factory schematic for x86 nodes |
-| `schematic-spark.yaml` | Image factory schematic for ARM (Raspberry Pi) nodes |
-| `clusterconfig/` | Generated output — do not edit directly |
-| `patches/` | Patch files applied to node configs (see `patches/README.md`) |
+| `schematic-qemu.yaml` | Image factory schematic for QEMU/VM nodes |
+| `schematic-spark.yaml` | Image factory schematic for ARM64 DGX Spark nodes |
+| `all/` | Patches applied to all nodes |
+| `control-plane/` | Patches applied to control-plane nodes |
+| `node/<host>/` | Node-specific patches (install disks, kernel modules, network interfaces) |
+| `output/` | Optional rendered output from `topf render` (gitignored) |
 
 ## Versions
 
-Current versions are pinned in `talenv.yaml` and automatically updated by Renovate:
-- **Talos**: v1.12.6
-- **Kubernetes**: v1.35.3
+Current versions are pinned in `topf.yaml` and automatically updated by Renovate:
+- **Talos**: v1.14.5
+- **Kubernetes**: v1.37.2
 
 ## Node Summary
 
 | Node | Role | IP | Arch | Install Disk | Notes |
 |------|------|----|------|--------------|-------|
-| talos-cp-1 | controlplane | 192.168.1.11 | x86 | /dev/nvme1n1 | Mellanox NIC, VLAN 10/100 |
-| talos-cp-2 | controlplane | 192.168.1.12 | x86 | /dev/nvme1n1 | Mellanox NIC, VLAN 10/100 |
-| talos-cp-3 | controlplane | 192.168.1.13 | x86 | /dev/nvme0n1 | Mellanox NIC, VLAN 10/100 |
-| talos-worker-1 | worker | 192.168.1.14 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
-| talos-worker-2 | worker | 192.168.1.15 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
-| talos-worker-3 | worker | 192.168.1.16 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
-| talos-worker-4 | worker | 192.168.1.17 | ARM | /dev/mmcblk0 | Raspberry Pi-class, eMMC |
-| talos-worker-5 | worker | 192.168.1.18 | ARM64 | /dev/nvme0n1 | NVIDIA GPU (DGX Spark), Mellanox NIC |
-| talos-worker-6 | worker | 192.168.1.19 | x86 | /dev/sda | General Purpose SSD |
+| talos-cp-1 | control-plane | 192.168.1.11 | x86 | `/dev/disk/by-id/nvme-eui.0025388c91511427` | Mellanox NIC, VLAN 10/100 |
+| talos-cp-2 | control-plane | 192.168.1.12 | x86 | `/dev/disk/by-id/nvme-eui.002538d921a1a1e3` | Mellanox NIC, VLAN 10/100 |
+| talos-cp-3 | control-plane | 192.168.1.13 | x86 | `/dev/disk/by-id/nvme-eui.001b448b4679b087` | Mellanox NIC, VLAN 10/100 |
+| talos-worker-5 | worker | 192.168.1.18 | ARM64 | `/dev/nvme0n1` | NVIDIA GPU (DGX Spark), Mellanox NIC |
+| talos-worker-6 | worker | 192.168.1.19 | x86 | `/dev/sda` | General Purpose SSD |
 
 **External LB**: `192.168.1.75`, **Internal VIP**: `192.168.1.5` (control plane HA)
 
@@ -42,45 +40,49 @@ Node OS images are built via the [Talos Image Factory](https://factory.talos.dev
 
 - **x86 nodes** (`schematic.yaml`): Intel-specific fixes (i915, Meteor Lake), Mellanox tools.
 - **ARM64 DGX Spark** (`schematic-spark.yaml`): Mellanox and NVIDIA driver extensions.
-- **ARM Raspberry Pi**: Standard ARM image with minimal extensions.
+- **QEMU/VM** (`schematic-qemu.yaml`): Intel Xe + QEMU guest agent extensions.
 
-Schematic IDs from the factory are referenced in `talconfig.yaml` per node.
+Schematics are referenced directly in `topf.yaml` via `@schematic.yaml` and `@schematic-spark.yaml` and resolved by TOPF.
 
 ## Patches
 
-Patches are applied in layers:
+Patches are applied in layers (lexicographical order within each directory):
 
 | Directory | Applied To |
 |-----------|-----------|
-| `patches/global/` | All nodes |
-| `patches/controller/` | Control plane nodes only |
+| `all/` | All nodes |
+| `control-plane/` | Control plane nodes only |
+| `node/<host>/` | Specific host only |
 
-Global patches include:
-- `cluster.yaml` — cluster-level settings
-- `machine-files.yaml` — extra files pushed to nodes
-- `machine-kubelet.yaml` — kubelet configuration
-- `machine-network.yaml` — network configuration
-- `machine-sysctls.yaml` — kernel parameters
-- `machine-time.yaml` — NTP configuration
+Global patches (`all/`):
+- `01-cluster.yaml` — machine certSANs, pod/service subnets (`KubeNetworkConfig`), disable built-in Flannel CNI (`KubeFlannelCNIConfig`)
+- `02-hostname.yaml.tpl` — static `HostnameConfig` from `nodes[].host`
+- `03-machine-files.yaml` — containerd CRI customization (`CRICustomizationConfig`)
+- `04-machine-kubelet.yaml` — kubelet configuration (`KubeletConfig`, `KubeNodeConfig`)
+- `05-machine-network.yaml` — DNS resolver settings (`ResolverConfig`)
+- `06-machine-sysctls.yaml` — kernel parameters (`SysctlConfig`)
+- `07-machine-time.yaml` — NTP configuration (`TimeSyncConfig`)
 
-Controller patches include:
-- `cluster.yaml` — etcd, API server settings
-- `machine-features.yaml` — control plane feature flags
-- `machine-diskencryption.yaml` — disk encryption config
+Control plane patches (`control-plane/`):
+- `01-cluster.yaml` — etcd, API server, controller manager, scheduler, CoreDNS, kube-proxy, and control-plane scheduling settings
+- `02-machine-features.yaml` — Kubernetes Talos API access (`KubeTalosAPIAccessConfig`)
+- `03-machine-diskencryption.yaml` — LUKS2 + TPM disk encryption config (`VolumeConfig`, currently commented out)
 
 ## Common Operations
 
 ```sh
-# Regenerate all node configs after editing talconfig.yaml or patches
+# Render all node configs to talos/output/ and generate talosconfig
 task talos:generate-config
 
-# Apply updated config to a single node (non-disruptive if possible)
+# Apply updated config to all nodes (or a single node)
+task talos:apply
 task talos:apply-node IP=192.168.1.11
 
-# Upgrade Talos on a single node (update talenv.yaml first)
+# Upgrade Talos across all nodes or on a single node (update topf.yaml first)
+task talos:upgrade
 task talos:upgrade-node IP=192.168.1.11
 
-# Upgrade Kubernetes cluster-wide (update talenv.yaml first)
+# Upgrade Kubernetes cluster-wide (update topf.yaml first)
 task talos:upgrade-k8s
 
 # Reset all nodes to maintenance mode (DESTRUCTIVE)
@@ -89,15 +91,14 @@ task talos:reset
 
 ## Adding a New Node
 
-1. Boot the node with the appropriate Talos image (see schematic files)
+1. Boot the node with the appropriate Talos image (see schematic files and `topf schematic-ids`)
 2. Retrieve disk and MAC info while in maintenance mode:
    ```sh
    talosctl get disks -n <ip> --insecure
    talosctl get links -n <ip> --insecure
    ```
-3. Add the node definition to `talconfig.yaml`
-4. Regenerate and apply:
+3. Add the node definition to `topf.yaml` and create its patches under `talos/node/<hostname>/`
+4. Apply the configuration:
    ```sh
-   task talos:generate-config
    task talos:apply-node IP=<new-node-ip>
    ```

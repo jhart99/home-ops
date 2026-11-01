@@ -16,6 +16,7 @@
   ],
   ignorePaths: [
     '**/*.sops.*',
+    'talos/secrets.yaml',
   ],
   flux: {
     managerFilePatterns: [

@@ -1,0 +1,69 @@
+---
+cluster:
+  etcd:
+    extraArgs:
+      listen-metrics-urls: http://0.0.0.0:2381
+      election-timeout: "5000"
+      heartbeat-interval: "500"
+    advertisedSubnets:
+      - 192.168.1.0/24
+---
+apiVersion: v1alpha1
+kind: KubeNodeConfig
+taints:
+  node-role.kubernetes.io/control-plane:
+    $patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeAPIServerConfig
+certExtraSANs:
+  - 127.0.0.1
+  - 192.168.1.5
+  - kube.rnatr.com
+extraArgs:
+  # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
+  enable-aggregator-routing: "true"
+  # MutatingAdmissionPolicy is GA (admissionregistration.k8s.io/v1) on
+  # Kubernetes 1.36+; the beta feature gate and v1beta1 runtime-config
+  # previously set here are no longer needed.
+---
+apiVersion: v1alpha1
+kind: KubeAdmissionControlConfig
+name: PodSecurity
+$patch: delete
+---
+apiVersion: v1alpha1
+kind: KubeControllerManagerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+  node-cidr-mask-size-ipv4: "22"
+---
+apiVersion: v1alpha1
+kind: KubeCoreDNSConfig
+enabled: false
+---
+apiVersion: v1alpha1
+kind: KubeProxyConfig
+enabled: false
+---
+apiVersion: v1alpha1
+kind: KubeSchedulerConfig
+extraArgs:
+  bind-address: 0.0.0.0
+config:
+  apiVersion: kubescheduler.config.k8s.io/v1
+  kind: KubeSchedulerConfiguration
+  profiles:
+    - schedulerName: default-scheduler
+      plugins:
+        score:
+          disabled:
+            - name: ImageLocality
+      pluginConfig:
+        - name: PodTopologySpread
+          args:
+            defaultingType: List
+            defaultConstraints:
+              - maxSkew: 1
+                topologyKey: kubernetes.io/hostname
+                whenUnsatisfiable: ScheduleAnyway

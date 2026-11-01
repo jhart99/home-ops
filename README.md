@@ -59,7 +59,7 @@ home-ops/
 │   ├── apps/           # Per-namespace application deployments
 │   ├── components/     # Reusable Kustomize components (sops, volsync, vpn, etc.)
 │   └── flux/           # Flux root Kustomization entry point
-└── talos/              # Talos node configuration (talhelper)
+└── talos/              # Talos node configuration (topf)
 ```
 
 See sub-directory READMEs for more detail:
@@ -77,7 +77,7 @@ All tools are managed via [mise](https://mise.jdx.dev/):
 mise trust && pip install pipx && mise install
 ```
 
-This installs: `task`, `talhelper`, `talosctl`, `flux`, `kubectl`, `helm`, `sops`, `age`, `yq`, `jq`, `cilium`, `kustomize`.
+This installs: `task`, `topf`, `talosctl`, `flux`, `kubectl`, `helm`, `sops`, `age`, `yq`, `jq`, `cilium`, `kustomize`.
 
 Environment variables (`KUBECONFIG`, `SOPS_AGE_KEY_FILE`, `TALOSCONFIG`) are set automatically by mise.
 
@@ -88,8 +88,10 @@ task                              # List all available tasks
 task reconcile                    # Force Flux to sync from git
 
 # Talos management
-task talos:generate-config        # Regenerate node configs from talconfig.yaml
+task talos:generate-config        # Render node configs and generate talosconfig
+task talos:apply                  # Apply config to all nodes
 task talos:apply-node IP=<ip>     # Apply config to a specific node
+task talos:upgrade                # Upgrade Talos across all nodes
 task talos:upgrade-node IP=<ip>   # Upgrade Talos on a node
 task talos:upgrade-k8s            # Upgrade Kubernetes cluster-wide
 
@@ -133,15 +135,17 @@ kubectl -n <namespace> get events --sort-by='.metadata.creationTimestamp'
 ### Update Talos node configuration
 
 ```sh
-task talos:generate-config
+task talos:apply
+# or for a single node:
 task talos:apply-node IP=<node-ip>
 ```
 
 ### Upgrade Talos or Kubernetes
 
-Update versions in `talos/talenv.yaml`, then:
+Update versions in `talos/topf.yaml`, then:
 
 ```sh
+task talos:upgrade                      # Cluster-wide Talos upgrade
 task talos:upgrade-node IP=<node-ip>   # Per-node Talos upgrade
 task talos:upgrade-k8s                  # Cluster-wide Kubernetes upgrade
 ```

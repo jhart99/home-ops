@@ -1,0 +1,11 @@
+---
+apiVersion: v1alpha1
+kind: UnattendedInstallConfig
+provisioning:
+  diskSelector:
+    match: disk.dev_path == "/dev/disk/by-id/nvme-eui.0025388c91511427"
+  wipe: false
+---
+apiVersion: v1alpha1
+kind: KernelModuleConfig
+name: mlx5-core

@@ -20,7 +20,7 @@ One-time bootstrap resources for initializing the cluster. These are only needed
 
 - Age key at `age.key` in the repo root
 - SOPS config at `.sops.yaml`
-- `talconfig.yaml` with node definitions
+- `topf.yaml` with node definitions
 - All required tools installed via `mise install`
 
 ### Step 1: Bootstrap Talos
@@ -31,11 +31,11 @@ Generates secrets, creates node configs, and applies them to all nodes. Talos wi
 task bootstrap:talos
 ```
 
-After this completes, commit the generated `talos/talsecret.sops.yaml`:
+After this completes, commit the generated `talos/secrets.yaml`:
 
 ```sh
-git add talos/talsecret.sops.yaml
-git commit -m "chore: add talhelper encrypted secret"
+git add talos/secrets.yaml
+git commit -m "chore: add topf encrypted secret"
 git push
 ```
 

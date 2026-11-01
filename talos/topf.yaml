@@ -1,0 +1,29 @@
+---
+clusterName: kubernetes
+clusterEndpoint: https://192.168.1.5:6443
+
+# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+talosVersion: v1.14.5
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.37.2
+
+schematicId: "@schematic.yaml"
+secureboot: false
+
+nodes:
+  - host: talos-cp-1
+    ip: 192.168.1.11
+    role: control-plane
+  - host: talos-cp-2
+    ip: 192.168.1.12
+    role: control-plane
+  - host: talos-cp-3
+    ip: 192.168.1.13
+    role: control-plane
+  - host: talos-worker-5
+    ip: 192.168.1.18
+    role: worker
+    schematicId: "@schematic-spark.yaml"
+  - host: talos-worker-6
+    ip: 192.168.1.19
+    role: worker

@@ -1,0 +1,10 @@
+---
+apiVersion: v1alpha1
+kind: KubeTalosAPIAccessConfig
+allowedKubernetesNamespaces:
+  - actions-runner-system
+  - ai
+  - system-upgrade
+allowedRoles:
+  - os:admin
+  - os:reader

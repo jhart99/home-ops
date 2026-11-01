@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repo Is
 
-A home Kubernetes cluster managed via GitOps. It uses **Talos Linux** as the OS, **FluxCD** for GitOps reconciliation, **SOPS + age** for secret encryption, **talhelper** for Talos config generation, and **Cloudflare** for external DNS and tunneling.
+A home Kubernetes cluster managed via GitOps. It uses **Talos Linux** as the OS, **FluxCD** for GitOps reconciliation, **SOPS + age** for secret encryption, **TOPF** for Talos config and lifecycle management, and **Cloudflare** for external DNS and tunneling.
 
 ## Dev Environment
 
@@ -14,7 +14,7 @@ All CLI tools are managed via [mise](https://mise.jdx.dev/). Install with:
 mise trust && pip install pipx && mise install
 ```
 
-Key tools installed: `task`, `talhelper`, `talosctl`, `flux`, `kubectl`, `helm`, `sops`, `age`, `yq`, `jq`, `cilium`, `kustomize`.
+Key tools installed: `task`, `topf`, `talosctl`, `flux`, `kubectl`, `helm`, `sops`, `age`, `yq`, `jq`, `cilium`, `kustomize`.
 
 Environment variables are automatically set by mise (`KUBECONFIG`, `SOPS_AGE_KEY_FILE`, `TALOSCONFIG`).
 
@@ -25,8 +25,10 @@ task                              # List all available tasks
 task reconcile                    # Force Flux to sync from git
 task bootstrap:talos              # Bootstrap the Talos cluster (initial setup)
 task bootstrap:apps               # Bootstrap core apps into cluster (initial setup)
-task talos:generate-config        # Regenerate Talos node configs from talconfig.yaml
+task talos:generate-config        # Render Talos node configs and generate talosconfig
+task talos:apply                  # Apply updated Talos config to all nodes
 task talos:apply-node IP=<ip>     # Apply updated Talos config to a specific node
+task talos:upgrade                # Upgrade Talos version across all nodes
 task talos:upgrade-node IP=<ip>   # Upgrade Talos version on a specific node
 task talos:upgrade-k8s            # Upgrade Kubernetes version cluster-wide
 task talos:reset                  # Reset all nodes back to maintenance mode (DESTRUCTIVE)
@@ -85,17 +87,18 @@ The `cluster-secrets` Secret (in `kubernetes/components/sops/cluster-secrets.sop
 
 ## Talos Configuration
 
-| File | Purpose |
-|------|---------|
-| `talos/talconfig.yaml` | Node definitions (IPs, disks, patches, image URLs) |
-| `talos/talenv.yaml` | Talos and Kubernetes versions (annotated for Renovate) |
+| File / Directory | Purpose |
+|------------------|---------|
+| `talos/topf.yaml` | Cluster & node definitions, Talos and Kubernetes versions (annotated for Renovate), schematic references |
+| `talos/secrets.yaml` | SOPS-encrypted Talos secrets bundle |
 | `talos/schematic.yaml` | Image customization (kernel args, system extensions) for x86 nodes |
-| `talos/schematic-spark.yaml` | Image customization for ARM worker nodes |
-| `talos/patches/global/` | Applied to all nodes |
-| `talos/patches/controller/` | Applied only to control plane nodes |
-| `talos/clusterconfig/` | Generated output — do not edit directly |
+| `talos/schematic-qemu.yaml` | Image customization for QEMU/VM nodes |
+| `talos/schematic-spark.yaml` | Image customization for ARM64 DGX Spark worker nodes |
+| `talos/all/` | Patches applied to all nodes |
+| `talos/control-plane/` | Patches applied only to control plane nodes |
+| `talos/node/<host>/` | Node-specific patches (install disks, kernel modules, network interfaces) |
 
-After changing `talconfig.yaml` or patches, regenerate configs with `task talos:generate-config`, then apply with `task talos:apply-node IP=<ip>`.
+After changing `topf.yaml` or patches, apply with `task talos:apply` or `task talos:apply-node IP=<ip>`.
 
 ## Namespaces / App Organization
 

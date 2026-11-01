@@ -1,8 +1,0 @@
-cluster:
-  apiServer:
-    extraArgs:
-      # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
-      enable-aggregator-routing: "true"
-      # MutatingAdmissionPolicy is GA (admissionregistration.k8s.io/v1) on
-      # Kubernetes 1.36+; the beta feature gate and v1beta1 runtime-config
-      # previously set here are no longer needed.
