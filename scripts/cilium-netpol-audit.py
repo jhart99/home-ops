@@ -182,6 +182,9 @@ def cmd_unaccounted(args: argparse.Namespace, client: PrometheusClient) -> None:
         group_by="source_namespace, source_workload, destination_namespace, destination_workload, direction",
     )
 
+    if getattr(args, "show_promql", False):
+        print(f"PromQL: {promql}\n")
+
     results = client.query(promql)
 
     rows: List[Tuple[float, str, str, str]] = []
@@ -238,6 +241,9 @@ def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
         workload=args.workload,
         group_by="source_namespace, source_workload, destination_namespace, destination_workload, direction, match",
     )
+
+    if getattr(args, "show_promql", False):
+        print(f"PromQL: {promql}\n")
 
     results = client.query(promql)
 
@@ -386,6 +392,47 @@ def cmd_targets(args: argparse.Namespace, client: PrometheusClient) -> None:
             print(f"  {job:<40} ({len(addrs)} targets): {', '.join(sample)}{suffix}")
 
 
+def cmd_query(args: argparse.Namespace, client: PrometheusClient) -> None:
+    """Execute an arbitrary PromQL query using resilient port-forwarding."""
+    results = client.query(args.promql)
+    if args.json:
+        print(json.dumps(results, indent=2))
+        return
+
+    if not results:
+        print("Query returned no results.")
+        return
+
+    print(f"\nResults for PromQL: {args.promql}")
+    print("-" * 100)
+    for r in results:
+        m = r.get("metric", {})
+        val = r.get("value", [None, "0"])[1]
+        try:
+            val_fl = float(val)
+            val_str = f"{val_fl:.4f}" if val_fl != int(val_fl) else str(int(val_fl))
+        except ValueError:
+            val_str = str(val)
+
+        src = f"{m.get('source_namespace', '')}/{m.get('source_workload', '<unknown>')}" if ('source_namespace' in m or 'source_workload' in m) else ""
+        dst = f"{m.get('destination_namespace', '')}/{m.get('destination_workload', '<unknown>')}" if ('destination_namespace' in m or 'destination_workload' in m) else ""
+        direction = m.get("direction", "")
+        match_t = m.get("match", "")
+
+        if src or dst:
+            parts = [f"val={val_str}"]
+            if direction: parts.append(f"dir={direction}")
+            if match_t: parts.append(f"match={match_t}")
+            if src: parts.append(f"src={src}")
+            if dst: parts.append(f"dst={dst}")
+            extra_labels = {k: v for k, v in m.items() if k not in ("source_namespace", "source_workload", "destination_namespace", "destination_workload", "direction", "match", "traffic_direction", "action", "container", "endpoint", "job", "service", "namespace", "instance")}
+            if extra_labels:
+                parts.append(f"extra={extra_labels}")
+            print(" | ".join(parts))
+        else:
+            print(f"{val_str:<12} {json.dumps(m)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Audit Cilium Network Policies against live traffic using Prometheus & Hubble metrics."
@@ -408,6 +455,7 @@ def main() -> None:
         "-w", "--window", default="5m", help="PromQL rate interval window (e.g. 1m, 5m, 15m)"
     )
     p_unacc.add_argument("--top", type=int, default=25, help="Number of flows to show (0 for all)")
+    p_unacc.add_argument("--promql", dest="show_promql", action="store_true", help="Print the generated PromQL query")
 
     # Subcommand: verdicts
     p_verd = subparsers.add_parser("verdicts", help="Display all active traffic verdicts (l3-l4, l3-only, l4-only, all)")
@@ -423,6 +471,7 @@ def main() -> None:
         "-w", "--window", default="1m", help="PromQL rate interval window (e.g. 1m, 5m)"
     )
     p_verd.add_argument("--top", type=int, default=25, help="Number of flows to show (0 for all)")
+    p_verd.add_argument("--promql", dest="show_promql", action="store_true", help="Print the generated PromQL query")
 
     # Subcommand: summary
     p_sum = subparsers.add_parser("summary", help="Print accounted vs unaccounted coverage breakdown")
@@ -436,6 +485,11 @@ def main() -> None:
     p_targets = subparsers.add_parser("targets", help="Inspect active Prometheus scrape targets and ports")
     p_targets.add_argument("-v", "--verbose", action="store_true", help="Show all jobs and endpoints")
 
+    # Subcommand: query
+    p_query = subparsers.add_parser("query", help="Execute an arbitrary PromQL query against Prometheus")
+    p_query.add_argument("promql", help="PromQL query expression")
+    p_query.add_argument("--json", action="store_true", help="Output raw JSON response")
+
     args = parser.parse_args()
 
     client = PrometheusClient(base_url=args.prometheus_url)
@@ -448,6 +502,8 @@ def main() -> None:
             cmd_summary(args, client)
         elif args.command == "targets":
             cmd_targets(args, client)
+        elif args.command == "query":
+            cmd_query(args, client)
     finally:
         client.cleanup()
 

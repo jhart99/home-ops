@@ -371,6 +371,90 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<34} {dst:<34} {port_str:<10} {summary}")
 
 
+def format_probe(probe_data: Optional[Dict[str, Any]]) -> Optional[str]:
+    """Formats readiness, liveness, or startup probe details."""
+    if not probe_data:
+        return None
+    if "httpGet" in probe_data:
+        http = probe_data["httpGet"]
+        return f"HTTP:{http.get('port')}{http.get('path', '')}"
+    if "tcpSocket" in probe_data:
+        return f"TCP:{probe_data['tcpSocket'].get('port')}"
+    if "grpc" in probe_data:
+        return f"gRPC:{probe_data['grpc'].get('port')}"
+    if "exec" in probe_data:
+        cmd_tokens = probe_data["exec"].get("command", [])
+        return f"Exec:{' '.join(cmd_tokens)[:30]}"
+    return "Custom"
+
+
+def get_pod_services(namespace: str, pod_labels: Dict[str, str]) -> List[Dict[str, Any]]:
+    """Finds Services in the namespace whose selector matches the pod labels."""
+    try:
+        raw = run_cmd(["kubectl", "get", "services", "-n", namespace, "-o", "json"])
+        data = json.loads(raw)
+    except Exception:
+        return []
+
+    matching = []
+    for svc in data.get("items", []):
+        selector = svc.get("spec", {}).get("selector")
+        if not selector:
+            continue
+        if all(pod_labels.get(k) == v for k, v in selector.items()):
+            matching.append(svc)
+    return matching
+
+
+def print_pod_spec_network_details(pod: Dict[str, Any]) -> None:
+    """Prints container ports, probes, and matching Kubernetes services."""
+    spec = pod.get("spec", {})
+    containers = spec.get("containers", [])
+    if containers:
+        print("Containers:")
+        for c in containers:
+            c_name = c.get("name", "container")
+            ports = []
+            for p in c.get("ports", []):
+                p_str = f"{p.get('containerPort')}/{p.get('protocol', 'TCP')}"
+                if p.get("name"):
+                    p_str += f" ({p.get('name')})"
+                ports.append(p_str)
+            ports_desc = f"ports: [{', '.join(ports)}]" if ports else "no container ports"
+
+            probes = []
+            r = format_probe(c.get("readinessProbe"))
+            if r: probes.append(f"readiness: {r}")
+            l = format_probe(c.get("livenessProbe"))
+            if l: probes.append(f"liveness: {l}")
+            s = format_probe(c.get("startupProbe"))
+            if s: probes.append(f"startup: {s}")
+            probes_desc = f"; probes: [{', '.join(probes)}]" if probes else ""
+
+            print(f"  - {c_name}: {ports_desc}{probes_desc}")
+
+    ns = pod.get("metadata", {}).get("namespace", "default")
+    labels = pod.get("metadata", {}).get("labels", {})
+    matching_services = get_pod_services(ns, labels)
+    if matching_services:
+        print("Services:")
+        for svc in matching_services:
+            s_name = svc.get("metadata", {}).get("name")
+            s_type = svc.get("spec", {}).get("type", "ClusterIP")
+            s_ip = svc.get("spec", {}).get("clusterIP", "")
+            lb_ips = [ing.get("ip") for ing in svc.get("status", {}).get("loadBalancer", {}).get("ingress", []) if ing.get("ip")]
+            ip_desc = f"{s_type}: {s_ip}" + (f", LB: {', '.join(lb_ips)}" if lb_ips else "")
+            print(f"  - {ns}/{s_name} ({ip_desc}):")
+            for p in svc.get("spec", {}).get("ports", []):
+                port = p.get("port")
+                proto = p.get("protocol", "TCP")
+                target = p.get("targetPort", port)
+                mapping = f"{port}/{proto} -> {target}" if str(port) != str(target) else f"{port}/{proto}"
+                if p.get("name"):
+                    mapping += f" ({p.get('name')})"
+                print(f"      {mapping}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Inspect a pod's Cilium Endpoint ID, Security Identity, realized BPF policy rules, and live Hubble flows."
@@ -391,7 +475,9 @@ def main() -> None:
 
     # Hubble flows inspection options
     parser.add_argument("-F", "--flows", action="store_true", help="Inspect recent live Hubble flows")
-    parser.add_argument("--last", type=int, default=30, help="Number of Hubble flows to inspect (default: 30)")
+    parser.add_argument(
+        "--last", "-c", "--count", type=int, default=30, help="Number of Hubble flows to inspect (default: 30)"
+    )
     parser.add_argument(
         "--unmatched-only", action="store_true", help="Filter Hubble flows for policy fallthrough (match='all' or none)"
     )
@@ -454,6 +540,8 @@ def main() -> None:
     print(f"Node:      {node_name}")
     print(f"IP:        {pod_ip}")
     print(f"Labels:    {json.dumps(pod_labels)}")
+    if not args.json:
+        print_pod_spec_network_details(pod)
 
     try:
         cilium_pod = find_cilium_pod_on_node(node_name)

@@ -54,13 +54,23 @@ Audits Cilium NetworkPolicies against live Prometheus & Hubble metrics. Automati
   ```bash
   ./scripts/cilium-netpol-audit.py targets
   ```
+- `query`: Executes an arbitrary PromQL query against Prometheus using the automatic port-forwarding layer.
+  ```bash
+  # Ad-hoc PromQL query
+  ./scripts/cilium-netpol-audit.py query 'rate(hubble_policy_verdicts_total{destination_namespace="network"}[1m]) > 0'
+  ./scripts/cilium-netpol-audit.py query 'up' --json
+  ```
+- `--promql`: Flag supported on `unaccounted` and `verdicts` to print the generated PromQL query.
 
 ### `cilium-endpoint-inspect.py`
 
-Maps a Kubernetes Pod to its Cilium Endpoint ID, Security Identity, node-level BPF policy table, and live Hubble flow streams.
+Maps a Kubernetes Pod to its containers, probes, matching Kubernetes Services (`port -> targetPort`), Cilium Endpoint ID, Security Identity, node-level BPF policy table, and live Hubble flow streams.
 
 **Usage:**
 ```bash
+# Inspect pod network details (containers, probes, service mappings, Cilium endpoint, BPF table)
+./scripts/cilium-endpoint-inspect.py envoy-internal -n network
+
 # Inspect BPF policy rules by pod name
 ./scripts/cilium-endpoint-inspect.py prometheus-kube-prometheus-stack-0 -n observability
 
@@ -70,11 +80,17 @@ Maps a Kubernetes Pod to its Cilium Endpoint ID, Security Identity, node-level B
 # Show only rules with active traffic (matched packets > 0)
 ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
 
-# View live Hubble flows directly for the pod without knowing which node it runs on
-./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
+# View live Hubble flows directly for the pod without knowing which node it runs on (-c or --last)
+./scripts/cilium-endpoint-inspect.py -n network envoy-internal -F -c 20
 
-# Filter Hubble flows for policy fallthrough (match='all' or dropped)
+# Filter Hubble flows for policy fallthrough (match='all' or none)
 ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --unmatched-only
+
+# Filter for newly initiated TCP connections (SYN without ACK)
+./scripts/cilium-endpoint-inspect.py -n network envoy-internal -F --syn-only
+
+# Lookup a numeric Cilium Security Identity ID
+./scripts/cilium-endpoint-inspect.py --identity 4567
 ```
 
 ### `lib/common.sh`

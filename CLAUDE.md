@@ -167,10 +167,16 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
 
    # Discover all active Prometheus scrape target ports partitioned by entity (cluster vs node)
    ./scripts/cilium-netpol-audit.py targets -v
+
+   # Execute ad-hoc PromQL queries via automatic, resilient port-forwarding
+   ./scripts/cilium-netpol-audit.py query 'rate(hubble_policy_verdicts_total{destination_namespace="network"}[1m]) > 0'
    ```
 
-2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints, BPF tables, security identities, and live Hubble flows):
+2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to container ports, probes, matching Service `port -> targetPort` translations, Cilium endpoints, BPF tables, security identities, and live Hubble flows):
    ```sh
+   # Inspect pod network overview (containers, probes, service mappings, endpoint ID, BPF table)
+   ./scripts/cilium-endpoint-inspect.py envoy-internal -n network
+
    # Inspect by pod name, prefix, or CNPG cluster (e.g. authentik-db, grafana)
    ./scripts/cilium-endpoint-inspect.py authentik-db -n security -p 5432
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000
@@ -185,13 +191,14 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    ./scripts/cilium-endpoint-inspect.py -n ai -F --last 30
    ./scripts/cilium-endpoint-inspect.py -n ai -F -p 8080 --syn-only
 
-   # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough
+   # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough (-c or --last)
    # (non-workload labels such as CNPG instances and [RevNAT return] flows are automatically resolved)
-   ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
+   ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F -c 20
    ./scripts/cilium-endpoint-inspect.py -n security authentik-server -F --unmatched-only --syn-only
    ```
 
 ### Critical Rules & Gotchas
+- **Kubernetes Service `targetPort` vs `port` on Pod Ingress**: Cilium evaluates pod ingress policies *after* Kubernetes Service DNAT has taken place. If a Service maps `port: 80 -> targetPort: 10080` or `port: 443 -> targetPort: 10443`, an ingress policy with only ports `80` and `443` will fail to match incoming traffic, resulting in `match="all"` fallthrough. Ingress policies must permit the container's actual listening `targetPorts` (`10080`, `10443`). Run `./scripts/cilium-endpoint-inspect.py <pod>` to see all container ports, probes, and Service translations.
 - **`kubectl apply` 3-Way Map Merging**: When changing `matchLabels` keys in a CNP (e.g. from `app.kubernetes.io/name: foo` to `app: foo`), `kubectl apply` merges the maps and retains both labels, preventing pods from matching. **Always use `kubectl replace -f <manifest>`** or delete/recreate when modifying label keys.
 - **Cilium Port Range Syntax**: The v2 CRD requires `port: "<start>"` as a string and `endPort: <end>` as an integer:
   ```yaml
