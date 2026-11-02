@@ -112,7 +112,6 @@ spec:
     - fromEntities:
         - host
         - remote-node
-        - cluster
       toPorts:
         - ports:
             - port: "5140"
@@ -153,3 +152,34 @@ spec:
         - ports:
             - port: "2020"
               protocol: TCP
+---
+# Allow return traffic from CoreDNS (UDP DNS replies on client ephemeral ports)
+# and same-node return traffic from kube-apiserver and victoria-logs (Cilium RevNAT).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: fluent-bit-allow-return-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: fluent-bit
+  ingress:
+    # DNS replies from CoreDNS on ephemeral UDP ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+    # Same-node return traffic from kube-apiserver (control-plane nodes)
+    - fromEntities:
+        - kube-apiserver
+        - host
+    # Same-node return traffic from victoria-logs (worker-6)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: victoria-logs-server
