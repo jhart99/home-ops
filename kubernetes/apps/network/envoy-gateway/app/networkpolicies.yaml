@@ -91,8 +91,7 @@ spec:
               protocol: TCP
 ---
 # Allow kubelet probes from the node and Prometheus scraping of the control
-# plane metrics (ServiceMonitor envoy-gateway, port metrics).
-# TODO(enforce phase): pin the probe/metrics ports in Hubble.
+# plane metrics (ServiceMonitor envoy-gateway, port metrics 19001, probes 8081).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -111,9 +110,43 @@ spec:
     - fromEntities:
         - host
         - remote-node
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "19001"
+              protocol: TCP
+---
+# Allow the envoy data-plane proxies to stream xDS configuration to the
+# envoy-gateway control plane on port 18000.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-gateway-allow-xds-ingress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      control-plane: envoy-gateway
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: envoy
+            app.kubernetes.io/component: proxy
+      toPorts:
+        - ports:
+            - port: "18000"
+              protocol: TCP
 ---
 # Allow the envoy data-plane proxies to resolve DNS via kube-dns
 apiVersion: cilium.io/v2
@@ -249,13 +282,10 @@ spec:
               protocol: TCP
 ---
 # Allow client ingress to the envoy proxies on the Gateway listener ports
-# defined in envoy.yaml: http 80, https 443, syslog 5140 UDP and 5140 TCP
-# (LoadBalancer IPs 192.168.30.7/8 plus in-cluster callers; externalTrafficPolicy
-# Cluster means LAN clients arrive as node entities).
-# Deliberately permissive (no `from` constraint): any namespace may legitimately
-# attach routes, and external callers arrive via the nodes.
-# TODO(enforce phase): decide the enforce-time caller model (likely keep
-# permissive listener ingress but restrict to node/LB + cluster entities).
+# defined in envoy.yaml: http 80 (targetPort 10080), https 443 (targetPort 10443 TCP/UDP),
+# syslog 5140 UDP and 5140 TCP (LoadBalancer IPs 192.168.30.7/8 plus in-cluster callers).
+# Note: targetPorts 10080 and 10443 are essential because traffic evaluated at the pod endpoint
+# has already undergone service translation.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -278,16 +308,19 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: TCP
+            - port: "10080"
+              protocol: TCP
+            - port: "10443"
+              protocol: TCP
+            - port: "10443"
+              protocol: UDP
             - port: "5140"
               protocol: UDP
             - port: "5140"
               protocol: TCP
 ---
-# Allow Prometheus to scrape the envoy proxy admin metrics
-# (PodMonitor envoy-proxy, port metrics, path /stats/prometheus) and kubelet
-# probes from the node.
-# TODO(enforce phase): pin the metrics/probe ports in Hubble (envoy-gateway
-# proxy metrics default 19000).
+# Allow Prometheus to scrape the envoy proxy metrics (PodMonitor envoy-proxy,
+# port metrics 19001 and admin 19000) and kubelet probes from the node (ports 19002/19003).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -311,6 +344,37 @@ spec:
         - ports:
             - port: "19000"
               protocol: TCP
+            - port: "19001"
+              protocol: TCP
     - fromEntities:
         - host
         - remote-node
+      toPorts:
+        - ports:
+            - port: "19002"
+              protocol: TCP
+            - port: "19003"
+              protocol: TCP
+---
+# Allow return traffic from kube-dns (UDP DNS replies to dynamic ephemeral client ports)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: envoy-proxy-allow-return-ingress
+  namespace: network
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: envoy
+      app.kubernetes.io/component: proxy
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+
