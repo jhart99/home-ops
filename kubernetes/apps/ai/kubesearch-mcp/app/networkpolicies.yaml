@@ -85,8 +85,13 @@ spec:
               protocol: TCP
             - port: "3000"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive-name: kubesearch-mcp
       toPorts:
         - ports:
             - port: "8080"

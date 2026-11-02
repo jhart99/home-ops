@@ -61,7 +61,7 @@ spec:
               protocol: TCP
 ---
 # kubelet /health probes (8080 on proxy, 8081 on server) from the node; toolhive gateways call the server.
-# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+# Also envoy-internal gateway routes victorialogs-mcp.${SECRET_DOMAIN} from network namespace.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -84,8 +84,20 @@ spec:
               protocol: TCP
             - port: "8081"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive-name: victorialogs-mcp
       toPorts:
         - ports:
             - port: "8080"

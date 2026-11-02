@@ -68,11 +68,13 @@ class PrometheusClient:
         )
         atexit.register(self.cleanup)
 
-        # Wait up to 5s for the port to open
-        for _ in range(50):
+        # Wait up to 15s for the port to open
+        for _ in range(150):
             if self._is_port_open("127.0.0.1", DEFAULT_PROMETHEUS_PORT):
                 time.sleep(0.3)
                 return f"http://127.0.0.1:{DEFAULT_PROMETHEUS_PORT}"
+            if self.port_forward_proc.poll() is not None:
+                break
             time.sleep(0.1)
 
         raise RuntimeError(

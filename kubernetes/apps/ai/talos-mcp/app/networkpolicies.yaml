@@ -80,8 +80,13 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive-name: talos-mcp
       toPorts:
         - ports:
             - port: "8080"

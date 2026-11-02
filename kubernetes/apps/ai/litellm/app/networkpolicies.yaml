@@ -50,6 +50,20 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: litellm-db-rw
+            namespace: ai
+        - k8sService:
+            serviceName: litellm-db-r
+            namespace: ai
+        - k8sService:
+            serviceName: litellm-db-ro
+            namespace: ai
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             cnpg.io/cluster: litellm-db
@@ -90,6 +104,10 @@ spec:
         - ports:
             - port: "4000"
               protocol: TCP
+    # same-node Service RevNAT return traffic from database
+    - fromEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: litellm-db
     # kubelet liveness/readiness/startup probes (tcp 4000) arrive from the node
     - fromEntities:
         - host

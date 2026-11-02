@@ -67,8 +67,7 @@ spec:
             - port: "443"
               protocol: UDP
 ---
-# kubelet /health probes (8080) from the node; toolhive gateways call the server.
-# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
+# kubelet /health probes (8080) from the node; toolhive gateways and hermes call the server.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -89,8 +88,13 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive-name: grafana-mcp
       toPorts:
         - ports:
             - port: "8080"

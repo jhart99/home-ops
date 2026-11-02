@@ -1,0 +1,151 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
+# endpoints stay default-allow while the allow-list is validated in Hubble.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: toolhive-registry-allow-dns
+  namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: toolhive-registry
+      app.kubernetes.io/name: toolhive-registry-server
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow registry to watch MCPServer CRs across the cluster
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: toolhive-registry-allow-k8s-api
+  namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: toolhive-registry
+      app.kubernetes.io/name: toolhive-registry-server
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Egress: toolhive-db (port 5432) and git upstream catalog sync (github.com port 443)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: toolhive-registry-allow-egress
+  namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: toolhive-registry
+      app.kubernetes.io/name: toolhive-registry-server
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: toolhive-db-rw
+            namespace: ai
+        - k8sService:
+            serviceName: toolhive-db-r
+            namespace: ai
+        - k8sService:
+            serviceName: toolhive-db-ro
+            namespace: ai
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: toolhive-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Ingress: envoy-internal gateway (port 8080), toolhive-ui & virtualmcpserver, kubelet probes (8081)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: toolhive-registry-allow-ingress
+  namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: toolhive-registry
+      app.kubernetes.io/name: toolhive-registry-server
+  ingress:
+    # gateway ingress (registry.rnatr.com)
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # toolhive-ui frontend calls registry API
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: toolhive-ui
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # virtualmcpserver gateway calls registry
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # same-node Service RevNAT return traffic from database
+    - fromEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: toolhive-db
+    # kubelet liveness/readiness probes (port 8081 internal-http) arrive from the node
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP

@@ -89,8 +89,13 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive-name: comfyui-mcp
       toPorts:
         - ports:
             - port: "80"
