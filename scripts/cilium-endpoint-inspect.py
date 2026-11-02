@@ -82,8 +82,8 @@ def find_pod(
     raise RuntimeError(f"No pods found in namespace '{namespace}' matching '{name_or_query}' (exact name, prefix, or label)")
 
 
-def find_cilium_pod_on_node(node_name: str) -> str:
-    """Finds the Cilium agent pod running on the specified node."""
+def find_cilium_pod_on_node(node_name: Optional[str] = None) -> str:
+    """Finds the Cilium agent pod running on the specified node, or any running agent."""
     cmd = [
         "kubectl",
         "get",
@@ -92,14 +92,16 @@ def find_cilium_pod_on_node(node_name: str) -> str:
         "kube-system",
         "-l",
         "k8s-app=cilium",
-        "--field-selector",
-        f"spec.nodeName={node_name}",
-        "-o",
-        "jsonpath={.items[0].metadata.name}",
     ]
+    if node_name:
+        cmd.extend(["--field-selector", f"spec.nodeName={node_name}"])
+    else:
+        cmd.extend(["--field-selector", "status.phase=Running"])
+    cmd.extend(["-o", "jsonpath={.items[0].metadata.name}"])
     pod_name = run_cmd(cmd)
     if not pod_name:
-        raise RuntimeError(f"No Cilium agent pod found on node '{node_name}'")
+        msg = f"No Cilium agent pod found on node '{node_name}'" if node_name else "No running Cilium agent pod found"
+        raise RuntimeError(msg)
     return pod_name
 
 
@@ -152,15 +154,63 @@ def get_bpf_policy(cilium_pod: str, endpoint_id: int) -> List[str]:
     return raw.splitlines()
 
 
+def inspect_identity(identity_id: int, cilium_pod: str) -> None:
+    """Inspects a numeric Cilium Security Identity and displays its labels."""
+    cmd = [
+        "kubectl",
+        "exec",
+        "-n",
+        "kube-system",
+        cilium_pod,
+        "-c",
+        "cilium-agent",
+        "--",
+        "cilium-dbg",
+        "identity",
+        "get",
+        str(identity_id),
+        "-o",
+        "json",
+    ]
+    try:
+        raw = run_cmd(cmd)
+        data = json.loads(raw)
+    except Exception as e:
+        print(f"Error querying identity {identity_id}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if not data:
+        print(f"Identity {identity_id} not found.")
+        return
+
+    item = data[0] if isinstance(data, list) else data
+    labels = item.get("labels", [])
+    lbl_ns, lbl_name, kind = extract_endpoint_labels_info(labels)
+
+    print(f"Security Identity: {identity_id}")
+    if lbl_ns:
+        print(f"Namespace:         {lbl_ns}")
+    if lbl_name:
+        workload_str = f"{lbl_name} ({kind})" if kind else lbl_name
+        print(f"Workload/App:      {workload_str}")
+    print(f"Labels ({len(labels)}):")
+    for l in sorted(labels):
+        print(f"  - {l}")
+
+
 def get_hubble_flows(
     cilium_pod: str,
-    pod_full_name: str,
+    pod_full_name: Optional[str] = None,
+    namespace: Optional[str] = None,
     last: int = 30,
     direction: str = "both",
+    port: Optional[str] = None,
     unmatched_only: bool = False,
     non_reply_only: bool = False,
+    syn_only: bool = False,
+    dropped_only: bool = False,
 ) -> List[Dict[str, Any]]:
-    """Retrieves recent Hubble flows for the pod via the node's Cilium agent."""
+    """Retrieves recent Hubble flows for a pod or namespace via the node's Cilium agent."""
     cmd = [
         "kubectl",
         "exec",
@@ -172,13 +222,22 @@ def get_hubble_flows(
         "--",
         "hubble",
         "observe",
-        "--pod",
-        pod_full_name,
         "--last",
         str(last),
         "-o",
         "json",
     ]
+    if pod_full_name:
+        cmd.extend(["--pod", pod_full_name])
+    elif namespace:
+        cmd.extend(["-n", namespace])
+
+    if port:
+        cmd.extend(["--port", str(port)])
+
+    if dropped_only:
+        cmd.extend(["--verdict", "DROPPED"])
+
     raw = run_cmd(cmd)
     flows = []
     for line in raw.splitlines():
@@ -197,6 +256,14 @@ def get_hubble_flows(
             is_reply = flow_data.get("is_reply", False)
             if non_reply_only and is_reply:
                 continue
+
+            l4 = flow_data.get("l4", {})
+            if syn_only:
+                tcp_flags = l4.get("TCP", {}).get("flags", {})
+                is_syn = tcp_flags.get("SYN", False)
+                is_ack = tcp_flags.get("ACK", False)
+                if not (is_syn and not is_ack):
+                    continue
 
             pmt = flow_data.get("policy_match_type", 0)
             if unmatched_only and pmt not in (0, 4):
@@ -308,10 +375,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Inspect a pod's Cilium Endpoint ID, Security Identity, realized BPF policy rules, and live Hubble flows."
     )
-    parser.add_argument("pod", nargs="?", help="Pod name or namespace/name")
+    parser.add_argument("pod", nargs="?", help="Pod name, namespace/name, or label prefix")
     parser.add_argument("-n", "--namespace", default="default", help="Kubernetes namespace (default: default)")
     parser.add_argument("-l", "--selector", help="Label selector (e.g. app=grafana)")
-    parser.add_argument("-p", "--port", help="Filter BPF rules by port (e.g. 80, 3000, 9100)")
+    parser.add_argument("-p", "--port", help="Filter BPF rules and Hubble flows by port (e.g. 80, 3000, 5140)")
     parser.add_argument(
         "-d", "--direction", choices=["ingress", "egress", "both"], default="both", help="Filter direction"
     )
@@ -319,9 +386,11 @@ def main() -> None:
         "--active-only", action="store_true", help="Only show BPF rules with matched packets > 0"
     )
     parser.add_argument("--json", action="store_true", help="Output raw endpoint JSON")
+    parser.add_argument("--node", help="Target specific node Cilium agent directly")
+    parser.add_argument("--identity", type=int, help="Inspect a numeric Cilium Security Identity ID and its labels")
 
     # Hubble flows inspection options
-    parser.add_argument("-F", "--flows", action="store_true", help="Inspect recent live Hubble flows for the pod")
+    parser.add_argument("-F", "--flows", action="store_true", help="Inspect recent live Hubble flows")
     parser.add_argument("--last", type=int, default=30, help="Number of Hubble flows to inspect (default: 30)")
     parser.add_argument(
         "--unmatched-only", action="store_true", help="Filter Hubble flows for policy fallthrough (match='all' or none)"
@@ -329,11 +398,41 @@ def main() -> None:
     parser.add_argument(
         "--non-reply-only", action="store_true", help="Filter out TCP reply packets to focus on initiated traffic"
     )
+    parser.add_argument(
+        "--syn-only", action="store_true", help="Filter Hubble flows for newly initiated TCP connections (SYN without ACK)"
+    )
+    parser.add_argument(
+        "--dropped-only", action="store_true", help="Filter Hubble flows for dropped packets (verdict=DROPPED)"
+    )
 
     args = parser.parse_args()
 
+    # 1. Identity lookup mode
+    if args.identity:
+        cilium_pod = find_cilium_pod_on_node(args.node)
+        inspect_identity(args.identity, cilium_pod)
+        return
+
+    # 2. Namespace-wide flow inspection mode (no pod specified)
+    if args.flows and not args.pod and not args.selector:
+        cilium_pod = find_cilium_pod_on_node(args.node)
+        print(f"Querying Hubble flows for namespace '{args.namespace}' (Cilium agent: {cilium_pod})...")
+        flows = get_hubble_flows(
+            cilium_pod,
+            namespace=args.namespace,
+            last=args.last,
+            direction=args.direction,
+            port=args.port,
+            unmatched_only=args.unmatched_only,
+            non_reply_only=args.non_reply_only,
+            syn_only=args.syn_only,
+            dropped_only=args.dropped_only,
+        )
+        print_flows_table(flows)
+        return
+
     if not args.pod and not args.selector:
-        parser.error("Must provide either a pod name or a label selector (-l).")
+        parser.error("Must provide a pod name, label selector (-l), --identity, or -n <ns> -F.")
 
     try:
         pod = find_pod(args.pod or "", namespace=args.namespace, label_selector=args.selector)
@@ -344,7 +443,7 @@ def main() -> None:
     pod_name = pod["metadata"]["name"]
     pod_ns = pod["metadata"]["namespace"]
     pod_ip = pod.get("status", {}).get("podIP")
-    node_name = pod.get("spec", {}).get("nodeName")
+    node_name = args.node or pod.get("spec", {}).get("nodeName")
     pod_labels = pod.get("metadata", {}).get("labels", {})
 
     if not pod_ip:
@@ -377,11 +476,14 @@ def main() -> None:
     if args.flows:
         flows = get_hubble_flows(
             cilium_pod,
-            f"{pod_ns}/{pod_name}",
+            pod_full_name=f"{pod_ns}/{pod_name}",
             last=args.last,
             direction=args.direction,
+            port=args.port,
             unmatched_only=args.unmatched_only,
             non_reply_only=args.non_reply_only,
+            syn_only=args.syn_only,
+            dropped_only=args.dropped_only,
         )
         print_flows_table(flows)
         return

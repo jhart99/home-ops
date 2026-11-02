@@ -29,15 +29,21 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
   ./scripts/cilium-netpol-audit.py targets [-v]
   ```
 
-- **Inspect Node-Level BPF Policy Table and Live Hubble Flows for Any Pod**:
+- **Inspect Node-Level BPF Policy Table, Security Identities, and Live Hubble Flows**:
   ```bash
   # Maps pod to node, Cilium agent, endpoint ID, and realized BPF rules
   # (Supports exact pod name, name prefix, or CNPG cluster/label selector)
   ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] [-p <port>] [--active-only]
 
-  # View live Hubble flows directly for the pod
+  # Inspect numeric Cilium Security Identity labels (e.g. 1417) without kubectl exec
+  ./scripts/cilium-endpoint-inspect.py --identity <identity-id>
+
+  # Inspect live Hubble flows across an entire namespace without specifying a pod
+  ./scripts/cilium-endpoint-inspect.py -n <namespace> -F [-p <port>] [--syn-only] [--last 30]
+
+  # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough
   # (Automatically resolves non-workload identities like CNPG instances and marks [RevNAT return] flows)
-  ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] -F [--last 30] [--unmatched-only]
+  ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] -F [--syn-only] [--unmatched-only]
   ```
 
 ## 3. Critical Cilium Implementation Rules

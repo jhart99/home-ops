@@ -43,16 +43,27 @@ class PrometheusClient:
             s.settimeout(0.5)
             return s.connect_ex((host, port)) == 0
 
+    def _find_free_port(self) -> int:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("", 0))
+            return s.getsockname()[1]
+
     def _ensure_port_forward(self) -> str:
-        # Check if 9090 is already answering
+        # Check if 9090 is already answering healthy Prometheus
         if self._is_port_open("127.0.0.1", DEFAULT_PROMETHEUS_PORT):
             try:
-                urllib.request.urlopen(
+                with urllib.request.urlopen(
                     f"http://127.0.0.1:{DEFAULT_PROMETHEUS_PORT}/-/ready", timeout=1
-                )
-                return f"http://127.0.0.1:{DEFAULT_PROMETHEUS_PORT}"
+                ) as resp:
+                    if resp.status == 200:
+                        return f"http://127.0.0.1:{DEFAULT_PROMETHEUS_PORT}"
             except Exception:
                 pass
+
+        # Pick local port: 9090 if free, otherwise find a free dynamic port
+        local_port = DEFAULT_PROMETHEUS_PORT
+        if self._is_port_open("127.0.0.1", DEFAULT_PROMETHEUS_PORT):
+            local_port = self._find_free_port()
 
         # Spawn kubectl port-forward
         cmd = [
@@ -61,24 +72,28 @@ class PrometheusClient:
             "-n",
             DEFAULT_PROMETHEUS_NS,
             DEFAULT_PROMETHEUS_SVC,
-            f"{DEFAULT_PROMETHEUS_PORT}:{DEFAULT_PROMETHEUS_PORT}",
+            f"{local_port}:{DEFAULT_PROMETHEUS_PORT}",
         ]
         self.port_forward_proc = subprocess.Popen(
-            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE
         )
         atexit.register(self.cleanup)
 
         # Wait up to 15s for the port to open
         for _ in range(150):
-            if self._is_port_open("127.0.0.1", DEFAULT_PROMETHEUS_PORT):
+            if self._is_port_open("127.0.0.1", local_port):
                 time.sleep(0.3)
-                return f"http://127.0.0.1:{DEFAULT_PROMETHEUS_PORT}"
+                return f"http://127.0.0.1:{local_port}"
             if self.port_forward_proc.poll() is not None:
-                break
+                _, stderr = self.port_forward_proc.communicate()
+                err_msg = stderr.decode().strip() if stderr else "process exited"
+                raise RuntimeError(
+                    f"Failed to establish port-forward to {DEFAULT_PROMETHEUS_SVC} on port {local_port}: {err_msg}"
+                )
             time.sleep(0.1)
 
         raise RuntimeError(
-            f"Failed to establish port-forward to {DEFAULT_PROMETHEUS_SVC} on port {DEFAULT_PROMETHEUS_PORT}"
+            f"Timed out waiting for port-forward to {DEFAULT_PROMETHEUS_SVC} on port {local_port}"
         )
 
     def cleanup(self) -> None:

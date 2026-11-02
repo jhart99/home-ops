@@ -169,7 +169,7 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    ./scripts/cilium-netpol-audit.py targets -v
    ```
 
-2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints, BPF tables, and Hubble flows):
+2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints, BPF tables, security identities, and live Hubble flows):
    ```sh
    # Inspect by pod name, prefix, or CNPG cluster (e.g. authentik-db, grafana)
    ./scripts/cilium-endpoint-inspect.py authentik-db -n security -p 5432
@@ -178,12 +178,17 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    # Show only BPF rules with active traffic (matched packets > 0)
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
 
-   # View live Hubble flows directly for the pod without knowing which node it runs on
+   # Inspect numeric Cilium Security Identity labels (e.g. 1417) without kubectl exec
+   ./scripts/cilium-endpoint-inspect.py --identity 1417
+
+   # Inspect live Hubble flows across an entire namespace without specifying a pod
+   ./scripts/cilium-endpoint-inspect.py -n ai -F --last 30
+   ./scripts/cilium-endpoint-inspect.py -n ai -F -p 8080 --syn-only
+
+   # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough
    # (non-workload labels such as CNPG instances and [RevNAT return] flows are automatically resolved)
    ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
-
-   # Filter Hubble flows for policy fallthrough (match='all' or dropped)
-   ./scripts/cilium-endpoint-inspect.py -n security authentik-server -F --unmatched-only
+   ./scripts/cilium-endpoint-inspect.py -n security authentik-server -F --unmatched-only --syn-only
    ```
 
 ### Critical Rules & Gotchas
