@@ -158,6 +158,9 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    # View active traffic verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
    ./scripts/cilium-netpol-audit.py verdicts -W wg-easy
 
+   # Audit non-workload flows (CloudNativePG databases, CRDs, host/world) using -W unknown
+   ./scripts/cilium-netpol-audit.py verdicts -W unknown -n security
+
    # Summary of accounted vs unaccounted rate and coverage percentage
    ./scripts/cilium-netpol-audit.py summary -n observability
    ./scripts/cilium-netpol-audit.py summary -W wg-easy
@@ -168,18 +171,19 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
 
 2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to node-level Cilium endpoints, BPF tables, and Hubble flows):
    ```sh
-   # Inspect BPF rules by pod name or label selector
-   ./scripts/cilium-endpoint-inspect.py prometheus-kube-prometheus-stack-0 -n observability
+   # Inspect by pod name, prefix, or CNPG cluster (e.g. authentik-db, grafana)
+   ./scripts/cilium-endpoint-inspect.py authentik-db -n security -p 5432
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000
 
    # Show only BPF rules with active traffic (matched packets > 0)
    ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
 
    # View live Hubble flows directly for the pod without knowing which node it runs on
+   # (non-workload labels such as CNPG instances and [RevNAT return] flows are automatically resolved)
    ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --last 20
 
    # Filter Hubble flows for policy fallthrough (match='all' or dropped)
-   ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --unmatched-only
+   ./scripts/cilium-endpoint-inspect.py -n security authentik-server -F --unmatched-only
    ```
 
 ### Critical Rules & Gotchas
@@ -195,4 +199,9 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
   *(Do NOT use `port: "8080-8082"`, which fails with `strconv.ParseUint: invalid syntax`.)*
 - **Scrape Egress Requires Node Entities**: Node-level metrics (kubelet `10250`, node-exporter `9100`, ceph `9926/9283`, cilium `9962-9965`, etcd `2381`) bind to node IPs (`192.168.1.x`), which are classified as `host` or `remote-node`, **not** `cluster`. Scrape egress rules must specify `toEntities: [cluster, host, remote-node]`.
 - **`toEntities` Without Ports Causes `match="all"`**: Specifying `toEntities: [cluster]` without `toPorts` places the rule in wildcard `port: 0, protocol: ANY`, causing Hubble to evaluate flows against the default fallback (`match="all"`). Explicit `toPorts` are required for L4 accounting.
-- **DSR & Return Traffic**: In Cilium DSR mode, reply packets from Service ClusterIPs or UDP DNS arrive on client ephemeral ports. Ingress policies for servers receiving replies should permit L3 ingress without restrictive `toPorts`.
+- **Same-Node Service RevNAT & Return Traffic on Ingress**: When a client pod accesses a Kubernetes Service (e.g. `authentik-db-rw:5432`) whose backend pod resides on the same node, tc-level RevNAT translates the reply packet (`SYN, ACK`) to the Service IP on the local veth pair before conntrack state marks it as reply. Cilium evaluates the packet against the client pod's ingress policy:
+  - If the client policy lacks an ingress allowance for the backend (e.g. `fromEndpoints: - matchLabels: cnpg.io/cluster: authentik-db`), the packet hits `match="all"` (audit fallthrough).
+  - In the client's `CiliumNetworkPolicy`, ensure:
+    1. `egress` has `toServices` for the Service name (in addition to `toEndpoints`).
+    2. `ingress` has `fromEndpoints` matching the backend's labels (e.g. `cnpg.io/cluster: <name>`) to accept same-node return traffic.
+- **DSR & Return Traffic**: In Cilium DSR mode, reply packets from external VIPs or UDP DNS arrive on client ephemeral ports. Ingress policies for servers receiving replies should permit L3 ingress without restrictive `toPorts`.

@@ -19,6 +19,9 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
   # View live flow verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
   ./scripts/cilium-netpol-audit.py verdicts [-W <workload>] [-n <namespace>] [-m <match_type>]
 
+  # Audit non-workload flows (CloudNativePG databases, CRDs, host/world) using -W unknown
+  ./scripts/cilium-netpol-audit.py verdicts -W unknown -n security
+
   # Get accounted vs unaccounted summary and coverage percentage
   ./scripts/cilium-netpol-audit.py summary [-n <namespace>] [-W <workload>]
 
@@ -29,9 +32,11 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
 - **Inspect Node-Level BPF Policy Table and Live Hubble Flows for Any Pod**:
   ```bash
   # Maps pod to node, Cilium agent, endpoint ID, and realized BPF rules
+  # (Supports exact pod name, name prefix, or CNPG cluster/label selector)
   ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] [-p <port>] [--active-only]
 
   # View live Hubble flows directly for the pod
+  # (Automatically resolves non-workload identities like CNPG instances and marks [RevNAT return] flows)
   ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] -F [--last 30] [--unmatched-only]
   ```
 
@@ -61,3 +66,10 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
 
 5. **DSR & Client Ephemeral Return Ports**:
    - With Cilium Direct Server Return (DSR), incoming replies from Service ClusterIPs or UDP DNS arrive on ephemeral client ports. Ingress policies receiving return traffic must allow L3 ingress without pinning destination ports.
+
+6. **Same-Node Service RevNAT & Return Traffic on Ingress**:
+   - When pod A connects to a Kubernetes Service whose backend pod B resides on the same node, tc-level RevNAT translates the return packet (`SYN, ACK`) to the Service IP on the local veth pair before conntrack state marks it as reply.
+   - Cilium evaluates the packet against pod A's ingress policy with pod B's security identity. Without an ingress rule, it hits `match="all"` (audit fallthrough).
+   - **Resolution in Pod A's `CiliumNetworkPolicy`**:
+     1. Add `toServices` for the Service in `egress`.
+     2. Add `fromEndpoints` matching pod B's labels (e.g. `cnpg.io/cluster: <cluster-name>`) in `ingress` to explicitly allow the return path without port restrictions.

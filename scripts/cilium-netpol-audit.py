@@ -117,15 +117,25 @@ def _build_filter_queries(
 ) -> str:
     """Builds PromQL queries matching namespace or workload across source or destination."""
     conds = []
+    is_unknown_query = workload in ("unknown", "<unknown>", "none") if workload else False
+
     if namespace and workload:
-        conds.append(f'source_namespace="{namespace}", source_workload=~".*{workload}.*"')
-        conds.append(f'destination_namespace="{namespace}", destination_workload=~".*{workload}.*"')
+        if is_unknown_query:
+            conds.append(f'source_namespace="{namespace}", source_workload=""')
+            conds.append(f'destination_namespace="{namespace}", destination_workload=""')
+        else:
+            conds.append(f'source_namespace="{namespace}", source_workload=~".*{workload}.*"')
+            conds.append(f'destination_namespace="{namespace}", destination_workload=~".*{workload}.*"')
     elif namespace:
         conds.append(f'source_namespace="{namespace}"')
         conds.append(f'destination_namespace="{namespace}"')
     elif workload:
-        conds.append(f'source_workload=~".*{workload}.*"')
-        conds.append(f'destination_workload=~".*{workload}.*"')
+        if is_unknown_query:
+            conds.append('source_workload=""')
+            conds.append('destination_workload=""')
+        else:
+            conds.append(f'source_workload=~".*{workload}.*"')
+            conds.append(f'destination_workload=~".*{workload}.*"')
 
     base_filter = ", ".join(filters) if filters else ""
 
@@ -190,6 +200,10 @@ def cmd_unaccounted(args: argparse.Namespace, client: PrometheusClient) -> None:
     if len(rows) > limit:
         print(f"\n... and {len(rows) - limit} more. Use --top 0 to show all.")
 
+    if any("<unknown>" in src or "<unknown>" in dst for _, _, src, dst in rows[:limit]):
+        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. CNPG databases, CRDs) or host/external traffic.")
+        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F --unmatched-only to inspect exact IPs, labels, and flags.")
+
 
 def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
     """Display all active traffic verdicts (l3-l4, l3-only, l4-only, all) broken down by workload."""
@@ -244,21 +258,32 @@ def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
     if len(rows) > limit:
         print(f"\n... and {len(rows) - limit} more. Use --top 0 to show all.")
 
+    if any("<unknown>" in src or "<unknown>" in dst for _, _, _, src, dst in rows[:limit]):
+        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. CNPG databases, CRDs) or host/external traffic.")
+        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F to inspect exact IPs, labels, and flags.")
+
 
 def cmd_summary(args: argparse.Namespace, client: PrometheusClient) -> None:
     """Print accounted vs unaccounted summary and coverage breakdown."""
     def build_summary_query(direction: str) -> str:
         filters = [f'direction="{direction}"']
+        is_unknown_query = args.workload in ("unknown", "<unknown>", "none") if args.workload else False
         if direction == "ingress":
             if args.namespace:
                 filters.append(f'destination_namespace="{args.namespace}"')
             if args.workload:
-                filters.append(f'destination_workload=~".*{args.workload}.*"')
+                if is_unknown_query:
+                    filters.append('destination_workload=""')
+                else:
+                    filters.append(f'destination_workload=~".*{args.workload}.*"')
         else:
             if args.namespace:
                 filters.append(f'source_namespace="{args.namespace}"')
             if args.workload:
-                filters.append(f'source_workload=~".*{args.workload}.*"')
+                if is_unknown_query:
+                    filters.append('source_workload=""')
+                else:
+                    filters.append(f'source_workload=~".*{args.workload}.*"')
         f_str = ", ".join(filters)
         return f"sum by (match) (rate(hubble_policy_verdicts_total{{{f_str}}}[{args.window}]))"
 

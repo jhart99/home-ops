@@ -33,21 +33,53 @@ def run_cmd(cmd: List[str]) -> str:
 def find_pod(
     name_or_query: str, namespace: str = "default", label_selector: Optional[str] = None
 ) -> Dict[str, Any]:
-    """Finds a pod either by name or label selector."""
+    """Finds a pod by exact name, label selector, CNPG cluster, or name prefix."""
     if label_selector:
         cmd = ["kubectl", "get", "pods", "-n", namespace, "-l", label_selector, "-o", "json"]
-    else:
-        if "/" in name_or_query:
-            namespace, name_or_query = name_or_query.split("/", 1)
-        cmd = ["kubectl", "get", "pod", "-n", namespace, name_or_query, "-o", "json"]
-
-    raw = run_cmd(cmd)
-    data = json.loads(raw)
-    if "items" in data:
-        if not data["items"]:
+        raw = run_cmd(cmd)
+        data = json.loads(raw)
+        if not data.get("items"):
             raise RuntimeError(f"No pods found in namespace '{namespace}' matching selector '{label_selector}'")
         return data["items"][0]
-    return data
+
+    if "/" in name_or_query:
+        namespace, name_or_query = name_or_query.split("/", 1)
+
+    # 1. Try exact pod name
+    try:
+        raw = run_cmd(["kubectl", "get", "pod", "-n", namespace, name_or_query, "-o", "json"])
+        return json.loads(raw)
+    except RuntimeError:
+        pass
+
+    # 2. Try common labels (CNPG cluster, Helm release, app name)
+    selectors = [
+        f"cnpg.io/cluster={name_or_query}",
+        f"app.kubernetes.io/name={name_or_query}",
+        f"app.kubernetes.io/instance={name_or_query}",
+        f"app={name_or_query}",
+    ]
+    for sel in selectors:
+        try:
+            raw = run_cmd(["kubectl", "get", "pods", "-n", namespace, "-l", sel, "-o", "json"])
+            data = json.loads(raw)
+            if data.get("items"):
+                return data["items"][0]
+        except RuntimeError:
+            pass
+
+    # 3. Try name prefix matching (e.g. authentik-server-* or authentik-db-*)
+    try:
+        raw = run_cmd(["kubectl", "get", "pods", "-n", namespace, "-o", "json"])
+        data = json.loads(raw)
+        for item in data.get("items", []):
+            pname = item.get("metadata", {}).get("name", "")
+            if pname.startswith(f"{name_or_query}-") or pname.startswith(name_or_query):
+                return item
+    except RuntimeError:
+        pass
+
+    raise RuntimeError(f"No pods found in namespace '{namespace}' matching '{name_or_query}' (exact name, prefix, or label)")
 
 
 def find_cilium_pod_on_node(node_name: str) -> str:
@@ -176,21 +208,55 @@ def get_hubble_flows(
     return flows
 
 
+def extract_endpoint_labels_info(labels: List[str]) -> Tuple[str, str, str]:
+    """Extracts (namespace, workload_or_instance, kind) from endpoint labels list."""
+    ns = ""
+    name = ""
+    kind = ""
+    for l in labels:
+        if l.startswith("k8s:io.kubernetes.pod.namespace="):
+            ns = l.split("=", 1)[1]
+        elif l.startswith("k8s:cnpg.io/instanceName="):
+            name = l.split("=", 1)[1]
+            kind = "cnpg"
+        elif not name and l.startswith("k8s:cnpg.io/cluster="):
+            name = l.split("=", 1)[1]
+            kind = "cnpg"
+        elif not name and l.startswith("k8s:app.kubernetes.io/instance="):
+            name = l.split("=", 1)[1]
+        elif not name and l.startswith("k8s:app.kubernetes.io/name="):
+            name = l.split("=", 1)[1]
+        elif not name and l.startswith("k8s:app="):
+            name = l.split("=", 1)[1]
+    return (ns, name, kind)
+
+
 def format_endpoint_summary(ep: Dict[str, Any]) -> str:
-    """Formats source or destination endpoint representation."""
+    """Formats source or destination endpoint representation, resolving non-workload labels if pod_name is missing."""
     if not ep:
         return "<unknown>"
     pod = ep.get("pod_name")
     ns = ep.get("namespace")
+    labels = ep.get("labels", [])
+    identity = ep.get("identity")
+
     if pod and ns:
         return f"{ns}/{pod}"
     elif pod:
         return pod
-    labels = ep.get("labels", [])
+
+    lbl_ns, lbl_name, kind = extract_endpoint_labels_info(labels)
+    eff_ns = ns or lbl_ns
+    if eff_ns and lbl_name:
+        extra = f" ({kind})" if kind else ""
+        return f"{eff_ns}/{lbl_name}{extra}"
+    elif lbl_name:
+        return lbl_name
+
     for l in labels:
         if l.startswith("reserved:"):
             return l
-    identity = ep.get("identity")
+
     return f"id:{identity}" if identity else "<unknown>"
 
 
@@ -200,8 +266,8 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         print("\nNo flows matched the filter criteria.")
         return
 
-    print(f"\n{'TIME':<12} {'DIR':<7} {'VERDICT':<9} {'MATCH_TYPE':<12} {'SOURCE':<30} {'DESTINATION':<30} {'PORT':<10} {'SUMMARY'}")
-    print("-" * 125)
+    print(f"\n{'TIME':<12} {'DIR':<7} {'VERDICT':<9} {'MATCH_TYPE':<12} {'SOURCE':<34} {'DESTINATION':<34} {'PORT':<10} {'SUMMARY'}")
+    print("-" * 133)
 
     for f in flows:
         raw_time = f.get("time", "")
@@ -228,7 +294,14 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         port_str = f"{port}/{proto}" if port else proto
         summary = f.get("Summary", "")
 
-        print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<30} {dst:<30} {port_str:<10} {summary}")
+        # Detect same-node Service RevNAT return edge-case:
+        is_reply = f.get("is_reply", False)
+        if direction.startswith("INGRES") and not is_reply:
+            flags = l4.get("TCP", {}).get("flags", {})
+            if flags.get("SYN") and flags.get("ACK"):
+                summary += " [RevNAT return]"
+
+        print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<34} {dst:<34} {port_str:<10} {summary}")
 
 
 def main() -> None:
