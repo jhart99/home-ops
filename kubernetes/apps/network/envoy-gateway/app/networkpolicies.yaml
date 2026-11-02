@@ -173,10 +173,8 @@ spec:
               protocol: TCP
 ---
 # Allow the envoy proxies to reach the backends behind every attached route
-# (HTTPRoutes across all namespaces, plus the cloudflare-tunnel origin). The
-# backend set is generated from route config and not statically knowable here.
-# TODO(enforce phase): pin to the observed backend ports (mostly 80/443 and the
-# per-app service ports) from Hubble.
+# (HTTPRoutes, TCPRoutes, and UDPRoutes across all namespaces, plus the cloudflare-tunnel origin).
+# Pinned to the observed backend service ports to eliminate wildcard L3 fallthrough (match="all").
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -195,6 +193,60 @@ spec:
   egress:
     - toEntities:
         - cluster
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "2283"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "3923"
+              protocol: TCP
+            - port: "4000"
+              protocol: TCP
+            - port: "4483"
+              protocol: TCP
+            - port: "5140"
+              protocol: TCP
+            - port: "5140"
+              protocol: UDP
+            - port: "7000"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+            - port: "8082"
+              protocol: TCP
+            - port: "8096"
+              protocol: TCP
+            - port: "8123"
+              protocol: TCP
+            - port: "8188"
+              protocol: TCP
+            - port: "8900"
+              protocol: TCP
+            - port: "9000"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+            - port: "9080"
+              protocol: TCP
+            - port: "9090"
+              protocol: TCP
+            - port: "9093"
+              protocol: TCP
+            - port: "9119"
+              protocol: TCP
+            - port: "9428"
+              protocol: TCP
+            - port: "9999"
+              protocol: TCP
 ---
 # Allow client ingress to the envoy proxies on the Gateway listener ports
 # defined in envoy.yaml: http 80, https 443, syslog 5140 UDP and 5140 TCP
