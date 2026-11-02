@@ -22,7 +22,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: keda
+      app.kubernetes.io/part-of: keda-operator
   egress:
     - toEndpoints:
         - matchLabels:
@@ -34,6 +34,27 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+---
+# Allow return traffic from kube-dns (same-node DNAT reply)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: keda-allow-dns-return
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: keda-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
 ---
 # Allow keda to reach the Kubernetes API server (HPAs, ScaledObjects,
 # workloads in every namespace).
@@ -50,15 +71,13 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: keda
+      app.kubernetes.io/part-of: keda-operator
   egress:
     - toEntities:
         - kube-apiserver
 ---
-# Allow keda's scaler traffic to the scale targets it watches. The target set
-# spans namespaces and protocols (HTTP/apiserver/prometheus scalers) and is not
-# knowable from this repo.
-# TODO(enforce phase): pin to the observed scale-target endpoints and ports.
+# Allow keda's scaler traffic to the scale targets it watches.
+# In this cluster, ScaledObjects use Prometheus as the trigger.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -72,16 +91,17 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: keda
+      app.kubernetes.io/part-of: keda-operator
   egress:
     - toEntities:
         - cluster
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
 ---
-# Allow kube-apiserver access to the keda admission webhooks (values:
-# prometheus.webhooks.enabled, standard webhook port 9443) and to the
-# external-metrics APIService backed by keda-metrics-apiserver (:443).
-# TODO(enforce phase): confirm the webhook and metrics-apiserver ports in
-# Hubble and split these rules.
+# Allow kube-apiserver access to the keda admission webhooks (:9443) and
+# to the external-metrics APIService backed by keda-metrics-apiserver (:6443 / :443).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -95,7 +115,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: keda
+      app.kubernetes.io/part-of: keda-operator
   ingress:
     - fromEntities:
         - kube-apiserver
@@ -105,12 +125,13 @@ spec:
         - ports:
             - port: "9443"
               protocol: TCP
+            - port: "6443"
+              protocol: TCP
             - port: "443"
               protocol: TCP
 ---
 # Allow kubelet probes from the node and Prometheus scraping of the three
 # serviceMonitors (metricServer / operator / webhooks).
-# TODO(enforce phase): pin the probe and metrics ports in Hubble.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -124,11 +145,23 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: keda
+      app.kubernetes.io/part-of: keda-operator
   ingress:
     - fromEntities:
         - host
         - remote-node
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+            - port: "6443"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "9666"
+              protocol: TCP

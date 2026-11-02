@@ -28,8 +28,12 @@ spec:
     ingress: false
     egress: false
   endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: kube-prometheus-stack
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - kube-prometheus-stack
+          - kube-prometheus-stack-prometheus-operator
   egress:
     - toEndpoints:
         - matchLabels:
@@ -57,15 +61,18 @@ spec:
     ingress: false
     egress: false
   endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: kube-prometheus-stack
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - kube-prometheus-stack
+          - kube-prometheus-stack-prometheus-operator
   egress:
     - toEntities:
         - kube-apiserver
 ---
 # Allow kubelet probes from the node and Prometheus scraping of the operator
-# metrics (per-component ServiceMonitors are installed by the chart).
-# TODO(enforce phase): pin the operator probe/metrics ports in Hubble.
+# metrics on port 10250.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -78,15 +85,56 @@ spec:
     ingress: false
     egress: false
   endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: kube-prometheus-stack
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - kube-prometheus-stack
+          - kube-prometheus-stack-prometheus-operator
   ingress:
     - fromEntities:
         - host
         - remote-node
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+---
+# Allow kube-apiserver to reach the prometheus-operator admission webhooks
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: kube-prometheus-stack-operator-allow-webhook
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchExpressions:
+      - key: app.kubernetes.io/name
+        operator: In
+        values:
+          - kube-prometheus-stack
+          - kube-prometheus-stack-prometheus-operator
+  ingress:
+    - fromEntities:
+        - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
 ---
 # Allow the prometheus server to resolve DNS via kube-dns
 apiVersion: cilium.io/v2
@@ -219,6 +267,7 @@ spec:
 ---
 # Allow ingress to the prometheus server (port 9090):
 #   - from the envoy-internal proxies (prometheus.${SECRET_DOMAIN} HTTPRoute);
+#   - from in-cluster clients in observability (Grafana datasource, KEDA scalers, Kromgo);
 #   - from the node for kubelet probes (/-/healthy, /-/ready).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
@@ -242,12 +291,46 @@ spec:
         - ports:
             - port: "9090"
               protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
     - fromEntities:
         - host
         - remote-node
       toPorts:
         - ports:
             - port: "9090"
+              protocol: TCP
+---
+# Allow alertmanager to resolve DNS via kube-dns (for notification webhook receivers)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: alertmanager-allow-dns
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: alertmanager
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
               protocol: TCP
 ---
 # Allow ingress to alertmanager (port 9093 for the UI/API and for
@@ -294,10 +377,7 @@ spec:
               protocol: TCP
 ---
 # Allow alertmanager dispatch egress: notification receivers (Slack/webhook
-# URLs from the alertmanagerconfig secret, plus SMTP) and the HA mesh. The
-# receiver set is not knowable from this repo.
-# TODO(enforce phase): pin to the observed receiver endpoints (world 443 / SMTP
-# ports) and cluster-internal mesh peers.
+# URLs from the alertmanagerconfig secret, plus SMTP) and the HA mesh.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -315,6 +395,14 @@ spec:
   egress:
     - toEntities:
         - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "25"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
     - toEntities:
         - cluster
       toPorts:

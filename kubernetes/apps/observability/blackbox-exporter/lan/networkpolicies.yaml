@@ -38,9 +38,7 @@ spec:
               protocol: TCP
 ---
 # Allow blackbox probe egress to the LAN targets configured in probes.yaml
-# (icmp to pve/unifi, tcp 2049 to pve). Deliberately unpinned: probes may add
-# http/https targets and ICMP needs all ports.
-# TODO(enforce phase): pin to the observed probe targets and ports.
+# (icmp to pve/unifi, tcp 2049 to pve).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -58,6 +56,47 @@ spec:
   egress:
     - toEntities:
         - world
+      toPorts:
+        - ports:
+            - port: "2049"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+    - toEntities:
+        - world
+      icmps:
+        - fields:
+            - type: 8
+              family: IPv4
+---
+# Allow return traffic from probes (ICMP EchoReply from world, and UDP DNS replies from kube-dns).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: blackbox-exporter-lan-allow-return-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: blackbox-exporter-lan
+  ingress:
+    - fromEntities:
+        - world
+      icmps:
+        - fields:
+            - type: 0
+              family: IPv4
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
 ---
 # Allow Prometheus to scrape the blackbox exporter metrics (serviceMonitor
 # enabled, standard port 9115) and kubelet probes on the same port.

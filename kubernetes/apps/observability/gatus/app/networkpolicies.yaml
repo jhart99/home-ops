@@ -57,10 +57,6 @@ spec:
 ---
 # Allow gatus health-check probes: it checks every discovered HTTPRoute/SVC in
 # the cluster plus the external endpoints configured in resources/config.yaml.
-# Deliberately wide (cluster + world, all ports) because the check list is
-# generated at runtime.
-# TODO(enforce phase): pin to the observed check targets/ports (mostly
-# in-cluster 80/443 and world 443) from Hubble.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -79,6 +75,55 @@ spec:
     - toEntities:
         - cluster
         - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "10443"
+              protocol: TCP
+            - port: "1883"
+              protocol: TCP
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+    - toEntities:
+        - world
+        - cluster
+      icmps:
+        - fields:
+            - type: 8
+              family: IPv4
+---
+# Allow return traffic from ICMP pings and CoreDNS UDP replies
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: gatus-allow-return-ingress
+  namespace: observability
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gatus
+  ingress:
+    - fromEntities:
+        - world
+        - cluster
+      icmps:
+        - fields:
+            - type: 0
+              family: IPv4
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
 ---
 # Allow the gatus web UI (app-template port 80, /health probes):
 #   - from the envoy-internal proxies (gatus.${SECRET_DOMAIN} /

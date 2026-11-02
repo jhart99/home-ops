@@ -87,3 +87,19 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
    - **Resolution in Pod A's `CiliumNetworkPolicy`**:
      1. Add `toServices` for the Service in `egress`.
      2. Add `fromEndpoints` matching pod B's labels (e.g. `cnpg.io/cluster: <cluster-name>`) in `ingress` to explicitly allow the return path without port restrictions.
+
+
+8. **ICMP Rules Must Not Combine with `toPorts`**:
+   - In CiliumNetworkPolicy, `icmps` rules must be placed in a separate rule entry from `toPorts`.
+   - If `toPorts` and `icmps` are defined under the same egress/ingress list item, Cilium generates L4 port filters that do not match ICMP (which operates without TCP/UDP ports).
+   - This causes ICMP EchoRequest (type 8) and EchoReply (type 0) to fall through to `match="all"` (audit fallthrough).
+   - Separate them into two distinct list elements under `egress` / `ingress`:
+     ```yaml
+     egress:
+       - toEntities: [world]
+         toPorts:
+           - ports: [{port: "443", protocol: TCP}]
+       - toEntities: [world]
+         icmps:
+           - fields: [{type: 8, family: IPv4}]
+     ```
