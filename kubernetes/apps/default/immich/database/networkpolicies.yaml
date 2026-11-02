@@ -1,0 +1,194 @@
+---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
+# the selected endpoints do NOT enter default-deny.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-dns
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
+---
+# Allow instances to reach the Kubernetes API server
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-k8s-api
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  egress:
+    - toEntities:
+        - kube-apiserver
+---
+# Allow SQL clients (Immich server) to reach postgres on 5432
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-client-ingress
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: immich
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+---
+# Allow intra-cluster postgres traffic between instances (streaming replication 5432)
+# and instance-manager communication (8000)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-instance-traffic
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            cnpg.io/cluster: immich-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            cnpg.io/cluster: immich-db
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+    # CNPG operator reconciles and manages instances over port 8000
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: cloudnative-pg
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+---
+# Allow barman-cloud instance sidecar to archive WAL/backups to S3
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-backup-egress
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  egress:
+    - toFQDNs:
+        - matchName: s3.rnatr.com
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+---
+# Allow Prometheus to scrape postgres_exporter sidecar (port 9187)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-prometheus-scrape
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: prometheus
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+---
+# Allow kubelet health probes from node
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: immich-db-allow-kubelet-probes
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: immich-db
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
