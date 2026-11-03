@@ -42,8 +42,20 @@ spec:
     matchLabels:
       toolhive-name: rea-mcp
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: default
     - toEntities:
         - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: rea-mcp
@@ -75,6 +87,11 @@ spec:
     matchLabels:
       toolhive-name: rea-mcp
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEntities:
         - host
         - remote-node

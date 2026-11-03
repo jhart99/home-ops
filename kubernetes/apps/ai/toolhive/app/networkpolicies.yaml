@@ -55,8 +55,24 @@ spec:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: default
     - toEntities:
         - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+    # In-cluster Envoy Gateway (auth.rnatr.com Authentik OIDC and same-node return traffic)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: litellm

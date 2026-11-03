@@ -62,13 +62,10 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
+    # In-cluster Envoy Gateway (OIDC discovery and same-node return traffic)
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
     - toEntities:
         - world
       toPorts:
@@ -93,6 +90,11 @@ spec:
       app.kubernetes.io/instance: toolhive-ui
       app.kubernetes.io/name: toolhive-cloud-ui
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network

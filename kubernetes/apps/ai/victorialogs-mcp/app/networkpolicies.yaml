@@ -43,8 +43,20 @@ spec:
     matchLabels:
       toolhive-name: victorialogs-mcp
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: default
     - toEntities:
         - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: victorialogs-mcp
@@ -52,6 +64,10 @@ spec:
         - ports:
             - port: "8081"
               protocol: TCP
+    # Same-node return traffic and routes to Envoy Gateway
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
@@ -75,6 +91,11 @@ spec:
     matchLabels:
       toolhive-name: victorialogs-mcp
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEntities:
         - host
         - remote-node

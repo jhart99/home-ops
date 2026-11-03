@@ -46,8 +46,20 @@ spec:
       app.kubernetes.io/instance: toolhive-registry
       app.kubernetes.io/name: toolhive-registry-server
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: default
     - toEntities:
         - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
 ---
 # Egress: toolhive-db (port 5432) and git upstream catalog sync (github.com port 443)
 apiVersion: cilium.io/v2
@@ -87,6 +99,10 @@ spec:
         - ports:
             - port: "5432"
               protocol: TCP
+    # Same-node return traffic to Envoy Gateway
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
     - toEntities:
         - world
       toPorts:
@@ -111,6 +127,11 @@ spec:
       app.kubernetes.io/instance: toolhive-registry
       app.kubernetes.io/name: toolhive-registry-server
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     # gateway ingress (registry.rnatr.com)
     - fromEndpoints:
         - matchLabels:

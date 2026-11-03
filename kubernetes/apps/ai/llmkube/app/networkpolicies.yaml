@@ -43,8 +43,20 @@ spec:
     matchLabels:
       app.kubernetes.io/name: llmkube
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: kubernetes
+            namespace: default
     - toEntities:
         - kube-apiserver
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "6443"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
 ---
 # kubelet probes /healthz (8081) from the node; the webhook (9443) is called by the
 # kube-apiserver.
@@ -61,6 +73,11 @@ spec:
     matchLabels:
       app.kubernetes.io/name: llmkube
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEntities:
         - kube-apiserver
         - host
@@ -72,10 +89,9 @@ spec:
             - port: "9443"
               protocol: TCP
 ---
-# Inference model pods (qwen3-embedding-0.6b, qwen36-27b-q4, ...): kubelet /health
-# probes (8080) plus OpenAI-compatible callers (litellm) in the cluster.
-# TODO(enforce phase): scope the cluster rule to litellm:8080 and confirm model download
-# flows (modelCache is an NFS mount - host/remote-node rule below covers node traffic).
+# Inference model pods (qwen3-embedding-0.6b, qwen38-27b-nvfp4, ...): kubelet /health
+# probes (8000/8080) plus OpenAI-compatible callers (litellm) in the cluster.
+# TODO(enforce phase): scope the cluster rule to litellm:8000/8080.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -90,17 +106,26 @@ spec:
       - key: inference.llmkube.dev/service
         operator: Exists
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEntities:
         - host
         - remote-node
       toPorts:
         - ports:
+            - port: "8000"
+              protocol: TCP
             - port: "8080"
               protocol: TCP
     - fromEntities:
         - cluster
       toPorts:
         - ports:
+            - port: "8000"
+              protocol: TCP
             - port: "8080"
               protocol: TCP
   egress:
@@ -114,6 +139,4 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
-    - toEntities:
-        - host
-        - remote-node
+

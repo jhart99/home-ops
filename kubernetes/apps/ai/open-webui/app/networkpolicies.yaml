@@ -57,6 +57,10 @@ spec:
         - ports:
             - port: "4000"
               protocol: TCP
+    # In-cluster Envoy Gateway (auth.rnatr.com Authentik OIDC and same-node return traffic)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
     - toEntities:
         - world
       toPorts:
@@ -81,6 +85,11 @@ spec:
     matchLabels:
       app.kubernetes.io/name: open-webui
   ingress:
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
