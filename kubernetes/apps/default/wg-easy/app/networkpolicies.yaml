@@ -3,11 +3,14 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
+# Allow wg-easy to resolve in-cluster DNS via CoreDNS.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: wg-easy-allow-dns
   namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -27,36 +30,20 @@ spec:
             - port: "53"
               protocol: TCP
 ---
-# WireGuard peers live on the LAN (INIT_HOST vpn.${SECRET_DOMAIN}); UDP sessions are
-# initiated towards LAN clients.
-# TODO(enforce phase): confirm the peer CIDRs/ports seen in Hubble (51820/udp both ways).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: wg-easy-allow-lan-wireguard
-  namespace: default
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: wg-easy
-  egress:
-    - toCIDR:
-        - 192.168.30.0/24
-      toPorts:
-        - ports:
-            - port: "51820"
-              protocol: UDP
----
-# Ingress: LAN clients to the WireGuard LoadBalancer (51820/udp), envoy-internal serves
-# wireguard.${SECRET_DOMAIN} (80), kubelet tcp probes hit 80.
+# Ingress:
+#   - WireGuard clients connecting to the LoadBalancer (51820/udp) from the internet (world),
+#     node interfaces, or LAN subnets (192.168.0.0/16);
+#   - envoy-external/internal serving wireguard.${SECRET_DOMAIN} on port 80;
+#   - kubelet liveness/readiness TCP probes on port 80 from host/remote-node;
+#   - ICMP EchoReply replies from pinged hosts;
+#   - same-node RevNAT return traffic from local DNS providers (kube-dns, pihole).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: wg-easy-allow-ingress
   namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -65,12 +52,23 @@ spec:
     matchLabels:
       app.kubernetes.io/name: wg-easy
   ingress:
-    - fromCIDR:
-        - 192.168.30.0/24
+    # WireGuard clients connecting from internet (world) or via node routing
+    - fromEntities:
+        - world
+        - host
+        - remote-node
       toPorts:
         - ports:
             - port: "51820"
               protocol: UDP
+    # WireGuard clients connecting from LAN subnets
+    - fromCIDR:
+        - 192.168.0.0/16
+      toPorts:
+        - ports:
+            - port: "51820"
+              protocol: UDP
+    # Web UI / API via Envoy Gateway
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
@@ -86,6 +84,23 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
+    # ICMP ping replies (EchoReply) from external or cluster hosts
+    - fromEntities:
+        - world
+        - cluster
+      icmps:
+        - fields:
+            - type: 0
+              family: IPv4
+    # Same-node RevNAT return traffic for DNS queries
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            app.kubernetes.io/name: pihole
 ---
 # Prometheus (ServiceMonitor, endpoint port http, /metrics/prometheus) scrapes port 80.
 apiVersion: cilium.io/v2
@@ -93,6 +108,8 @@ kind: CiliumNetworkPolicy
 metadata:
   name: wg-easy-allow-prometheus-scrape
   namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -109,9 +126,8 @@ spec:
             - port: "80"
               protocol: TCP
 ---
-# Allow wg-easy to route outbound VPN client traffic to the internet (world).
-# VPN clients tunnel through wg-easy to reach external services. Internal cluster
-# pod and service networks remain disallowed.
+# Allow wg-easy to route outbound VPN client traffic to the internet (world),
+# plus return UDP traffic to external WireGuard peers on their ephemeral ports.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -129,8 +145,38 @@ spec:
   egress:
     - toEntities:
         - world
+    - toEntities:
+        - world
+      icmps:
+        - fields:
+            - type: 8
+              family: IPv4
 ---
-# Allow wg-easy (and connected VPN clients) to resolve DNS via Pi-hole.
+# Allow wg-easy (and connected VPN clients) to reach LAN devices, gateway services,
+# and WireGuard peers on the LAN.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-lan-egress
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toCIDR:
+        - 192.168.0.0/16
+    - toEntities:
+        - host
+        - remote-node
+---
+# Allow wg-easy (and connected VPN clients) to resolve DNS via Pi-hole, router gateway (192.168.1.1),
+# and k8s-gateway (192.168.1.6).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -168,9 +214,42 @@ spec:
               protocol: TCP
     - toCIDR:
         - 192.168.30.53/32
+        - 192.168.1.1/32
+        - 192.168.1.6/32
       toPorts:
         - ports:
             - port: "53"
               protocol: UDP
             - port: "53"
+              protocol: TCP
+---
+# Allow wg-easy (and connected VPN clients) to access in-cluster services via Envoy Gateway
+# (*.${SECRET_DOMAIN} routes on HTTP/HTTPS and internal listener ports).
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: wg-easy-allow-envoy-egress
+  namespace: default
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: wg-easy
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "10080"
+              protocol: TCP
+            - port: "10443"
               protocol: TCP
