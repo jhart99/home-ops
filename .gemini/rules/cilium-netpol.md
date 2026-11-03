@@ -45,8 +45,12 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
   ./scripts/cilium-endpoint-inspect.py -n <namespace> -F [-p <port>] [--syn-only] [-c 30]
 
   # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough
-  # (Automatically resolves non-workload identities like CNPG instances and marks [RevNAT return] flows)
+  # (Automatically resolves Service ClusterIPs/VIPs, host nodes, LAN, and RevNAT return flows)
   ./scripts/cilium-endpoint-inspect.py <pod-name-or-selector> [-n <namespace>] -F [--syn-only] [--unmatched-only] -c 20
+
+  # Filter flows by direction, verdict, or across pods/namespaces with automatic Cilium node agent discovery
+  ./scripts/cilium-endpoint-inspect.py -F --from-pod default/wg-easy -V DROPPED
+  ./scripts/cilium-endpoint-inspect.py -F --from-namespace ai --to-namespace network -c 50
   ```
 
 ## 3. Critical Cilium Implementation Rules

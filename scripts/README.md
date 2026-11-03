@@ -64,7 +64,7 @@ Audits Cilium NetworkPolicies against live Prometheus & Hubble metrics. Automati
 
 ### `cilium-endpoint-inspect.py`
 
-Maps a Kubernetes Pod to its containers, probes, matching Kubernetes Services (`port -> targetPort`), Cilium Endpoint ID, Security Identity, node-level BPF policy table, and live Hubble flow streams.
+Maps a Kubernetes Pod to its containers, probes, matching Kubernetes Services (`port -> targetPort`), Cilium Endpoint ID, Security Identity, node-level BPF policy table, and live Hubble flow streams. Automatically resolves raw IP addresses to Kubernetes Service names (`ns/name (SVC)` or `(LB)`), Talos node names (`node (host)`), and gateway IP.
 
 **Usage:**
 ```bash
@@ -88,6 +88,12 @@ Maps a Kubernetes Pod to its containers, probes, matching Kubernetes Services (`
 
 # Filter for newly initiated TCP connections (SYN without ACK)
 ./scripts/cilium-endpoint-inspect.py -n network envoy-internal -F --syn-only
+
+# Filter Hubble flows by verdict (FORWARDED, DROPPED, ERROR)
+./scripts/cilium-endpoint-inspect.py -n default wg-easy -F -V DROPPED
+
+# Cross-workload / cross-namespace flow inspection (auto-discovers Cilium agent node)
+./scripts/cilium-endpoint-inspect.py -F --from-pod observability/gatus-0 --to-namespace default -c 10
 
 # Lookup a numeric Cilium Security Identity ID
 ./scripts/cilium-endpoint-inspect.py --identity 4567

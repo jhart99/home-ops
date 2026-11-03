@@ -209,6 +209,11 @@ def get_hubble_flows(
     non_reply_only: bool = False,
     syn_only: bool = False,
     dropped_only: bool = False,
+    verdict: Optional[str] = None,
+    to_pod: Optional[str] = None,
+    from_pod: Optional[str] = None,
+    to_namespace: Optional[str] = None,
+    from_namespace: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Retrieves recent Hubble flows for a pod or namespace via the node's Cilium agent."""
     cmd = [
@@ -232,10 +237,21 @@ def get_hubble_flows(
     elif namespace:
         cmd.extend(["-n", namespace])
 
+    if to_pod:
+        cmd.extend(["--to-pod", to_pod])
+    if from_pod:
+        cmd.extend(["--from-pod", from_pod])
+    if to_namespace:
+        cmd.extend(["--to-namespace", to_namespace])
+    if from_namespace:
+        cmd.extend(["--from-namespace", from_namespace])
+
     if port:
         cmd.extend(["--port", str(port)])
 
-    if dropped_only:
+    if verdict:
+        cmd.extend(["--verdict", verdict.upper()])
+    elif dropped_only:
         cmd.extend(["--verdict", "DROPPED"])
 
     raw = run_cmd(cmd)
@@ -275,6 +291,62 @@ def get_hubble_flows(
     return flows
 
 
+class ClusterIPResolver:
+    """Caches and resolves IP addresses to Kubernetes Services, Nodes, and known infrastructure."""
+    _instance = None
+
+    def __init__(self) -> None:
+        self.ip_map: Dict[str, str] = {}
+        self._loaded = False
+
+    @classmethod
+    def get(cls) -> "ClusterIPResolver":
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def load(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
+
+        # Common gateway / router IP
+        self.ip_map["192.168.1.1"] = "gateway:192.168.1.1"
+
+        # Load Services (ClusterIPs and LoadBalancer VIPs)
+        try:
+            raw_svc = run_cmd(["kubectl", "get", "services", "-A", "-o", "json"])
+            for item in json.loads(raw_svc).get("items", []):
+                ns = item.get("metadata", {}).get("namespace", "")
+                name = item.get("metadata", {}).get("name", "")
+                cip = item.get("spec", {}).get("clusterIP")
+                if cip and cip != "None":
+                    self.ip_map[cip] = f"{ns}/{name} (SVC)"
+                for ing in item.get("status", {}).get("loadBalancer", {}).get("ingress", []):
+                    lb_ip = ing.get("ip")
+                    if lb_ip:
+                        self.ip_map[lb_ip] = f"{ns}/{name} (LB)"
+        except Exception:
+            pass
+
+        # Load Nodes (Internal IPs)
+        try:
+            raw_nodes = run_cmd(["kubectl", "get", "nodes", "-o", "json"])
+            for node in json.loads(raw_nodes).get("items", []):
+                n_name = node.get("metadata", {}).get("name", "")
+                for addr in node.get("status", {}).get("addresses", []):
+                    if addr.get("type") == "InternalIP":
+                        self.ip_map[addr.get("address")] = f"{n_name} (host)"
+        except Exception:
+            pass
+
+    def resolve(self, ip: Optional[str]) -> Optional[str]:
+        if not ip:
+            return None
+        self.load()
+        return self.ip_map.get(ip)
+
+
 def extract_endpoint_labels_info(labels: List[str]) -> Tuple[str, str, str]:
     """Extracts (namespace, workload_or_instance, kind) from endpoint labels list."""
     ns = ""
@@ -298,14 +370,12 @@ def extract_endpoint_labels_info(labels: List[str]) -> Tuple[str, str, str]:
     return (ns, name, kind)
 
 
-def format_endpoint_summary(ep: Dict[str, Any]) -> str:
-    """Formats source or destination endpoint representation, resolving non-workload labels if pod_name is missing."""
-    if not ep:
-        return "<unknown>"
-    pod = ep.get("pod_name")
-    ns = ep.get("namespace")
-    labels = ep.get("labels", [])
-    identity = ep.get("identity")
+def format_endpoint_summary(ep: Dict[str, Any], ip: Optional[str] = None) -> str:
+    """Formats source or destination endpoint representation, resolving non-workload labels, Service VIPs, and node IPs."""
+    pod = ep.get("pod_name") if ep else None
+    ns = ep.get("namespace") if ep else None
+    labels = ep.get("labels", []) if ep else []
+    identity = ep.get("identity") if ep else None
 
     if pod and ns:
         return f"{ns}/{pod}"
@@ -320,9 +390,19 @@ def format_endpoint_summary(ep: Dict[str, Any]) -> str:
     elif lbl_name:
         return lbl_name
 
+    # Check if IP resolves to a known Service, Node, or Gateway
+    resolved_ip = ClusterIPResolver.get().resolve(ip)
+    if resolved_ip:
+        return resolved_ip
+
     for l in labels:
         if l.startswith("reserved:"):
+            if ip and l in ("reserved:world", "reserved:host"):
+                return f"{ip} ({l.split(':', 1)[1]})"
             return l
+
+    if ip:
+        return f"{ip} (id:{identity})" if identity else ip
 
     return f"id:{identity}" if identity else "<unknown>"
 
@@ -333,8 +413,8 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         print("\nNo flows matched the filter criteria.")
         return
 
-    print(f"\n{'TIME':<12} {'DIR':<7} {'VERDICT':<9} {'MATCH_TYPE':<12} {'SOURCE':<34} {'DESTINATION':<34} {'PORT':<10} {'SUMMARY'}")
-    print("-" * 133)
+    print(f"\n{'TIME':<12} {'DIR':<7} {'VERDICT':<9} {'MATCH_TYPE':<12} {'SOURCE':<36} {'DESTINATION':<36} {'PORT':<10} {'SUMMARY'}")
+    print("-" * 137)
 
     for f in flows:
         raw_time = f.get("time", "")
@@ -343,8 +423,11 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         verdict = f.get("verdict", "")
         pmt = f.get("policy_match_type", 0)
         match_str = MATCH_TYPE_NAMES.get(pmt, str(pmt))
-        src = format_endpoint_summary(f.get("source", {}))
-        dst = format_endpoint_summary(f.get("destination", {}))
+
+        src_ip = f.get("IP", {}).get("source")
+        dst_ip = f.get("IP", {}).get("destination")
+        src = format_endpoint_summary(f.get("source", {}), src_ip)
+        dst = format_endpoint_summary(f.get("destination", {}), dst_ip)
 
         l4 = f.get("l4", {})
         port = ""
@@ -368,7 +451,7 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
             if flags.get("SYN") and flags.get("ACK"):
                 summary += " [RevNAT return]"
 
-        print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<34} {dst:<34} {port_str:<10} {summary}")
+        print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<36} {dst:<36} {port_str:<10} {summary}")
 
 
 def format_probe(probe_data: Optional[Dict[str, Any]]) -> Optional[str]:
@@ -479,6 +562,13 @@ def main() -> None:
         "--last", "-c", "--count", type=int, default=30, help="Number of Hubble flows to inspect (default: 30)"
     )
     parser.add_argument(
+        "-V", "--verdict", choices=["FORWARDED", "DROPPED", "ERROR"], help="Filter Hubble flows by verdict"
+    )
+    parser.add_argument("--to-pod", help="Filter Hubble flows destined to a pod (pod-name or ns/pod-name)")
+    parser.add_argument("--from-pod", help="Filter Hubble flows originating from a pod (pod-name or ns/pod-name)")
+    parser.add_argument("--to-namespace", help="Filter Hubble flows destined to a namespace")
+    parser.add_argument("--from-namespace", help="Filter Hubble flows originating from a namespace")
+    parser.add_argument(
         "--unmatched-only", action="store_true", help="Filter Hubble flows for policy fallthrough (match='all' or none)"
     )
     parser.add_argument(
@@ -501,11 +591,27 @@ def main() -> None:
 
     # 2. Namespace-wide flow inspection mode (no pod specified)
     if args.flows and not args.pod and not args.selector:
+        # If --from-pod or --to-pod is given, automatically discover its node
+        target_ref = args.from_pod or args.to_pod
+        if target_ref and not args.node:
+            try:
+                parts = target_ref.split("/", 1)
+                t_ns = parts[0] if len(parts) == 2 else args.namespace
+                t_name = parts[1] if len(parts) == 2 else parts[0]
+                tp = find_pod(t_name, namespace=t_ns)
+                if tp:
+                    args.node = tp.get("spec", {}).get("nodeName")
+            except Exception:
+                pass
+
         cilium_pod = find_cilium_pod_on_node(args.node)
-        print(f"Querying Hubble flows for namespace '{args.namespace}' (Cilium agent: {cilium_pod})...")
+        target_desc = f"namespace '{args.namespace}'"
+        if args.from_pod: target_desc += f" from-pod '{args.from_pod}'"
+        if args.to_pod: target_desc += f" to-pod '{args.to_pod}'"
+        print(f"Querying Hubble flows for {target_desc} (Cilium agent: {cilium_pod})...")
         flows = get_hubble_flows(
             cilium_pod,
-            namespace=args.namespace,
+            namespace=args.namespace if not (args.from_pod or args.to_pod or args.from_namespace or args.to_namespace) else None,
             last=args.last,
             direction=args.direction,
             port=args.port,
@@ -513,6 +619,11 @@ def main() -> None:
             non_reply_only=args.non_reply_only,
             syn_only=args.syn_only,
             dropped_only=args.dropped_only,
+            verdict=args.verdict,
+            to_pod=args.to_pod,
+            from_pod=args.from_pod,
+            to_namespace=args.to_namespace,
+            from_namespace=args.from_namespace,
         )
         print_flows_table(flows)
         return
@@ -572,6 +683,11 @@ def main() -> None:
             non_reply_only=args.non_reply_only,
             syn_only=args.syn_only,
             dropped_only=args.dropped_only,
+            verdict=args.verdict,
+            to_pod=args.to_pod,
+            from_pod=args.from_pod,
+            to_namespace=args.to_namespace,
+            from_namespace=args.from_namespace,
         )
         print_flows_table(flows)
         return

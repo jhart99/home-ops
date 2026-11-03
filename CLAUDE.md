@@ -172,7 +172,7 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    ./scripts/cilium-netpol-audit.py query 'rate(hubble_policy_verdicts_total{destination_namespace="network"}[1m]) > 0'
    ```
 
-2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to container ports, probes, matching Service `port -> targetPort` translations, Cilium endpoints, BPF tables, security identities, and live Hubble flows):
+2. **`scripts/cilium-endpoint-inspect.py`** (Maps K8s pods to container ports, probes, matching Service `port -> targetPort` translations, Cilium endpoints, BPF tables, security identities, and live Hubble flows. Automatically resolves IP addresses to Kubernetes Service names (`ns/name (SVC)` or `(LB)`), node names (`nodename (host)`), and gateway):
    ```sh
    # Inspect pod network overview (containers, probes, service mappings, endpoint ID, BPF table)
    ./scripts/cilium-endpoint-inspect.py envoy-internal -n network
@@ -187,14 +187,14 @@ Two zero-dependency Python tools automate metric queries and node-level BPF insp
    # Inspect numeric Cilium Security Identity labels (e.g. 1417) without kubectl exec
    ./scripts/cilium-endpoint-inspect.py --identity 1417
 
-   # Inspect live Hubble flows across an entire namespace without specifying a pod
-   ./scripts/cilium-endpoint-inspect.py -n ai -F --last 30
-   ./scripts/cilium-endpoint-inspect.py -n ai -F -p 8080 --syn-only
-
    # View live Hubble flows directly for a pod, filtering by port, SYN initiation, or fallthrough (-c or --last)
-   # (non-workload labels such as CNPG instances and [RevNAT return] flows are automatically resolved)
+   # (non-workload labels, Service VIPs like kube-dns, external world IPs, and [RevNAT return] flows are automatically resolved)
    ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F -c 20
    ./scripts/cilium-endpoint-inspect.py -n security authentik-server -F --unmatched-only --syn-only
+
+   # Cross-workload / cross-namespace flow inspection (automatically finds the Cilium agent node)
+   ./scripts/cilium-endpoint-inspect.py -F --from-pod observability/gatus-0 --to-namespace default -c 10
+   ./scripts/cilium-endpoint-inspect.py -n default wg-easy -F -V DROPPED
    ```
 
 ### Critical Rules & Gotchas
