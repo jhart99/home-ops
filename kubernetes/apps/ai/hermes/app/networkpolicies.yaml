@@ -3,11 +3,14 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
+# Allow hermes to resolve DNS via CoreDNS.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: hermes-allow-dns
   namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -34,6 +37,8 @@ kind: CiliumNetworkPolicy
 metadata:
   name: hermes-allow-k8s-api
   namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -45,15 +50,17 @@ spec:
     - toEntities:
         - kube-apiserver
 ---
-# Known in-cluster dependencies from values: agentmemory (3111), searxng (8080) and
-# LiteLLM (4000, OPENAI_BASE_URL comes from the SOPS secret). Outbound LLM/Matrix/OIDC
-# traffic is HTTPS.
-# TODO(enforce phase): split world:443 into auth.rnatr.com / provider FQDNs from Hubble.
+# Known in-cluster dependencies from values: agentmemory (3111), searxng (8080),
+# LiteLLM (4000), VirtualMCPServer proxy (4483), and Envoy Gateway for in-cluster
+# routes (auth.rnatr.com OIDC on 443/10443). Outbound LLM/Matrix/OIDC/package
+# traffic is HTTPS/HTTP.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: hermes-allow-egress
   namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -62,6 +69,16 @@ spec:
     matchLabels:
       app.kubernetes.io/name: hermes
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: searxng
+            namespace: ai
+        - k8sService:
+            serviceName: litellm
+            namespace: ai
+        - k8sService:
+            serviceName: vmcp-mcp-gateway-internal
+            namespace: ai
     - toEndpoints:
         - matchLabels:
             app.kubernetes.io/name: agentmemory
@@ -90,23 +107,47 @@ spec:
         - ports:
             - port: "4483"
               protocol: TCP
+    # In-cluster Envoy Gateway (OIDC discovery to auth.rnatr.com, internal APIs)
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "10080"
+              protocol: TCP
+            - port: "10443"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:
         - ports:
+            - port: "80"
+              protocol: TCP
             - port: "443"
               protocol: TCP
             - port: "443"
               protocol: UDP
+    - toEntities:
+        - world
+      icmps:
+        - fields:
+            - type: 8
+              family: IPv4
 ---
 # Ingress: envoy-internal gateway serves the dashboard route (9119), kubelet probes
-# /health on the gateway port (8642), and in-cluster callers use the agent API (8642).
-# TODO(enforce phase): scope the cluster rule to the real callers seen in Hubble.
+# /health on the gateway port (8642), in-cluster callers use the agent API (8642),
+# and CoreDNS return packets arrive on client ephemeral ports.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: hermes-allow-ingress
   namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
 spec:
   enableDefaultDeny:
     ingress: false
@@ -121,6 +162,8 @@ spec:
       toPorts:
         - ports:
             - port: "9119"
+              protocol: TCP
+            - port: "8642"
               protocol: TCP
     # kubelet liveness/readiness/startup probes (/health) arrive from the node
     - fromEntities:
@@ -138,3 +181,8 @@ spec:
               protocol: TCP
             - port: "9119"
               protocol: TCP
+    # DNS return replies from kube-dns on ephemeral client ports
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
