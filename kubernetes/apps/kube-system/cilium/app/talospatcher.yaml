@@ -39,7 +39,7 @@ spec:
 
       containers:
         - name: route-fixer
-          image: public.ecr.aws/docker/library/alpine:3.24.3
+          image: public.ecr.aws/docker/library/alpine:3.24.4
           securityContext:
             privileged: true
             capabilities:
