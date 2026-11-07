@@ -30,7 +30,11 @@ spec:
                   name: cloudflare-tunnel-secret
             args: ["tunnel", "run"]
             probes:
-              liveness: &probes
+              # cloudflared can take minutes to reach the edge when UDP 7844 /
+              # TCP 443 are briefly unreachable; with no startup probe and a 30s
+              # liveness budget the container was killed and restart-backed-off
+              # instead of waiting for its own reconnect logic.
+              startup:
                 enabled: true
                 custom: true
                 spec:
@@ -40,8 +44,29 @@ spec:
                   initialDelaySeconds: 0
                   periodSeconds: 10
                   timeoutSeconds: 1
+                  failureThreshold: 30
+              liveness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
+                  failureThreshold: 18
+              readiness:
+                enabled: true
+                custom: true
+                spec:
+                  httpGet:
+                    path: /ready
+                    port: *port
+                  initialDelaySeconds: 0
+                  periodSeconds: 10
+                  timeoutSeconds: 1
                   failureThreshold: 3
-              readiness: *probes
             securityContext:
               allowPrivilegeEscalation: false
               readOnlyRootFilesystem: true
