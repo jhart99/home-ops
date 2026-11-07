@@ -197,7 +197,7 @@ token_from_headers() { # $1=header file, $2=repository path (fallback scope)
 fetch_url() {
   local url=$1 out=$2 accept=$3 repo_path=${4:-}
   local hdr="$WORK/hdr.tmp" code tok authz
-  local -a args=(-sS --retry 3 --retry-delay 2 -D "$hdr" -o "$out" -w '%{http_code}')
+  local -a args=(-sS -L --retry 3 --retry-delay 2 -D "$hdr" -o "$out" -w '%{http_code}')
   if [ -n "$accept" ]; then args+=(-H "Accept: $accept"); fi
   code=$(curl "${args[@]}" "$url" 2>/dev/null || printf '000')
   if [ "$code" = "401" ]; then
