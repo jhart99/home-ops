@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+---
+name: "Image Digest Diff"
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "kubernetes/**"
+      - ".github/workflows/image-digest-diff.yaml"
+      - "scripts/image-digest-diff.sh"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  digest-diff:
+    name: Container Digest Diff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Registry smoke test
+        run: bash scripts/image-digest-diff.sh --smoke-test
+
+      - name: Generate digest diff
+        id: diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          bash scripts/image-digest-diff.sh \
+            --base "$BASE_SHA" \
+            --head "$HEAD_SHA" \
+            --comment comment.md \
+            --summary summary.md
+          if [ -s comment.md ]; then
+            {
+              echo 'diff<<EOF'
+              cat comment.md
+              echo EOF
+            } >> "$GITHUB_OUTPUT"
+          fi
+          cat summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Add Comment
+        if: ${{ steps.diff.outputs.diff != '' }}
+        continue-on-error: true
+        uses: mshick/add-pr-comment@ec328af66588ab8f77cdeb2c264f14aba45bbf59 # v3.12
+        with:
+          message-id: "${{ github.event.pull_request.number }}/image-digest-diff"
+          message-failure: Digest diff comment failed
+          message: ${{ steps.diff.outputs.diff }}
