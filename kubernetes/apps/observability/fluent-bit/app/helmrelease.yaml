@@ -59,6 +59,10 @@ spec:
           k8s-logging.exclude on
           namespace_labels off
           annotations off
+          # API-server responses for pods with large annotations/labels exceed
+          # the 32K default, which trips "[http_client] cannot increase buffer"
+          # and fails the metadata fetch for those records.
+          buffer_size 1M
 
         [FILTER]
           name nest
