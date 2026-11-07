@@ -38,10 +38,16 @@ spec:
     quantization: compressed-tensors
     maxModelLen: 131072
     kvCacheDtype: fp8_e4m3
-    gpuMemoryUtilization: 0.65
+    gpuMemoryUtilization: 0.55
     tensorParallelSize: 1
     enablePrefixCaching: true
     enableChunkedPrefill: true
+    toolCallParser: qwen3_coder
+    reasoningParser: qwen3
+    speculative:
+      enabled: true
+      method: mtp
+      numSpeculativeTokens: 1
   resources:
     cpu: "1"
     memory: 78Gi
@@ -57,11 +63,9 @@ spec:
   extraArgs:
     - --served-model-name
     - qwen38-27b-nvfp4
-    - --enable-auto-tool-choice
-    - --tool-call-parser
-    - qwen3_coder
-    - --reasoning-parser
-    - qwen3
+    - --language-model-only
+    - --override-generation-config
+    - '{"temperature": 0.6, "top_k": 20, "top_p": 0.95}'
   extraVolumes:
     - name: vllm-cache
       persistentVolumeClaim:
