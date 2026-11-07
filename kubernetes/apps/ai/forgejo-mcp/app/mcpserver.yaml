@@ -16,7 +16,7 @@ metadata:
 spec:
   # Single-arch (linux/amd64) image published per release to the b4mad forge
   # container registry; anonymous pull works, no imagePullSecret required.
-  image: git.b4mad.industries/agentic-forges/forgejo-mcp:v3.3.0@sha256:9ffdde38b9825666227676d1abbe410646014272fe9c317cb3435c0a6f3e5ad2
+  image: git.b4mad.industries/agentic-forges/forgejo-mcp:v3.4.0@sha256:c2c3ae7aca1caf6843f818001a28c1da64e08a878893a75ea8219feb5acb153c
   transport: stdio
   proxyMode: streamable-http
   proxyPort: 8080
