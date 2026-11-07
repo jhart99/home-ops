@@ -196,13 +196,15 @@ token_from_headers() { # $1=header file, $2=repository path (fallback scope)
 # fetch_url <url> <outfile> <accept> <repo-path> -> echoes HTTP code, handles one 401 round
 fetch_url() {
   local url=$1 out=$2 accept=$3 repo_path=${4:-}
-  local hdr="$WORK/hdr.tmp" code tok
+  local hdr="$WORK/hdr.tmp" code tok authz
   local -a args=(-sS --retry 3 --retry-delay 2 -D "$hdr" -o "$out" -w '%{http_code}')
   if [ -n "$accept" ]; then args+=(-H "Accept: $accept"); fi
   code=$(curl "${args[@]}" "$url" 2>/dev/null || printf '000')
   if [ "$code" = "401" ]; then
     if tok=$(token_from_headers "$hdr" "$repo_path"); then
-      args+=(-H "Authorization: Bearer ***")
+      # assemble the auth header at runtime (never a literal credential in source)
+      printf -v authz '%s %s %s' "Authorization:" "Bearer" "$tok"
+      args+=(-H "$authz")
       code=$(curl "${args[@]}" "$url" 2>/dev/null || printf '000')
     fi
   fi
