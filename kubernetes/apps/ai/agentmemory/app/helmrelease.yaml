@@ -30,7 +30,7 @@ spec:
           app:
             image:
               repository: ghcr.io/joryirving/agentmemory
-              tag: 0.9.32@sha256:4edff8f4c56bb2fafef155ef1dcd2c00a28b16602ab50e47d3e34180ce970ac0
+              tag: 0.9.32@sha256:72ddede4b6f94c0880459e33f246153a141186dcfdad4d993df392008652f41a
             command:
               - /usr/bin/catatonit
               - --
