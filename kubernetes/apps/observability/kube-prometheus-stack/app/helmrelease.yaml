@@ -48,6 +48,8 @@ spec:
               namespace: network
       prometheusSpec:
         externalUrl: "https://prometheus.${SECRET_DOMAIN}"
+        nodeSelector:
+          kubernetes.io/arch: amd64
         podMonitorSelectorNilUsesHelmValues: false
         probeSelectorNilUsesHelmValues: false
         ruleSelectorNilUsesHelmValues: false
