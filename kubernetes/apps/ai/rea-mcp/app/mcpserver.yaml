@@ -40,6 +40,8 @@ spec:
   # Verified against this exact constraint set with docker run --read-only.
   podTemplateSpec:
     spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
       terminationGracePeriodSeconds: 60
       volumes:
         - name: tmp
