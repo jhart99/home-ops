@@ -100,7 +100,10 @@ The `cluster-secrets` Secret (in `kubernetes/components/sops/cluster-secrets.sop
 | `talos/control-plane/` | Patches applied only to control plane nodes |
 | `talos/node/<host>/` | Node-specific patches (install disks, kernel modules, network interfaces) |
 
-After changing `topf.yaml` or patches, apply with `task talos:apply` or `task talos:apply-node IP=<ip>`.
+- **Patch mutations (`talos/all/`, `talos/control-plane/`, `talos/node/`)**: Apply with `task talos:apply` or `task talos:apply-node IP=<ip>`.
+- **Schematic changes (`talos/schematic*.yaml` — `extraKernelArgs` or `systemExtensions`)**: Kernel arguments and system extensions are baked into the Image Factory installer image (`UnattendedInstallConfig.installer.image`). After editing a schematic:
+  1. Register the new schematic and apply the updated config: `task talos:apply` (uses `topf --submit-to-factory` so Image Factory builds the new schematic ID).
+  2. Trigger a Talos OS upgrade so nodes pull the new installer image and reboot with the new `/proc/cmdline`: `task talos:upgrade` (or `task talos:upgrade-node IP=<ip>`). Note that `tuppr` (`TalosUpgrade`) only watches the Talos version string, so schematic-only changes on the same Talos version must be upgraded via `task talos:upgrade`.
 
 ## Namespaces / App Organization
 

@@ -39,11 +39,16 @@ Current versions are pinned in `topf.yaml` and automatically updated by Renovate
 
 Node OS images are built via the [Talos Image Factory](https://factory.talos.dev):
 
-- **x86 nodes** (`schematic.yaml`): Intel-specific fixes (i915, Meteor Lake), Mellanox tools.
-- **ARM64 DGX Spark** (`schematic-spark.yaml`): Mellanox and NVIDIA driver extensions.
-- **QEMU/VM** (`schematic-qemu.yaml`): Intel Xe + QEMU guest agent extensions.
+- **x86 nodes** (`schematic.yaml`, ID: `eb460deb7e9bc2528029ccc7400b4a3e70eb0d692f599ab273b851dc833408e1`): Intel-specific fixes (i915, Meteor Lake), Mellanox tools, SELinux & auditd disabled.
+- **ARM64 DGX Spark** (`schematic-spark.yaml`, ID: `425d7b60054e1ad1e42405bbb73b91623b49bb02099b6960e05a100ccc70e3e5`): Mellanox and NVIDIA driver extensions, SELinux disabled.
+- **QEMU/VM** (`schematic-qemu.yaml`, ID: `162c3d0c0ad704b7ca1b097158df531ba3f5442f81fb0cb3e16aa68c5865ccd8`): Intel Xe + QEMU guest agent extensions, SELinux & auditd disabled.
 
 Schematics are referenced directly in `topf.yaml` via `@schematic.yaml` and `@schematic-spark.yaml` and resolved by TOPF.
+
+> **Important:** Whenever `extraKernelArgs` or `systemExtensions` in a schematic file are modified:
+> 1. The new schematic **must** be registered with the Talos Image Factory API (`topf --submit-to-factory schematic-ids`, which is also invoked automatically by `task talos:*` tasks), otherwise `factory.talos.dev/metal-installer/<id>:<version>` will return `not found`.
+> 2. Applying the machine config (`task talos:apply`) only updates `UnattendedInstallConfig.installer.image` on the node (`NO_REBOOT`).
+> 3. **Kernel arguments and system extensions are baked into the Talos installer/boot image**, so you must run `task talos:upgrade` (or `task talos:upgrade-node IP=<ip>`) to install the new image and reboot the node for `/proc/cmdline` changes to take effect.
 
 ## Patches
 
@@ -72,16 +77,20 @@ Control plane patches (`control-plane/`):
 ## Common Operations
 
 ```sh
-# Render all node configs to talos/output/ and generate talosconfig
+# Render all node configs to talos/output/, register schematics with Image Factory, and generate talosconfig
 task talos:generate-config
 
-# Apply updated config to all nodes (or a single node)
+# Apply updated machine config patches to all nodes (or a single node)
 task talos:apply
 task talos:apply-node IP=192.168.1.11
 
-# Upgrade Talos across all nodes or on a single node (update topf.yaml first)
+# Upgrade Talos image across all nodes or on a single node
+# Required after updating talosVersion in topf.yaml OR after changing schematic kernel args / extensions!
 task talos:upgrade
 task talos:upgrade-node IP=192.168.1.11
+
+# Verify kernel command line after a schematic upgrade
+talosctl -n <node-ip> read /proc/cmdline
 
 # Upgrade Kubernetes cluster-wide (update topf.yaml first)
 task talos:upgrade-k8s

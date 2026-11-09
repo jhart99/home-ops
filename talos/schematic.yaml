@@ -6,6 +6,8 @@ customization:
     - init_on_alloc=0             # Minor boost. Don't scrub RAM on create. (Risk: Low/Medium data leaks)
     - init_on_free=0              # Minor boost. Don't scrub RAM on delete. (Risk: Low/Medium data leaks)
     - talos.auditd.disabled=1     # Moderate boost. Disables the heavy "security camera" logs.
+    - -selinux                    # Disables SELinux to prevent permissive audit log spam on RBD volumes.
+    - selinux=0                   # Explicitly disable SELinux in kernel.
 
     # --- Hardware Stability (Intel Meteor Lake & iGPU Fixes) ---
     - i915.enable_dc=0            # Prevents random hard freezes on newer Intel chips.

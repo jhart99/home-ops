@@ -7,7 +7,7 @@ tasks:
     desc: Render Talos node configurations and generate talosconfig
     dir: '{{.TALOS_DIR}}'
     cmds:
-      - topf render
+      - topf --submit-to-factory render
       - topf talosconfig > {{.TALOSCONFIG}}
     preconditions:
       - test -f {{.TALOS_DIR}}/topf.yaml
@@ -18,7 +18,7 @@ tasks:
   apply:
     desc: Apply Talos config to all nodes
     dir: '{{.TALOS_DIR}}'
-    cmd: topf apply --mode={{.MODE}}
+    cmd: topf --submit-to-factory apply --mode={{.MODE}}
     vars:
       MODE: '{{.MODE | default "auto"}}'
     preconditions:
@@ -29,7 +29,7 @@ tasks:
   apply-node:
     desc: Apply Talos config to a single node [IP=required]
     dir: '{{.TALOS_DIR}}'
-    cmd: topf apply --nodes-filter '^{{.NODE}}$' --mode={{.MODE}}
+    cmd: topf --submit-to-factory apply --nodes-filter '^{{.NODE}}$' --mode={{.MODE}}
     vars:
       MODE: '{{.MODE | default "auto"}}'
       NODE:
@@ -45,7 +45,7 @@ tasks:
   upgrade:
     desc: Upgrade Talos across all nodes
     dir: '{{.TALOS_DIR}}'
-    cmd: topf upgrade
+    cmd: topf --submit-to-factory upgrade
     preconditions:
       - test -f {{.TALOS_DIR}}/topf.yaml
       - test -f {{.SOPS_AGE_KEY_FILE}}
@@ -54,7 +54,7 @@ tasks:
   upgrade-node:
     desc: Upgrade Talos on a single node [IP=required]
     dir: '{{.TALOS_DIR}}'
-    cmd: topf upgrade --nodes-filter '^{{.NODE}}$'
+    cmd: topf --submit-to-factory upgrade --nodes-filter '^{{.NODE}}$'
     vars:
       NODE:
         sh: yq '.nodes[] | select(.ip == "{{.IP}}" or .host == "{{.IP}}") | .host' {{.TALOS_DIR}}/topf.yaml
