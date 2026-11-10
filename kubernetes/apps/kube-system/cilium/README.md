@@ -11,6 +11,7 @@ kubernetes/apps/kube-system/cilium/
 ├── ks.yaml                              # Flux Kustomizations (cilium & cilium-dashboard)
 ├── app/
 │   ├── helmrelease.yaml                 # Cilium HelmRelease (netkit, BGP, WireGuard, Hubble metrics)
+│   ├── networkpolicies.yaml             # Cluster-wide DNS and Kubernetes API egress policies (CCNP)
 │   ├── networks.yaml                    # BGP Peer/Advertisement & L2 LoadBalancer IP pools
 │   ├── httproute.yaml                   # Hubble UI HTTPRoute
 │   └── talospatcher.yaml                # Role/SA for Talos config patching
