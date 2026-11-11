@@ -9,7 +9,7 @@
 #   - envoy-external/internal serving wireguard.${SECRET_DOMAIN} on port 80;
 #   - kubelet liveness/readiness TCP probes on port 80 from host/remote-node;
 #   - ICMP EchoReply replies from pinged hosts;
-#   - same-node RevNAT return traffic from local DNS providers (kube-dns, pihole).
+#   - same-node RevNAT return traffic from local DNS provider (pihole).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -66,10 +66,6 @@ spec:
             - type: 0
               family: IPv4
     # Same-node RevNAT return traffic for DNS queries
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: default

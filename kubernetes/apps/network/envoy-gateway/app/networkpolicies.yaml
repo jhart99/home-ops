@@ -261,26 +261,4 @@ spec:
               protocol: TCP
             - port: "19003"
               protocol: TCP
----
-# Allow return traffic from kube-dns (UDP DNS replies to dynamic ephemeral client ports)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: envoy-proxy-allow-return-ingress
-  namespace: network
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: envoy
-      app.kubernetes.io/component: proxy
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
 

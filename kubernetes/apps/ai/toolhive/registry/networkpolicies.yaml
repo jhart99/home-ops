@@ -68,11 +68,6 @@ spec:
       app.kubernetes.io/instance: toolhive-registry
       app.kubernetes.io/name: toolhive-registry-server
   ingress:
-    # DNS return replies from kube-dns on ephemeral client ports
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     # gateway ingress (registry.rnatr.com)
     - fromEndpoints:
         - matchLabels:

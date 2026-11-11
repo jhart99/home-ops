@@ -114,11 +114,6 @@ spec:
     matchLabels:
       app.kubernetes.io/name: fluent-bit
   ingress:
-    # DNS replies from CoreDNS on ephemeral UDP ports
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     # Same-node return traffic from kube-apiserver (control-plane nodes)
     - fromEntities:
         - kube-apiserver

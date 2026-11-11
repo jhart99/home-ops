@@ -47,7 +47,7 @@ spec:
             - type: 8
               family: IPv4
 ---
-# Allow return traffic from ICMP pings and CoreDNS UDP replies
+# Allow return traffic from ICMP pings
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -70,10 +70,6 @@ spec:
         - fields:
             - type: 0
               family: IPv4
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
 ---
 # Allow the gatus web UI (app-template port 80, /health probes):
 #   - from the envoy-internal proxies (gatus.${SECRET_DOMAIN} /
