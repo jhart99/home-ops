@@ -1,6 +1,7 @@
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
-# Allow all pods in the cluster to resolve DNS via CoreDNS (kube-dns)
+# Allow all pods in the cluster to resolve DNS via CoreDNS (kube-dns), including
+# same-node RevNAT UDP return replies on ephemeral client ports.
 apiVersion: cilium.io/v2
 kind: CiliumClusterwideNetworkPolicy
 metadata:
@@ -12,6 +13,11 @@ spec:
     ingress: false
     egress: false
   endpointSelector: {}
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
   egress:
     - toEndpoints:
         - matchLabels:
