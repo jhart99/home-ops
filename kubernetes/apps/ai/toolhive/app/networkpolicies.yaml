@@ -74,15 +74,11 @@ spec:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
   ingress:
-    # Response traffic from in-cluster MCP proxies and CoreDNS (ephemeral return ports)
+    # Response traffic from in-cluster MCP proxies (ephemeral return ports)
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: ai
             toolhive: "true"
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     # Ingress to virtualmcpserver on port 4483
     - fromEndpoints:
         - matchLabels:

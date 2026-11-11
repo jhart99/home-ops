@@ -134,8 +134,3 @@ spec:
               protocol: TCP
             - port: "9119"
               protocol: TCP
-    # DNS return replies from kube-dns on ephemeral client ports
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
