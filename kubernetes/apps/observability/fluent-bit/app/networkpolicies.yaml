@@ -89,13 +89,6 @@ spec:
     matchLabels:
       app.kubernetes.io/name: fluent-bit
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "2020"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node

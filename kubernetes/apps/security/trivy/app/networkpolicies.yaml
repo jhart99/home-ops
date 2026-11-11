@@ -39,18 +39,10 @@ spec:
     matchLabels:
       app.kubernetes.io/name: trivy-operator
   ingress:
-    # kubelet probes + prometheus scrape (serviceMonitor, metrics 9090)
+    # kubelet probes (port 9090)
     - fromEntities:
         - host
         - remote-node
-      toPorts:
-        - ports:
-            - port: "9090"
-              protocol: TCP
-    # TODO(enforce phase): split the observability scrape rule out of the probe rule.
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
       toPorts:
         - ports:
             - port: "9090"

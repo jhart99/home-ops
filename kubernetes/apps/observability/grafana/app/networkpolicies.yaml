@@ -54,9 +54,6 @@ spec:
     - fromEntities:
         - host
         - remote-node
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
 ---
 # Allow the grafana-operator to reach the Grafana instance it manages
 # (syncing dashboards, datasources, and folders via the Grafana API on port 3000).

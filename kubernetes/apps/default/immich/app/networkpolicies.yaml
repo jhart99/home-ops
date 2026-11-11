@@ -134,29 +134,3 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
             k8s-app: kube-dns
----
-# Prometheus (ServiceMonitor endpoints metrics-api + metrics-ms) scrapes 8081/8082.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: immich-allow-prometheus-scrape
-  namespace: default
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: immich
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8081"
-              protocol: TCP
-            - port: "8082"
-              protocol: TCP

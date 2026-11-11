@@ -84,13 +84,6 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: unifi-dns
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "7979"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node

@@ -48,13 +48,6 @@ spec:
         - ports:
             - port: "9440"
               protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
 ---
 # helm-controller
 apiVersion: cilium.io/v2
@@ -97,13 +90,6 @@ spec:
       toPorts:
         - ports:
             - port: "9440"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
               protocol: TCP
 ---
 # source-controller
@@ -176,13 +162,6 @@ spec:
         - ports:
             - port: "9440"
               protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
 ---
 # notification-controller
 apiVersion: cilium.io/v2
@@ -242,11 +221,4 @@ spec:
       toPorts:
         - ports:
             - port: "9440"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
               protocol: TCP

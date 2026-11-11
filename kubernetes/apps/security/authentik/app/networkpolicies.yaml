@@ -96,12 +96,3 @@ spec:
     - fromEndpoints:
         - matchLabels:
             cnpg.io/cluster: authentik-db
-    # prometheus scrape (server/worker metrics + serviceMonitor)
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-            app.kubernetes.io/name: prometheus
-      toPorts:
-        - ports:
-            - port: "9300"
-              protocol: TCP

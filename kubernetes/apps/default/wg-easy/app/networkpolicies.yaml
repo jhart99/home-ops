@@ -75,30 +75,6 @@ spec:
             io.kubernetes.pod.namespace: default
             app.kubernetes.io/name: pihole
 ---
-# Prometheus (ServiceMonitor, endpoint port http, /metrics/prometheus) scrapes port 80.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: wg-easy-allow-prometheus-scrape
-  namespace: default
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: wg-easy
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
----
 # Allow wg-easy to route outbound VPN client traffic to the internet (world),
 # plus return UDP traffic to external WireGuard peers on their ephemeral ports.
 apiVersion: cilium.io/v2

@@ -85,13 +85,6 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: blackbox-exporter-lan
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9115"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node
