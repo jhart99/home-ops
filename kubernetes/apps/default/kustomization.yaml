@@ -5,11 +5,11 @@ namespace: default
 
 components:
   - ../../components/deny-all
+  - ../../components/intra-namespace
   - ../../components/sops
 
 resources:
   - ./namespace.yaml
-  - ./networkpolicy.yaml
   # - ./blog/ks.yaml
   - ./forgejo/ks.yaml
   - ./forgejo-runner/ks.yaml

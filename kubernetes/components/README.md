@@ -89,6 +89,16 @@ components:
 
 ---
 
+### `intra-namespace/`
+
+Adds a per-namespace `CiliumNetworkPolicy` (`allow-intra-namespace`) allowing all pods within the namespace to communicate with one another (`fromEndpoints: [{}]` and `toEndpoints: [{}]`, which Cilium automatically scopes to the policy's namespace).
+
+**Use when**: A namespace contains tightly coupled workloads that should be permitted to communicate freely within the same namespace.
+
+Reference in `<namespace>/kustomization.yaml`:
+```yaml
+components:
+  - ../../components/intra-namespace
 ### `cnpg-netpol/`
 
 Adds the standard set of Cilium `CiliumNetworkPolicy` resources for a CloudNativePG (`cnpg.io/cluster: ${APP}`) PostgreSQL cluster:
