@@ -20,11 +20,6 @@ spec:
     matchLabels:
       app.kubernetes.io/name: llmkube
   ingress:
-    # DNS return replies from kube-dns on ephemeral client ports
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     - fromEntities:
         - kube-apiserver
         - host
@@ -53,11 +48,6 @@ spec:
       - key: inference.llmkube.dev/service
         operator: Exists
   ingress:
-    # DNS return replies from kube-dns on ephemeral client ports
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
     - fromEntities:
         - host
         - remote-node
