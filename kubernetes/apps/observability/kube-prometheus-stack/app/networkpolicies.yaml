@@ -23,9 +23,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchExpressions:
       - key: app.kubernetes.io/name
@@ -51,9 +48,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchExpressions:
       - key: app.kubernetes.io/name
@@ -83,9 +77,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: prometheus
@@ -173,9 +164,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: prometheus
@@ -215,9 +203,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: alertmanager
@@ -255,9 +240,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: alertmanager
@@ -291,9 +273,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchExpressions:
       - key: app.kubernetes.io/name
@@ -327,9 +306,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics

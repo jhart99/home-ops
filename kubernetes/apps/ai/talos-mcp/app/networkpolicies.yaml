@@ -11,9 +11,6 @@ metadata:
   name: talos-mcp-allow-egress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       toolhive-name: talos-mcp

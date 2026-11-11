@@ -10,9 +10,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       cnpg.io/cluster: ${APP}
@@ -35,9 +32,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       cnpg.io/cluster: ${APP}
@@ -80,9 +74,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       cnpg.io/cluster: ${APP}
@@ -113,9 +104,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       cnpg.io/cluster: ${APP}

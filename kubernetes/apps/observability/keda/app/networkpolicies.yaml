@@ -15,9 +15,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/part-of: keda-operator
@@ -39,9 +36,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/part-of: keda-operator
@@ -69,9 +63,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/part-of: keda-operator

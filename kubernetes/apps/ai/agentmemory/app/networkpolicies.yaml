@@ -12,9 +12,6 @@ metadata:
   name: agentmemory-allow-egress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: agentmemory
@@ -43,9 +40,6 @@ metadata:
   name: agentmemory-allow-ingress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: agentmemory

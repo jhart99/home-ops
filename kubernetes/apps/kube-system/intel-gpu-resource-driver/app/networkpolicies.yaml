@@ -12,9 +12,6 @@ metadata:
   name: intel-gpu-resource-driver-allow-kubelet-probes
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: intel-gpu-resource-driver

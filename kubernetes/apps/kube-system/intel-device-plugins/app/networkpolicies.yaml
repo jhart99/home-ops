@@ -15,9 +15,6 @@ metadata:
   name: intel-device-plugins-operator-allow-kubelet-probes
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: intel-device-plugins-operator

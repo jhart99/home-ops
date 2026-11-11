@@ -14,9 +14,6 @@ metadata:
   name: spegel-allow-node-access
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: spegel
@@ -34,9 +31,6 @@ metadata:
   name: spegel-allow-peers
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: spegel

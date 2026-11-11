@@ -25,9 +25,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchExpressions:
       - key: app
@@ -95,9 +92,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchExpressions:
       - key: app
