@@ -221,8 +221,8 @@ def cmd_unaccounted(args: argparse.Namespace, client: PrometheusClient) -> None:
         print(f"\n... and {len(rows) - limit} more. Use --top 0 to show all.")
 
     if any("<unknown>" in src or "<unknown>" in dst for _, _, src, dst in rows[:limit]):
-        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. CNPG databases, CRDs) or host/external traffic.")
-        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F --unmatched-only to inspect exact IPs, labels, and flags.")
+        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. StatefulSets, CNPG databases, CRDs) or Service VIP/host/external traffic.")
+        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F --unmatched-only to inspect exact IPs, ports, and policy verdicts.")
 
 
 def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
@@ -282,8 +282,8 @@ def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
         print(f"\n... and {len(rows) - limit} more. Use --top 0 to show all.")
 
     if any("<unknown>" in src or "<unknown>" in dst for _, _, _, src, dst in rows[:limit]):
-        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. CNPG databases, CRDs) or host/external traffic.")
-        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F to inspect exact IPs, labels, and flags.")
+        print("\n💡 Tip: '<unknown>' indicates non-workload pods (e.g. StatefulSets, CNPG databases, CRDs) or Service VIP/host/external traffic.")
+        print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F -P to inspect exact IPs, ports, and matched policies.")
 
 
 def cmd_summary(args: argparse.Namespace, client: PrometheusClient) -> None:

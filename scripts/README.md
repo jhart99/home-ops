@@ -77,13 +77,16 @@ Maps a Kubernetes Pod to its containers, probes, matching Kubernetes Services (`
 # Inspect by label selector and filter for a specific port
 ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000
 
-# Show only rules with active traffic (matched packets > 0)
+# Show only rules with active traffic (matched packets > 0); continuation labels are preserved and filtered for readability (use --full-labels for all raw labels)
 ./scripts/cilium-endpoint-inspect.py -n observability -l app=grafana -p 3000 --active-only
 
 # View live Hubble flows directly for the pod without knowing which node it runs on (-c or --last)
 ./scripts/cilium-endpoint-inspect.py -n network envoy-internal -F -c 20
 
-# Filter Hubble flows for policy fallthrough (match='all' or none)
+# View only Hubble PolicyVerdict events (-P / --verdicts-only), showing which CiliumNetworkPolicy allowed each flow
+./scripts/cilium-endpoint-inspect.py -n default zwave -F -P -c 20
+
+# Filter Hubble PolicyVerdict flows strictly for audit fallthrough (match='all' / policy_match_type=4)
 ./scripts/cilium-endpoint-inspect.py -n default -l app.kubernetes.io/name=wg-easy -F --unmatched-only
 
 # Filter for newly initiated TCP connections (SYN without ACK)

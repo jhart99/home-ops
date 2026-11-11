@@ -17,10 +17,19 @@ from typing import Any, Dict, List, Optional, Tuple
 MATCH_TYPE_NAMES = {
     0: "NONE",
     1: "L3_ONLY",
-    2: "L4_ONLY",
-    3: "L3_L4",
+    2: "L3_L4",
+    3: "L4_ONLY",
     4: "ALL (audit)",
 }
+
+NOISY_BPF_LABEL_PREFIXES = (
+    "k8s:io.cilium.k8s.namespace.labels.",
+    "k8s:io.cilium.k8s.policy.cluster=",
+    "k8s:app.kubernetes.io/managed-by=Helm",
+    "k8s:helm.sh/chart=",
+    "k8s:app.kubernetes.io/version=",
+    "k8s:version=",
+)
 
 
 def run_cmd(cmd: List[str]) -> str:
@@ -206,6 +215,7 @@ def get_hubble_flows(
     direction: str = "both",
     port: Optional[str] = None,
     unmatched_only: bool = False,
+    verdicts_only: bool = False,
     non_reply_only: bool = False,
     syn_only: bool = False,
     dropped_only: bool = False,
@@ -232,6 +242,9 @@ def get_hubble_flows(
         "-o",
         "json",
     ]
+    if verdicts_only or unmatched_only:
+        cmd.extend(["--type", "policy-verdict"])
+
     if pod_full_name:
         cmd.extend(["--pod", pod_full_name])
     elif namespace:
@@ -282,7 +295,7 @@ def get_hubble_flows(
                     continue
 
             pmt = flow_data.get("policy_match_type", 0)
-            if unmatched_only and pmt not in (0, 4):
+            if unmatched_only and pmt != 4:
                 continue
 
             flows.append(flow_data)
@@ -450,6 +463,21 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
             flags = l4.get("TCP", {}).get("flags", {})
             if flags.get("SYN") and flags.get("ACK"):
                 summary += " [RevNAT return]"
+            elif "UDP" in l4 and l4["UDP"].get("source_port") == 53 and int(l4["UDP"].get("destination_port") or 0) >= 32768:
+                summary += " [DNS RevNAT return]"
+
+        allowed_by = f.get("ingress_allowed_by") or f.get("egress_allowed_by") or []
+        pol_names = []
+        for entry in allowed_by:
+            pname = entry.get("name")
+            if pname:
+                pol_names.append(pname)
+            else:
+                for lbl in entry.get("labels", []):
+                    if "allow-any-" in lbl:
+                        pol_names.append(lbl.split("=", 1)[-1])
+        if pol_names:
+            summary += f" [policy: {', '.join(pol_names)}]"
 
         print(f"{short_time:<12} {direction:<7} {verdict:<9} {match_str:<12} {src:<36} {dst:<36} {port_str:<10} {summary}")
 
@@ -552,6 +580,9 @@ def main() -> None:
     parser.add_argument(
         "--active-only", action="store_true", help="Only show BPF rules with matched packets > 0"
     )
+    parser.add_argument(
+        "--full-labels", action="store_true", help="Show all continuation label lines in BPF policy output"
+    )
     parser.add_argument("--json", action="store_true", help="Output raw endpoint JSON")
     parser.add_argument("--node", help="Target specific node Cilium agent directly")
     parser.add_argument("--identity", type=int, help="Inspect a numeric Cilium Security Identity ID and its labels")
@@ -569,7 +600,10 @@ def main() -> None:
     parser.add_argument("--to-namespace", help="Filter Hubble flows destined to a namespace")
     parser.add_argument("--from-namespace", help="Filter Hubble flows originating from a namespace")
     parser.add_argument(
-        "--unmatched-only", action="store_true", help="Filter Hubble flows for policy fallthrough (match='all' or none)"
+        "-P", "--verdicts-only", action="store_true", help="Filter Hubble flows for PolicyVerdict events only (--type policy-verdict)"
+    )
+    parser.add_argument(
+        "--unmatched-only", action="store_true", help="Filter Hubble PolicyVerdict flows for audit fallthrough (match='all')"
     )
     parser.add_argument(
         "--non-reply-only", action="store_true", help="Filter out TCP reply packets to focus on initiated traffic"
@@ -616,6 +650,7 @@ def main() -> None:
             direction=args.direction,
             port=args.port,
             unmatched_only=args.unmatched_only,
+            verdicts_only=args.verdicts_only,
             non_reply_only=args.non_reply_only,
             syn_only=args.syn_only,
             dropped_only=args.dropped_only,
@@ -680,6 +715,7 @@ def main() -> None:
             direction=args.direction,
             port=args.port,
             unmatched_only=args.unmatched_only,
+            verdicts_only=args.verdicts_only,
             non_reply_only=args.non_reply_only,
             syn_only=args.syn_only,
             dropped_only=args.dropped_only,
@@ -706,28 +742,41 @@ def main() -> None:
     print(f"\n{header}")
     print("-" * len(header))
 
-    matching_count = 0
+    # Group BPF lines into rule blocks (header line + indented continuation label lines)
+    rule_blocks: List[Tuple[str, List[str]]] = []
     for line in bpf_lines[1:]:
         if not line.strip():
             continue
+        if not line[0].isspace():
+            rule_blocks.append((line, []))
+        elif rule_blocks:
+            rule_blocks[-1][1].append(line)
 
-        parts = line.split()
+    matching_count = 0
+    for head_line, cont_lines in rule_blocks:
+        parts = head_line.split()
         if len(parts) >= 2:
             direction = parts[1].lower()
             if args.direction != "both" and direction != args.direction:
                 continue
 
-        if args.port and args.port not in line:
-            continue
+        if args.port:
+            # Check the PORT/PROTO column (index 3) rather than arbitrary substrings
+            port_col = parts[3] if len(parts) >= 4 else ""
+            if args.port != port_col and not port_col.startswith(f"{args.port}/"):
+                continue
 
         if args.active_only:
             tokens = [t for t in parts if t.isdigit()]
-            if not tokens:
-                continue
-            if len(tokens) >= 2 and tokens[1] == "0":
+            if not tokens or (len(tokens) >= 2 and tokens[1] == "0"):
                 continue
 
-        print(line)
+        print(head_line)
+        for cl in cont_lines:
+            lbl = cl.strip()
+            if not args.full_labels and lbl.startswith(NOISY_BPF_LABEL_PREFIXES):
+                continue
+            print(cl)
         matching_count += 1
 
     if matching_count == 0:

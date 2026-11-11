@@ -103,8 +103,31 @@ Useful PromQL queries:
 
 ---
 
-### 3. Inspecting Exact L4 Ports via Hubble Relay CLI
-Prometheus metrics intentionally omit L4 port labels to prevent cardinality explosion. When `hubble_policy_verdicts_total{match="all"}` shows an unaccounted workload pair, run this one-liner against `hubble-relay` to see the exact protocol and destination port:
+### 3. Same-Node DNS RevNAT Return Replies (`allow-dns` CCNP)
+When a pod queries the `kube-dns` Service VIP (`10.43.0.10:53/UDP`) and Cilium load-balances the request to a `coredns` pod running on the **same node**, the RevNAT'd UDP reply from `10.43.0.10:53` back to the client's ephemeral UDP port (`>= 32768`) is evaluated by Cilium's ingress policy path with `is_reply: false` and source identity `kube-system/coredns` (`k8s-app: kube-dns`).
+
+Because `source_service` is a Service VIP without a `pod_name` or `workloads` entry in the Hubble event, Prometheus records these verdicts as `source_namespace="", source_workload=""` (`/<unknown>`). To account for these DNS reply packets cluster-wide without repeating `fromEndpoints: k8s-app: kube-dns` in every application's `CiliumNetworkPolicy`, [`app/networkpolicies.yaml`](./app/networkpolicies.yaml) includes an `ingress` rule on the `allow-dns` `CiliumClusterwideNetworkPolicy`:
+```yaml
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+```
+
+---
+
+### 4. Inspecting Exact L4 Ports via CLI (`scripts/cilium-endpoint-inspect.py`)
+ Prometheus metrics intentionally omit L4 port labels to prevent cardinality explosion. When `hubble_policy_verdicts_total{match="all"}` (or `./scripts/cilium-netpol-audit.py unaccounted`) shows an unaccounted workload pair:
+```bash
+# Inspect only unaccounted PolicyVerdict flows (match="all") for a workload
+./scripts/cilium-endpoint-inspect.py -n default zwave -F --unmatched-only
+
+# Inspect all PolicyVerdict events (with matched policy names and DNS RevNAT annotations)
+./scripts/cilium-endpoint-inspect.py -n default zwave -F -P -c 20
+```
+
+You can also query `hubble-relay` directly across all nodes:
 
 ```bash
 # Fetch the last 2000 cluster-wide PolicyVerdict events from hubble-relay and list unaccounted flows with ports
@@ -139,7 +162,7 @@ for (d, s, dst, p), c in counts.most_common(40):
 
 ---
 
-### 4. Static Audit: Finding `CiliumNetworkPolicy` Selector Mismatches
+### 5. Static Audit: Finding `CiliumNetworkPolicy` Selector Mismatches
 To check if any `CiliumNetworkPolicy` in the cluster has an `endpointSelector` that matches **zero** running pods (e.g., label mismatch between chart defaults and CNP `matchLabels`):
 
 ```bash
