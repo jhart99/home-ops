@@ -6,11 +6,11 @@ namespace: ai
 
 components:
   - ../../components/deny-all
+  - ../../components/intra-namespace
   - ../../components/sops
 
 resources:
   - ./namespace.yaml
-  - ./networkpolicy.yaml
   # - ./agentmemory/ks.yaml
   - ./comfyui/ks.yaml
   - ./comfyui-mcp/ks.yaml

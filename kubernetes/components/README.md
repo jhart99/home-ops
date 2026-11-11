@@ -89,6 +89,20 @@ components:
 
 ---
 
+### `intra-namespace/`
+
+Adds a per-namespace `CiliumNetworkPolicy` (`allow-intra-namespace`) allowing all pods within the namespace to communicate with one another (`fromEndpoints: [{}]` and `toEndpoints: [{}]`, which Cilium automatically scopes to the policy's namespace).
+
+**Use when**: A namespace contains tightly coupled workloads that should be permitted to communicate freely within the same namespace.
+
+Reference in `<namespace>/kustomization.yaml`:
+```yaml
+components:
+  - ../../components/intra-namespace
+```
+
+---
+
 ## How Components Work
 
 Components are `kustomize.toolkit.fluxcd.io/v1alpha1` `Component` resources. Unlike regular `bases`, components can be composed — multiple components can be applied to a single app without conflict.
