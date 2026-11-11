@@ -9,12 +9,9 @@
 # --without-password):
 #   - from the envoy-internal HTTPRoute (kopia.${SECRET_DOMAIN}) in the
 #     network namespace;
-#   - from in-cluster clients, e.g. volsync kopia mover pods in application
-#     namespaces - the caller set is not knowable from this repo;
+#   - from VolSync mover pods (app.kubernetes.io/created-by: volsync) across all
+#     application namespaces;
 #   - from the node for kubelet liveness/readiness probes.
-# TODO(enforce phase): confirm the caller set in Hubble and tighten (split the
-# in-cluster `cluster` rule down to the actual mover namespaces / an entity or
-# FQDN list).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -37,8 +34,12 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
-    - fromEntities:
-        - cluster
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/created-by: volsync
+          matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
       toPorts:
         - ports:
             - port: "80"
