@@ -39,7 +39,12 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
             - port: "8080"
+              endPort: 8081
               protocol: TCP
     - toEntities:
         - cluster
@@ -107,4 +112,73 @@ spec:
       toPorts:
         - ports:
             - port: "4483"
+              protocol: TCP
+---
+# Shared policy for all ToolHive MCP servers (both mcpserver proxy Deployments and
+# backend MCP StatefulSets, which all carry `toolhive: "true"`):
+#   - Ingress: kubelet health probes from host/remote-node, MCP traffic from
+#     virtualmcpserver and hermes, and proxy->backend forwarding on MCP ports
+#     (80, 3000, 8000, 8080, 8081).
+#   - Egress: proxy->backend forwarding between ToolHive pods on MCP ports.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: toolhive-mcp-allow-common
+  namespace: ai
+  annotations:
+    policy.cilium.io/audit-mode: "true"
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector:
+    matchLabels:
+      toolhive: "true"
+  ingress:
+    - fromEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              endPort: 8081
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: virtualmcpserver
+        - matchLabels:
+            app.kubernetes.io/name: hermes
+        - matchLabels:
+            toolhive: "true"
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              endPort: 8081
+              protocol: TCP
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            toolhive: "true"
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              endPort: 8081
               protocol: TCP

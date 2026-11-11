@@ -18,50 +18,9 @@ spec:
     matchLabels:
       toolhive-name: talos-mcp
   egress:
-    - toEndpoints:
-        - matchLabels:
-            toolhive-name: talos-mcp
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
     - toCIDR:
         - 192.168.1.0/24
       toPorts:
         - ports:
             - port: "50000"
-              protocol: TCP
----
-# kubelet /health probes (8080) from the node; toolhive gateways call the server.
-# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: talos-mcp-allow-ingress
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: talos-mcp
-  ingress:
-    - fromEntities:
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: virtualmcpserver
-        - matchLabels:
-            app.kubernetes.io/name: hermes
-        - matchLabels:
-            toolhive-name: talos-mcp
-      toPorts:
-        - ports:
-            - port: "8080"
               protocol: TCP
