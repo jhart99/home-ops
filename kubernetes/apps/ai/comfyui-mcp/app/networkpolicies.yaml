@@ -22,13 +22,6 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            toolhive-name: comfyui-mcp
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
             app.kubernetes.io/name: comfyui
       toPorts:
         - ports:
@@ -39,38 +32,4 @@ spec:
       toPorts:
         - ports:
             - port: "443"
-              protocol: TCP
----
-# kubelet /health probes (port 80) from the node; toolhive gateways call the server.
-# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: comfyui-mcp-allow-ingress
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: comfyui-mcp
-  ingress:
-    - fromEntities:
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "80"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: virtualmcpserver
-        - matchLabels:
-            app.kubernetes.io/name: hermes
-        - matchLabels:
-            toolhive-name: comfyui-mcp
-      toPorts:
-        - ports:
-            - port: "80"
               protocol: TCP

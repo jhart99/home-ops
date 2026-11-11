@@ -23,49 +23,8 @@ spec:
   egress:
     - toEndpoints:
         - matchLabels:
-            toolhive-name: forgejo-mcp
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-    - toEndpoints:
-        - matchLabels:
             io.kubernetes.pod.namespace: default
       toPorts:
         - ports:
             - port: "3000"
-              protocol: TCP
----
-# kubelet /health probes (8080) from the node; toolhive gateways call the server.
-# TODO(enforce phase): scope the cluster rule to the toolhive gateway/vmcp endpoints.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: forgejo-mcp-allow-ingress
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: forgejo-mcp
-  ingress:
-    - fromEntities:
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            app.kubernetes.io/name: virtualmcpserver
-        - matchLabels:
-            app.kubernetes.io/name: hermes
-        - matchLabels:
-            toolhive-name: forgejo-mcp
-      toPorts:
-        - ports:
-            - port: "8080"
               protocol: TCP
