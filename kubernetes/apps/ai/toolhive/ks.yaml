@@ -92,6 +92,7 @@ spec:
   postBuild:
     substitute:
       APP: toolhive-db
+      CNPG_CLIENT: toolhive-registry
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

@@ -47,6 +47,7 @@ spec:
   postBuild:
     substitute:
       APP: authentik-db
+      CNPG_CLIENT: authentik
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
