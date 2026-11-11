@@ -12,7 +12,10 @@ spec:
   enableDefaultDeny:
     ingress: false
     egress: false
-  endpointSelector: {}
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: Exists
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -52,7 +55,10 @@ spec:
   enableDefaultDeny:
     ingress: false
     egress: false
-  endpointSelector: {}
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: Exists
   ingress:
     - fromEndpoints:
         - matchLabels:
@@ -71,7 +77,10 @@ spec:
   enableDefaultDeny:
     ingress: false
     egress: false
-  endpointSelector: {}
+  endpointSelector:
+    matchExpressions:
+      - key: io.kubernetes.pod.namespace
+        operator: Exists
   egress:
     - toServices:
         - k8sService:

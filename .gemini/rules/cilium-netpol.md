@@ -107,3 +107,14 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
          icmps:
            - fields: [{type: 8, family: IPv4}]
      ```
+
+9. **Cluster-Wide Policies (`CiliumClusterwideNetworkPolicy`) Must Exclude `reserved:health`**:
+   - An empty `endpointSelector: {}` in a `CiliumClusterwideNetworkPolicy` matches **every** Cilium-managed endpoint on the node, including the synthetic `cilium-health` endpoint (`reserved:health`, Identity `4`).
+   - If the CCNP contains an `ingress` rule, `reserved:health` enters ingress policy tracking and inter-node health probes (`TCP/4240` and `ICMPv4 EchoRequest`) show up in Hubble metrics as `/<unknown> -> /<unknown>` (`match="all"`).
+   - Always scope pod-wide CCNPs to actual Kubernetes pods by requiring `io.kubernetes.pod.namespace` to exist:
+     ```yaml
+     endpointSelector:
+       matchExpressions:
+         - key: io.kubernetes.pod.namespace
+           operator: Exists
+     ```
