@@ -32,7 +32,8 @@ spec:
   path: ./kubernetes/apps/development/backstage/database
   postBuild:
     substitute:
-      APP: backstage-database
+      APP: backstage-db
+      CNPG_CLIENT: backstage
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

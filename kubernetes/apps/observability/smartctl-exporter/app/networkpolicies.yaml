@@ -33,13 +33,6 @@ spec:
           - smartctl-exporter
           - prometheus-smartctl-exporter
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9101"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node

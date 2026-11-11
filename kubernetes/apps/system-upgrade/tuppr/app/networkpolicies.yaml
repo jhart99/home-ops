@@ -20,26 +20,6 @@ spec:
               protocol: TCP
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
-# Allow Prometheus to scrape Tuppr metrics (port 8081)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: tuppr-allow-prometheus-scrape
-  namespace: system-upgrade
-spec:
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: tuppr
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8081"
-              protocol: TCP
----
-# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow kube-apiserver to reach Tuppr validating webhook (port 9443)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

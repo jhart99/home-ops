@@ -41,7 +41,7 @@ spec:
             - type: 8
               family: IPv4
 ---
-# Allow return traffic from probes (ICMP EchoReply from world, and UDP DNS replies from kube-dns).
+# Allow return traffic from probes (ICMP EchoReply from world).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -63,10 +63,6 @@ spec:
         - fields:
             - type: 0
               family: IPv4
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
 ---
 # Allow Prometheus to scrape the blackbox exporter metrics (serviceMonitor
 # enabled, standard port 9115) and kubelet probes on the same port.
@@ -85,13 +81,6 @@ spec:
     matchLabels:
       app.kubernetes.io/instance: blackbox-exporter-lan
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9115"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node

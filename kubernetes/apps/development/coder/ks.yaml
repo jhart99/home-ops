@@ -34,7 +34,8 @@ spec:
   path: ./kubernetes/apps/development/coder/database
   postBuild:
     substitute:
-      APP: coder-database
+      APP: coder-db
+      CNPG_CLIENT: coder
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

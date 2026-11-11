@@ -78,25 +78,3 @@ spec:
               protocol: TCP
             - port: "8181"
               protocol: TCP
----
-# Prometheus plugin exposes metrics on 0.0.0.0:9153 (values)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: coredns-allow-prometheus-scrape
-  namespace: kube-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      k8s-app: kube-dns
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9153"
-              protocol: TCP

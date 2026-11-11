@@ -5,27 +5,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# Allow return traffic from kube-dns (same-node DNAT reply)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: keda-allow-dns-return
-  namespace: observability
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/part-of: keda-operator
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
----
 # Allow keda's scaler traffic to the scale targets it watches.
 # In this cluster, ScaledObjects use Prometheus as the trigger.
 apiVersion: cilium.io/v2
@@ -105,13 +84,4 @@ spec:
             - port: "8081"
               protocol: TCP
             - port: "6443"
-              protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-            - port: "9666"
               protocol: TCP
