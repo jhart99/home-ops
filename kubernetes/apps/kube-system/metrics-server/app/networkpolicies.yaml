@@ -11,6 +11,9 @@ metadata:
   name: metrics-server-allow-kubelet-api
   namespace: kube-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: metrics-server
@@ -31,6 +34,9 @@ metadata:
   name: metrics-server-allow-kubelet-probes
   namespace: kube-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: metrics-server
@@ -47,6 +53,9 @@ metadata:
   name: metrics-server-allow-apiserver-metrics
   namespace: kube-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: metrics-server

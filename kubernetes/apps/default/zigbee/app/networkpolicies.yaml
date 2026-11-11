@@ -11,6 +11,9 @@ metadata:
   name: zigbee-allow-mqtt
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: zigbee
@@ -32,6 +35,9 @@ metadata:
   name: zigbee-allow-ingress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: zigbee

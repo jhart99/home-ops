@@ -12,6 +12,9 @@ metadata:
   name: forgejo-allow-egress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: forgejo
@@ -43,6 +46,9 @@ metadata:
   name: forgejo-allow-ingress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: forgejo

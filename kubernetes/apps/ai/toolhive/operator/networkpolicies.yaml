@@ -10,6 +10,9 @@ metadata:
   name: toolhive-operator-allow-ingress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: toolhive-operator

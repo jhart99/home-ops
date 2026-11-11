@@ -13,6 +13,9 @@ metadata:
   name: open-webui-allow-egress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: open-webui
@@ -51,6 +54,9 @@ metadata:
   name: open-webui-allow-ingress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: open-webui

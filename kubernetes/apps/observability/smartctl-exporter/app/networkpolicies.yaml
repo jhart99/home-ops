@@ -22,6 +22,9 @@ metadata:
     # annotation - enableDefaultDeny below is the functional control.
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: app.kubernetes.io/name

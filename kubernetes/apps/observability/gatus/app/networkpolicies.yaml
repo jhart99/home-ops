@@ -15,6 +15,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: gatus
@@ -53,6 +56,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: gatus
@@ -78,6 +84,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: gatus

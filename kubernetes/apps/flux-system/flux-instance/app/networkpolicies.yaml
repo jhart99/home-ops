@@ -12,6 +12,9 @@ metadata:
   name: kustomize-controller-allow-flux-system
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: kustomize-controller
@@ -31,6 +34,9 @@ metadata:
   name: kustomize-controller-allow-ingress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: kustomize-controller
@@ -50,6 +56,9 @@ metadata:
   name: helm-controller-allow-flux-system
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: helm-controller
@@ -68,6 +77,9 @@ metadata:
   name: helm-controller-allow-ingress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: helm-controller
@@ -87,6 +99,9 @@ metadata:
   name: source-controller-allow-egress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: source-controller
@@ -125,6 +140,9 @@ metadata:
   name: source-controller-allow-ingress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: source-controller
@@ -152,6 +170,9 @@ metadata:
   name: notification-controller-allow-egress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: notification-controller
@@ -171,6 +192,9 @@ metadata:
   name: notification-controller-allow-ingress
   namespace: flux-system
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/component: notification-controller

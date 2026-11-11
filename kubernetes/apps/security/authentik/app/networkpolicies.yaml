@@ -13,6 +13,9 @@ metadata:
   name: authentik-allow-egress
   namespace: security
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: authentik
@@ -56,6 +59,9 @@ metadata:
   name: authentik-allow-ingress
   namespace: security
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: authentik

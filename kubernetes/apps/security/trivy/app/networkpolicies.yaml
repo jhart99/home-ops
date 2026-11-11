@@ -10,6 +10,9 @@ metadata:
   name: trivy-operator-allow-egress
   namespace: security
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: trivy-operator
@@ -29,6 +32,9 @@ metadata:
   name: trivy-operator-allow-ingress
   namespace: security
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: trivy-operator

@@ -12,6 +12,9 @@ metadata:
   name: home-assistant-allow-egress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: home-assistant
@@ -38,6 +41,9 @@ metadata:
   name: home-assistant-allow-ingress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: home-assistant

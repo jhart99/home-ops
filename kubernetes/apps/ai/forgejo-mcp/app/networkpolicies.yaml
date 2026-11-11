@@ -14,6 +14,9 @@ metadata:
   name: forgejo-mcp-allow-egress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       toolhive-name: forgejo-mcp

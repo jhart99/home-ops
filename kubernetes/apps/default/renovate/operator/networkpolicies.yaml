@@ -15,6 +15,9 @@ metadata:
   name: renovate-operator-allow-egress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app: renovate-operator
@@ -50,6 +53,9 @@ metadata:
   name: renovate-operator-allow-ingress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app: renovate-operator

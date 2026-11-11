@@ -14,6 +14,9 @@ metadata:
   name: toolhive-allow-egress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
@@ -69,6 +72,9 @@ metadata:
   name: toolhive-allow-ingress
   namespace: ai
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
@@ -122,6 +128,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       toolhive: "true"

@@ -24,6 +24,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       control-plane: envoy-gateway
@@ -47,6 +50,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       control-plane: envoy-gateway
@@ -69,6 +75,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       control-plane: envoy-gateway
@@ -94,6 +103,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: envoy
@@ -119,6 +131,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: envoy
@@ -194,6 +209,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: envoy
@@ -226,6 +244,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: envoy

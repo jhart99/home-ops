@@ -23,6 +23,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app: rook-ceph-operator
@@ -60,6 +63,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app: rook-ceph-operator

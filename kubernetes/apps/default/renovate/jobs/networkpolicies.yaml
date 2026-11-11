@@ -16,6 +16,9 @@ metadata:
   name: renovate-jobs-allow-egress
   namespace: default
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: renovate-operator.mogenius.com/renovatejob
