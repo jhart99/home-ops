@@ -3,7 +3,7 @@ apiVersion: "cilium.io/v2"
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-intra-namespace
-  namespace: sensitive
+  namespace: &ns ai
 spec:
   enableDefaultDeny:
     ingress: false
@@ -15,4 +15,4 @@ spec:
   - fromEndpoints:
     # Cilium automatically attaches the namespace as a label to all endpoints
     - matchLabels:
-        "k8s:io.kubernetes.pod.namespace": "sensitive"
+        "k8s:io.kubernetes.pod.namespace": *ns
