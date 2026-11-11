@@ -9,6 +9,7 @@ components:
 
 resources:
   - ./namespace.yaml
+  - ./networkpolicy.yaml
   # - ./blog/ks.yaml
   - ./forgejo/ks.yaml
   - ./forgejo-runner/ks.yaml
