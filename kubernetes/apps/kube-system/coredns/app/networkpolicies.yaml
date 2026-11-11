@@ -47,6 +47,7 @@ spec:
       k8s-app: kube-dns
   egress:
     - toEntities:
+        - host
         - world
       toPorts:
         - ports:
