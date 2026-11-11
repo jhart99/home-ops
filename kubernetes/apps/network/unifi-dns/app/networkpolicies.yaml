@@ -8,55 +8,6 @@
 # NOTE: the selector uses app.kubernetes.io/instance because the external-dns
 # charts derive app.kubernetes.io/name from the chart name (shared with the
 # cloudflare-dns release).
-# Allow external-dns (unifi provider) to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: unifi-dns-allow-dns
-  namespace: network
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: unifi-dns
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow external-dns to reach the Kubernetes API server (it watches
-# HTTPRoutes and Services).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: unifi-dns-allow-k8s-api
-  namespace: network
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: unifi-dns
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow the external-dns main container to call its unifi webhook provider
 # pod(s) in this namespace (the webhook calls the UniFi console API itself; see
 # the separate egress rule below).

@@ -9,35 +9,6 @@
 # deployments (lan + vpn) share the chart-derived app.kubernetes.io/name.
 # The vpn instance additionally carries the components/vpn
 # CiliumEgressGatewayPolicy (egress via net0.10 on the control-plane nodes).
-# Allow the VPN blackbox exporter to resolve DNS via kube-dns.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: blackbox-exporter-vpn-allow-dns
-  namespace: observability
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-vpn
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Allow blackbox probe egress through the VPN to the targets in probes.yaml
 # (icmp and https to 1.1.1.1 / one.one.one.one).
 apiVersion: cilium.io/v2

@@ -5,59 +5,6 @@
 # Covers the llmkube controller AND the inference pods it creates (selected via the
 # inference.llmkube.dev/service label - matchExpressions so new models are covered too).
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: llmkube-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: llmkube
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# llmkube is an operator: it reconciles InferenceService-style CRs through the API server.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: llmkube-allow-k8s-api
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: llmkube
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
----
 # kubelet probes /healthz (8081) from the node; the webhook (9443) is called by the
 # kube-apiserver.
 apiVersion: cilium.io/v2
@@ -127,16 +74,5 @@ spec:
             - port: "8000"
               protocol: TCP
             - port: "8080"
-              protocol: TCP
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
               protocol: TCP
 

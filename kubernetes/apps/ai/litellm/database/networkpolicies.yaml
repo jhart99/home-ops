@@ -2,51 +2,6 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
 # the selected endpoints do NOT enter default-deny.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: litellm-db-allow-dns
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      cnpg.io/cluster: litellm-db
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow instances to reach the Kubernetes API server
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: litellm-db-allow-k8s-api
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      cnpg.io/cluster: litellm-db
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow SQL clients (LiteLLM) to reach postgres on 5432
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

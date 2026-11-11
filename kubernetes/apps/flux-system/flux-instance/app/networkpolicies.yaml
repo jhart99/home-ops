@@ -4,47 +4,6 @@
 # is flipped on in a follow-up PR for this namespace.
 ---
 # kustomize-controller
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: kustomize-controller-allow-dns
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: kustomize-controller
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# kustomize-controller reconciles all Kubernetes manifests via the API server.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: kustomize-controller-allow-k8s-api
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: kustomize-controller
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # kustomize-controller fetches source artifacts from source-controller (9090)
 # and delivers event notifications to notification-controller (9090).
 apiVersion: cilium.io/v2
@@ -101,46 +60,6 @@ spec:
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: helm-controller-allow-dns
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: helm-controller
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: helm-controller-allow-k8s-api
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: helm-controller
-  egress:
-    - toEntities:
-        - kube-apiserver
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
   name: helm-controller-allow-flux-system
   namespace: flux-system
 spec:
@@ -188,46 +107,6 @@ spec:
               protocol: TCP
 ---
 # source-controller
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: source-controller-allow-dns
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: source-controller
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: source-controller-allow-k8s-api
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: source-controller
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -306,46 +185,6 @@ spec:
               protocol: TCP
 ---
 # notification-controller
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: notification-controller-allow-dns
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: notification-controller
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: notification-controller-allow-k8s-api
-  namespace: flux-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/component: notification-controller
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:

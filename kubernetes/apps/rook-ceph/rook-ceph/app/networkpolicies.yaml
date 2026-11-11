@@ -9,54 +9,6 @@
 # cluster flows through the components in this namespace. The rules below are
 # deliberately wide rather than cleverly narrow; the enforce phase needs its own
 # design pass (see #1539), not a template application.
-# Allow the rook-ceph operator to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: rook-ceph-allow-dns
-  namespace: rook-ceph
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app: rook-ceph-operator
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the rook-ceph operator to reach the Kubernetes API (it manages the
-# CephCluster/CSI driver CRs, Deployments, Services and Secrets).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: rook-ceph-allow-k8s-api
-  namespace: rook-ceph
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app: rook-ceph-operator
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # Allow the operator to orchestrate the Ceph cluster itself over Ceph msgr
 # (v1 port 6789, v2 port 3300, v2 OSD/MDS/MGR range 6800-7300, TCP+UDP).

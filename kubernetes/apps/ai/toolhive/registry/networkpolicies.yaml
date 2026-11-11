@@ -2,65 +2,6 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # AUDIT MODE (#1539): every policy below sets enableDefaultDeny to false - the selected
 # endpoints stay default-allow while the allow-list is validated in Hubble.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: toolhive-registry-allow-dns
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: toolhive-registry
-      app.kubernetes.io/name: toolhive-registry-server
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow registry to watch MCPServer CRs across the cluster
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: toolhive-registry-allow-k8s-api
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: toolhive-registry
-      app.kubernetes.io/name: toolhive-registry-server
-  egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
----
 # Egress: toolhive-db (port 5432) and git upstream catalog sync (github.com port 443)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

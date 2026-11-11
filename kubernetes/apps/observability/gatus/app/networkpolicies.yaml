@@ -5,56 +5,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# Allow gatus to resolve DNS via kube-dns (probe targets are hostnames).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: gatus-allow-dns
-  namespace: observability
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: gatus
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow gatus to reach the Kubernetes API server (ClusterRole watching
-# services, gateways and httproutes for the --auto-httproute/--enable-service
-# discovery sidecar).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: gatus-allow-k8s-api
-  namespace: observability
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: gatus
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow gatus health-check probes: it checks every discovered HTTPRoute/SVC in
 # the cluster plus the external endpoints configured in resources/config.yaml.
 apiVersion: cilium.io/v2

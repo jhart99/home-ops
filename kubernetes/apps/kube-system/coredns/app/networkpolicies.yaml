@@ -46,16 +46,6 @@ spec:
     matchLabels:
       k8s-app: kube-dns
   egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
     - toEntities:
         - world
       toPorts:
@@ -64,23 +54,6 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
----
-# The kubernetes plugin watches pods/services/endpoints via the API server
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: coredns-allow-k8s-api
-  namespace: kube-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      k8s-app: kube-dns
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # health (:8080) and ready (:8181) plugin defaults (not overridden in values) are what kubelet probes
 apiVersion: cilium.io/v2

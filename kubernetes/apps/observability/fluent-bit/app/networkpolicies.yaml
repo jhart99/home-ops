@@ -5,55 +5,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# Allow fluent-bit to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: fluent-bit-allow-dns
-  namespace: observability
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: fluent-bit
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow fluent-bit to reach the Kubernetes API server (the kubernetes filter
-# enriches records with pod/namespace metadata).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: fluent-bit-allow-k8s-api
-  namespace: observability
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: fluent-bit
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow fluent-bit to ship logs to victoria-logs (both http outputs in the
 # HelmRelease target victoria-logs-server.observability:9428).
 apiVersion: cilium.io/v2

@@ -3,53 +3,6 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-# Allow hermes to resolve DNS via CoreDNS.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: hermes-allow-dns
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: hermes
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Hermes runs the agent plugin stack: RBAC roles/bindings in this HelmRelease mean it
-# manages pods/exec through the API server.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: hermes-allow-k8s-api
-  namespace: ai
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: hermes
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Known in-cluster dependencies from values: agentmemory (3111), searxng (8080),
 # LiteLLM (4000), VirtualMCPServer proxy (4483), and Envoy Gateway for in-cluster
 # routes (auth.rnatr.com OIDC on 443/10443). Outbound LLM/Matrix/OIDC/package

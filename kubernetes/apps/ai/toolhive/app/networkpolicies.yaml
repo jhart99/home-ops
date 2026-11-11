@@ -4,40 +4,6 @@
 # is flipped on in a follow-up PR for this namespace.
 # endpointSelector covers both VirtualMCPServers (vmcp-oauth, mcp-gateway-internal).
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: toolhive-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: virtualmcpserver
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
-    - toServices:
-        - k8sService:
-            serviceName: kube-dns
-            namespace: kube-system
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Gateways call LiteLLM for embeddings (embeddingService -> litellm:4000), do OIDC
 # discovery against auth.rnatr.com, talk to kube-apiserver, and proxy to the per-server MCP pods (80/8080).
 # TODO(enforce phase): replace the cluster rule with the concrete MCP endpoints and
@@ -55,20 +21,6 @@ spec:
     matchLabels:
       app.kubernetes.io/name: virtualmcpserver
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
     # In-cluster Envoy Gateway (auth.rnatr.com Authentik OIDC and same-node return traffic)
     - toEndpoints:
         - matchLabels:

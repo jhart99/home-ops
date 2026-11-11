@@ -6,50 +6,6 @@
 # Selector note: the chart name (dra-driver-nvidia-gpu) differs from the release name, so
 # these policies select on app.kubernetes.io/instance = release name.
 ---
-# Resolve DNS via kube-dns (kube-system local, recorded so the rule exists at enforce time)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: nvidia-dra-driver-allow-dns
-  namespace: kube-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: nvidia-dra-driver
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Standard API allow: this DRA kubelet plugin talks to kubelet over a unix socket and
-# normally never calls the API; kept for audit visibility - safe to drop at enforce if
-# Hubble shows no matches.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: nvidia-dra-driver-allow-k8s-api
-  namespace: kube-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: nvidia-dra-driver
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Kubelet liveness/readiness probes arrive from the node.
 # TODO(enforce phase): pin toPorts to the chart's probed ports - none are stated in repo values.
 apiVersion: cilium.io/v2

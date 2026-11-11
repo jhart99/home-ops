@@ -3,36 +3,12 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: kubectl-mcp-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: kubectl-mcp
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Read-only kubectl MCP: ClusterRole kubectl-mcp-readonly is bound to this server, so
 # all of its reads go to the API server. ToolHive proxy (8080) talks to backend pod (8000).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: kubectl-mcp-allow-k8s-api
+  name: kubectl-mcp-allow-egress
   namespace: ai
 spec:
   enableDefaultDeny:
@@ -42,20 +18,6 @@ spec:
     matchLabels:
       toolhive-name: kubectl-mcp
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: kubectl-mcp

@@ -2,34 +2,6 @@
 # AUDIT MODE (#1539): enableDefaultDeny is false on every policy below - the
 # endpoint stays default-allow while the allow-list is validated in Hubble.
 # Enforcement is flipped on in a follow-up PR.
-# Allow signal-cli to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: signal-cli-allow-dns
-  namespace: communication
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: signal-cli
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
 ---
 # Allow signal-cli egress to Signal infrastructure (HTTPS API, CDN, WebSocket).
 # TODO(enforce phase): tighten from world:443 to specific FQDNs/CIDRs observed

@@ -5,32 +5,6 @@
 # endpointSelector covers the immich server AND immich-machine-learning (both carry
 # app.kubernetes.io/name: immich); the CNPG pods (postgresql) are deliberately excluded.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: immich-allow-dns
-  namespace: default
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: immich
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # DB_URL -> immich-db (CNPG, 5432), REDIS_HOSTNAME -> immich-dragonfly (6379),
 # machine-learning service (3003); the machine-learning replica fetches model weights over HTTPS.
 # TODO(enforce phase): pin world:443 to the model/HuggingFace FQDNs seen in Hubble.

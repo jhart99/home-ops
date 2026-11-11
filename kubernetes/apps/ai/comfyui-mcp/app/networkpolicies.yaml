@@ -4,30 +4,6 @@
 # is flipped on in a follow-up PR for this namespace.
 # Selects both toolhive workloads for this server (StatefulSet + gateway Deployment).
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: comfyui-mcp-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: comfyui-mcp
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Drives the ComfyUI API; npx-based tooling may fetch packages over HTTPS.
 # ToolHive proxy connects to kube-apiserver and forwards to backend MCP pod on 80.
 # TODO(enforce phase): keep 8188 scoped to comfyui, tighten world:443 to FQDNs seen in Hubble.
@@ -44,20 +20,6 @@ spec:
     matchLabels:
       toolhive-name: comfyui-mcp
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: comfyui-mcp

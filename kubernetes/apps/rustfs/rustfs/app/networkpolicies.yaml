@@ -4,57 +4,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# Allow the rustfs server to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: rustfs-allow-dns
-  namespace: rustfs
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: rustfs
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the rustfs server to reach the Kubernetes API conservatively; the
-# HelmRelease values do not indicate a dependency (no serviceaccount calls are
-# visible in the repo), so this may be droppable.
-# TODO(enforce phase): confirm in Hubble whether rustfs actually calls the API;
-# drop this policy if it does not.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: rustfs-allow-k8s-api
-  namespace: rustfs
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: rustfs
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # Allow ingress to rustfs:
 #   - console/web UI (9001) and S3 API (9000) via the envoy-internal

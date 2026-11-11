@@ -13,56 +13,6 @@
 # PodMonitor selector). The proxies are the cluster's ingress path for every
 # HTTPRoute/TCPRoute/UDPRoute, so their fan-in is intentionally wide in audit
 # mode.
-# Allow the envoy-gateway control plane to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: envoy-gateway-allow-dns
-  namespace: network
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      control-plane: envoy-gateway
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the envoy-gateway control plane to reach the Kubernetes API server (it
-# reconciles Gateway/HTTPRoute/GRPCRoute/TCPRoute/UDPRoute and the EnvoyProxy
-# config, and deploys the data-plane proxies).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: envoy-gateway-allow-k8s-api
-  namespace: network
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      control-plane: envoy-gateway
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow kube-apiserver to reach the envoy-gateway admission webhooks (standard
 # webhook port 9443).
 # TODO(enforce phase): confirm the webhook port in Hubble.
@@ -146,34 +96,6 @@ spec:
       toPorts:
         - ports:
             - port: "18000"
-              protocol: TCP
----
-# Allow the envoy data-plane proxies to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: envoy-proxy-allow-dns
-  namespace: network
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: envoy
-      app.kubernetes.io/component: proxy
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
               protocol: TCP
 ---
 # Allow the envoy proxies to receive xDS configuration from the envoy-gateway

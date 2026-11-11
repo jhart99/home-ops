@@ -8,55 +8,6 @@
 # listener pod and the runner pods (component labels runner and
 # runner-scale-set-listener) - verified live; the label is the chart's
 # runnerScaleSetName.
-# Allow the listener and runner pods to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: home-ops-runner-set-allow-dns
-  namespace: actions-runner-system
-  annotations:
-    # GitOps/audit marker only - Cilium does not read this annotation;
-    # spec.enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: home-ops-runner-set
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow runner pods to reach the Kubernetes API server: with
-# containerMode.type kubernetes the runner service account
-# (home-ops-runner-rbac) creates and watches the per-job pods
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: home-ops-runner-set-allow-k8s-api
-  namespace: actions-runner-system
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: home-ops-runner-set
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # Wide audit-phase egress: this is the most permissive namespace on purpose -
 # runners need container registry pulls (ghcr.io), the GitHub runner download

@@ -3,30 +3,6 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: litellm-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: litellm
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # LiteLLM backends: Dragonfly (REDIS_HOST, 6379), CNPG postgres (DATABASE_URL from the
 # litellm-db-app secret, 5432) and upstream LLM providers over HTTPS.
 # TODO(enforce phase): replace world:443 with provider toFQDNs observed in Hubble.

@@ -8,55 +8,6 @@
 #
 # These policies attach to the pods of the CloudNativePG cluster `authentik-db`
 # (2 instances, managed by the cnpg-operator in the `database` namespace).
-# Allow the postgres instances to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: authentik-db-allow-dns
-  namespace: security
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      cnpg.io/cluster: authentik-db
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the postgres instances to reach the Kubernetes API server (instance
-# registration, status updates, secrets).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: authentik-db-allow-k8s-api
-  namespace: security
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      cnpg.io/cluster: authentik-db
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow SQL clients (authentik-server and authentik-worker) to reach postgres on 5432.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

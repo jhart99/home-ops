@@ -5,30 +5,6 @@
 # NOTE: the policy.cilium.io/audit-mode annotation is deliberately omitted here - it is
 # not a Cilium feature (marker-only); enableDefaultDeny below is the functional control.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: agentmemory-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: agentmemory
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # agentmemory embeds memories through LiteLLM (OPENAI_BASE_URL -> litellm:4000).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

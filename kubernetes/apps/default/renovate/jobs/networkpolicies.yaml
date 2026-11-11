@@ -6,31 +6,6 @@
 # renovate-operator.mogenius.com/* labels, so they are selected by key existence -
 # this also covers future projects (delf-*, jhart99-*, ...).
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: renovate-jobs-allow-dns
-  namespace: default
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchExpressions:
-      - key: renovate-operator.mogenius.com/renovatejob
-        operator: Exists
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Job pods clone/push against forgejo.rnatr.com and api.github.com (RenovateJob
 # endpoints) and may reach the in-cluster forgejo API for internal packages.
 # TODO(enforce phase): replace world:443 with forgejo.rnatr.com + api.github.com/github.com

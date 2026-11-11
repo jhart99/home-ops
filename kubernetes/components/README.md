@@ -89,21 +89,6 @@ components:
 
 ---
 
-### `egress/`
-
-Adds common egress `CiliumNetworkPolicy` allow rules: DNS resolution (kube-dns) and Kubernetes API server access. Intended to be composed with the `deny-all` component.
-
-**Use when**: Pods in a namespace need DNS and/or Kubernetes API access (nearly all workloads).
-
-Reference in `kustomization.yaml`:
-```yaml
-components:
-  - ../../components/deny-all
-  - ../../components/egress
-```
-
----
-
 ## How Components Work
 
 Components are `kustomize.toolkit.fluxcd.io/v1alpha1` `Component` resources. Unlike regular `bases`, components can be composed — multiple components can be applied to a single app without conflict.

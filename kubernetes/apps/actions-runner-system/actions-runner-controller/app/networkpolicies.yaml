@@ -7,54 +7,6 @@
 # Selector: the chart's app.kubernetes.io/name label is gha-rs-controller;
 # app.kubernetes.io/instance = actions-runner-controller matches the
 # HelmRelease release name and was verified live on the controller pod.
-# Allow actions-runner-controller to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: actions-runner-controller-allow-dns
-  namespace: actions-runner-system
-  annotations:
-    # GitOps/audit marker only - Cilium does not read this annotation;
-    # spec.enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: actions-runner-controller
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow actions-runner-controller to reach the Kubernetes API server: it
-# manages the listener and runner scale set workloads in this namespace
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: actions-runner-controller-allow-k8s-api
-  namespace: actions-runner-system
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: actions-runner-controller
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # Wide audit-phase egress: the controller registers the runner scale set with
 # the GitHub API over HTTPS.

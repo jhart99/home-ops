@@ -13,64 +13,6 @@
 # covered here yet - its pod labels are not derivable from this repo;
 # TODO(enforce phase): read them off the running pods and add its policies.
 # The selector covers both label spellings (chart name vs release name).
-# Allow the cnpg-operator to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: cnpg-operator-allow-dns
-  namespace: database
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchExpressions:
-      - key: app.kubernetes.io/name
-        operator: In
-        values:
-          - cloudnative-pg
-          - cnpg-operator
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the cnpg-operator to reach the Kubernetes API server (it reconciles
-# Cluster/Pooler/Backup/ScheduledBackup/ObjectStore CRs, deployments, secrets
-# and PVCs in every namespace).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: cnpg-operator-allow-k8s-api
-  namespace: database
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchExpressions:
-      - key: app.kubernetes.io/name
-        operator: In
-        values:
-          - cloudnative-pg
-          - cnpg-operator
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow kube-apiserver to reach the CNPG admission webhooks (standard webhook
 # port 9443).
 # TODO(enforce phase): confirm the webhook port in Hubble.

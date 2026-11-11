@@ -3,30 +3,6 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: github-mcp-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: github-mcp
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # GitHub REST/GraphQL API over HTTPS. ToolHive proxy connects to kube-apiserver
 # and forwards to backend MCP pod on 8080.
 # TODO(enforce phase): replace world:443 with api.github.com/github.com toFQDNs.
@@ -43,20 +19,6 @@ spec:
     matchLabels:
       toolhive-name: github-mcp
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: github-mcp

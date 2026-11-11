@@ -8,53 +8,6 @@
 # the release (the chart sets a distinct app.kubernetes.io/name per component:
 # cert-manager, cainjector, webhook - verified live), so the instance label is
 # the release-wide selector used here.
-# Allow the cert-manager release to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: cert-manager-allow-dns
-  namespace: cert-manager
-  annotations:
-    # GitOps/audit marker only - Cilium does not read this annotation;
-    # spec.enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: cert-manager
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow controller, cainjector and webhook to reach the Kubernetes API server
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: cert-manager-allow-k8s-api
-  namespace: cert-manager
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: cert-manager
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # ACME and DNS-01 egress: the ClusterIssuer uses the Let's Encrypt production
 # directory (HTTPS), the DNS-01 solver calls the Cloudflare API (HTTPS) and the

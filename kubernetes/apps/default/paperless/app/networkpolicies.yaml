@@ -3,30 +3,6 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: paperless-allow-dns
-  namespace: default
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: paperless
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # PAPERLESS_REDIS -> paperless-dragonfly (6379), PAPERLESS_AI_LLM_ENDPOINT ->
 # litellm.ai.svc:4000, postgres comes from the DB secret (5432), OIDC/logout over HTTPS.
 # TODO(enforce phase): confirm the postgres service in Hubble (toEntities cluster:5432

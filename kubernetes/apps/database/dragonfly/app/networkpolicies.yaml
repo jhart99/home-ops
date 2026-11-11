@@ -10,55 +10,6 @@
 # is commented out in ../ks.yaml, so there are no datastore pods to policy yet;
 # when it is re-enabled it needs its own CNP set (redis port 6379 clients,
 # replication, metrics).
-# Allow the dragonfly-operator to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: dragonfly-operator-allow-dns
-  namespace: database
-  annotations:
-    # Marker for GitOps/audit tooling; Cilium itself does not read this
-    # annotation - enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: dragonfly-operator
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow the dragonfly-operator to reach the Kubernetes API server (it
-# reconciles Dragonfly CRs into statefulsets/services/secrets).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: dragonfly-operator-allow-k8s-api
-  namespace: database
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: dragonfly-operator
-  egress:
-    - toEntities:
-        - kube-apiserver
----
 # Allow kubelet probes from the node.
 # TODO(enforce phase): pin the operator probe port in Hubble.
 apiVersion: cilium.io/v2

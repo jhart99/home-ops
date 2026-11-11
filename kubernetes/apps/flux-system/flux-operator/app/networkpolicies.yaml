@@ -9,54 +9,6 @@
 # flux-operator-web) rendered from cluster.networkPolicy; those are untouched
 # here. Selector labels verified live: app.kubernetes.io/name and
 # app.kubernetes.io/instance are both "flux-operator" on the operator pods.
-# Allow flux-operator to resolve DNS via kube-dns
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: flux-operator-allow-dns
-  namespace: flux-system
-  annotations:
-    # GitOps/audit marker only - Cilium does not read this annotation;
-    # spec.enableDefaultDeny below is the functional control.
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: flux-operator
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
-# Allow flux-operator to reach the Kubernetes API server (it watches and
-# reconciles FluxResources such as FluxInstance/FluxReport)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: flux-operator-allow-k8s-api
-  namespace: flux-system
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: flux-operator
-  egress:
-    - toEntities:
-        - kube-apiserver
 ---
 # Allow flux-operator egress to git remotes on 443.
 # TODO(enforce phase): pin toFQDNs to forgejo.rnatr.com and github.com once

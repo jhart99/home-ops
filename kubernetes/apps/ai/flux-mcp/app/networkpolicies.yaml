@@ -3,37 +3,13 @@
 # endpoints stay default-allow while the allow-list is validated in Hubble. Enforcement
 # is flipped on in a follow-up PR for this namespace.
 ---
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: flux-mcp-allow-dns
-  namespace: ai
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      toolhive-name: flux-operator-mcp
-  egress:
-    - toEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: kube-system
-            k8s-app: kube-dns
-      toPorts:
-        - ports:
-            - port: "53"
-              protocol: UDP
-            - port: "53"
-              protocol: TCP
----
 # Flux MCP reads GitRepository/Kustomization state and talks to flux-operator over
 # HTTPS; it acts like kubectl against the API server. ToolHive proxy communicates
 # with the backend pod on 8080.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: flux-mcp-allow-k8s-api
+  name: flux-mcp-allow-egress
   namespace: ai
 spec:
   enableDefaultDeny:
@@ -43,20 +19,6 @@ spec:
     matchLabels:
       toolhive-name: flux-operator-mcp
   egress:
-    - toServices:
-        - k8sService:
-            serviceName: kubernetes
-            namespace: default
-    - toEntities:
-        - kube-apiserver
-        - host
-        - remote-node
-      toPorts:
-        - ports:
-            - port: "6443"
-              protocol: TCP
-            - port: "443"
-              protocol: TCP
     - toEndpoints:
         - matchLabels:
             toolhive-name: flux-operator-mcp
