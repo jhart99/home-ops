@@ -53,6 +53,7 @@ spec:
   postBuild:
     substitute:
       APP: immich-db
+      CNPG_CLIENT: immich
     substituteFrom:
       - name: cluster-secrets
         kind: Secret

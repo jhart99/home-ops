@@ -89,6 +89,30 @@ components:
 
 ---
 
+### `cnpg-netpol/`
+
+Adds the standard set of Cilium `CiliumNetworkPolicy` resources for a CloudNativePG (`cnpg.io/cluster: ${APP}`) PostgreSQL cluster:
+- `${APP}-allow-client-ingress` — SQL client ingress (`5432/TCP`) from pods matching `app.kubernetes.io/instance: ${CNPG_CLIENT}` in the same namespace
+- `${APP}-allow-instance-traffic` — streaming replication (`5432/TCP`) and instance-manager (`8000/TCP`) between cluster instances, plus CNPG operator management (`8000/TCP` from `database/cloudnative-pg`)
+- `${APP}-allow-backup-egress` — Barman Cloud WAL/backup archiving to `s3.rnatr.com` (`443/TCP` and in-cluster `envoy-internal` `443, 10443/TCP`)
+- `${APP}-allow-kubelet-probes` — kubelet liveness/readiness probes (`5432, 8000/TCP` from `host`/`remote-node`)
+
+Required substitution variables in the database Flux `ks.yaml`:
+```yaml
+postBuild:
+  substitute:
+    APP: <cluster-name>         # e.g. immich-db (matches cnpg.io/cluster)
+    CNPG_CLIENT: <client-app>   # e.g. immich (matches app.kubernetes.io/instance)
+```
+
+Reference in `database/kustomization.yaml`:
+```yaml
+components:
+  - ../../../../components/cnpg-netpol
+```
+
+---
+
 ## How Components Work
 
 Components are `kustomize.toolkit.fluxcd.io/v1alpha1` `Component` resources. Unlike regular `bases`, components can be composed — multiple components can be applied to a single app without conflict.

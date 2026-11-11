@@ -2,12 +2,11 @@
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # AUDIT MODE (#1539): every policy below sets spec.enableDefaultDeny to false so
 # the selected endpoints do NOT enter default-deny.
-# Allow SQL clients (Immich server) to reach postgres on 5432
+# Allow SQL clients (${CNPG_CLIENT}) in the same namespace to reach postgres on 5432
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: immich-db-allow-client-ingress
-  namespace: default
+  name: ${APP}-allow-client-ingress
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
@@ -16,23 +15,23 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      cnpg.io/cluster: immich-db
+      cnpg.io/cluster: ${APP}
   ingress:
     - fromEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: immich
+            app.kubernetes.io/instance: ${CNPG_CLIENT}
       toPorts:
         - ports:
             - port: "5432"
               protocol: TCP
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow intra-cluster postgres traffic between instances (streaming replication 5432)
-# and instance-manager communication (8000)
+# and instance-manager communication (8000), plus CNPG operator management (8000)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: immich-db-allow-instance-traffic
-  namespace: default
+  name: ${APP}-allow-instance-traffic
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
@@ -41,12 +40,11 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      cnpg.io/cluster: immich-db
+      cnpg.io/cluster: ${APP}
   egress:
     - toEndpoints:
         - matchLabels:
-            io.kubernetes.pod.namespace: default
-            cnpg.io/cluster: immich-db
+            cnpg.io/cluster: ${APP}
       toPorts:
         - ports:
             - port: "5432"
@@ -56,8 +54,7 @@ spec:
   ingress:
     - fromEndpoints:
         - matchLabels:
-            io.kubernetes.pod.namespace: default
-            cnpg.io/cluster: immich-db
+            cnpg.io/cluster: ${APP}
       toPorts:
         - ports:
             - port: "5432"
@@ -74,12 +71,12 @@ spec:
             - port: "8000"
               protocol: TCP
 ---
-# Allow barman-cloud instance sidecar to archive WAL/backups to S3
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
+# Allow barman-cloud instance sidecar to archive WAL/backups to S3 (s3.rnatr.com via envoy-internal)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: immich-db-allow-backup-egress
-  namespace: default
+  name: ${APP}-allow-backup-egress
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
@@ -88,7 +85,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      cnpg.io/cluster: immich-db
+      cnpg.io/cluster: ${APP}
   egress:
     - toFQDNs:
         - matchName: s3.rnatr.com
@@ -96,38 +93,23 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
----
-# Allow Prometheus to scrape postgres_exporter sidecar (port 9187)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: immich-db-allow-prometheus-scrape
-  namespace: default
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      cnpg.io/cluster: immich-db
-  ingress:
-    - fromEndpoints:
+    - toEndpoints:
         - matchLabels:
-            io.kubernetes.pod.namespace: observability
-            app.kubernetes.io/name: prometheus
+            io.kubernetes.pod.namespace: network
+            gateway.envoyproxy.io/owning-gateway-name: envoy-internal
       toPorts:
         - ports:
-            - port: "9187"
+            - port: "443"
+              protocol: TCP
+            - port: "10443"
               protocol: TCP
 ---
+# yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow kubelet health probes from node
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: immich-db-allow-kubelet-probes
-  namespace: default
+  name: ${APP}-allow-kubelet-probes
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
@@ -136,7 +118,7 @@ spec:
     egress: false
   endpointSelector:
     matchLabels:
-      cnpg.io/cluster: immich-db
+      cnpg.io/cluster: ${APP}
   ingress:
     - fromEntities:
         - host

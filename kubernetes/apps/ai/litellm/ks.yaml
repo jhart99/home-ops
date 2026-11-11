@@ -46,6 +46,7 @@ spec:
   postBuild:
     substitute:
       APP: litellm-db
+      CNPG_CLIENT: litellm
     substituteFrom:
       - name: cluster-secrets
         kind: Secret
