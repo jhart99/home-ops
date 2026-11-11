@@ -51,33 +51,6 @@ spec:
               endPort: 7300
               protocol: UDP
 ---
-# Allow Prometheus (observability) to scrape the operator metrics endpoint.
-# monitoring.enabled is true in the HelmRelease.
-# TODO(enforce phase): confirm the metrics port (rook operator default 8008)
-# in Hubble before enforcing.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: rook-ceph-allow-prometheus-scrape
-  namespace: rook-ceph
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app: rook-ceph-operator
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8008"
-              protocol: TCP
----
 # Allow kube-apiserver to reach an operator admission webhook, if one is
 # enabled in this rook version.
 # TODO(enforce phase): confirm in Hubble whether the operator actually serves

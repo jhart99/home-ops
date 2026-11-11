@@ -25,25 +25,6 @@ spec:
         - host
         - remote-node
 ---
-# serviceMonitor enabled in values
-# TODO(enforce phase): pin toPorts to the spegel metrics port.
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: spegel-allow-prometheus-scrape
-  namespace: kube-system
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: spegel
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
----
 # Spegel peers exchange registry content and router gossip with each other (registry hostPort
 # 29999 in values; router port is chart-default).
 # TODO(enforce phase): pin toPorts to the router/registry ports after confirming peer flows.

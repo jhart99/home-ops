@@ -96,28 +96,3 @@ spec:
               protocol: TCP
             - port: "6080"
               protocol: TCP
----
-# Allow Prometheus to scrape cert-manager metrics: prometheus + servicemonitor
-# are enabled in the HelmRelease and all three components expose 9402
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: cert-manager-allow-prometheus-scrape
-  namespace: cert-manager
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/instance: cert-manager
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9402"
-              protocol: TCP

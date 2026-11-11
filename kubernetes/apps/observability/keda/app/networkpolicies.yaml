@@ -85,12 +85,3 @@ spec:
               protocol: TCP
             - port: "6443"
               protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-            - port: "9666"
-              protocol: TCP

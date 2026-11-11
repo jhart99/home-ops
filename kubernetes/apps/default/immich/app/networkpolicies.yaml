@@ -129,6 +129,11 @@ spec:
     - fromEndpoints:
         - matchLabels:
             cnpg.io/cluster: immich-db
+    # Return traffic from kube-dns
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
 ---
 # Prometheus (ServiceMonitor endpoints metrics-api + metrics-ms) scrapes 8081/8082.
 apiVersion: cilium.io/v2

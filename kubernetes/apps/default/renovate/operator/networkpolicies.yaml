@@ -80,25 +80,3 @@ spec:
               protocol: TCP
             - port: "8082"
               protocol: TCP
----
-# Prometheus (ServiceMonitor, metrics.enabled) scrapes the metrics port (8080).
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: renovate-operator-allow-prometheus-scrape
-  namespace: default
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app: renovate-operator
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP

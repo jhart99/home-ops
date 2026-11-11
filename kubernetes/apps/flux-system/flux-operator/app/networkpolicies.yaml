@@ -36,32 +36,6 @@ spec:
             - port: "443"
               protocol: TCP
 ---
-# Allow Prometheus to scrape flux-operator metrics: the HelmRelease enables
-# serviceMonitor.create and the flux-operator Service exposes http-metrics on
-# 8080 (targetPort http-metrics)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: flux-operator-allow-prometheus-scrape
-  namespace: flux-system
-  annotations:
-    policy.cilium.io/audit-mode: "true"
-spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: flux-operator
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
----
 # kubelet liveness/readiness probes (/healthz and /readyz on container port
 # 8081) arrive from the node. Web UI ingress on 9080 is covered by the chart's
 # flux-operator-web NetworkPolicy and is deliberately not duplicated here.

@@ -64,13 +64,6 @@ spec:
         - ports:
             - port: "8081"
               protocol: TCP
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "19001"
-              protocol: TCP
 ---
 # Allow the envoy data-plane proxies to stream xDS configuration to the
 # envoy-gateway control plane on port 18000.
@@ -259,15 +252,6 @@ spec:
       app.kubernetes.io/name: envoy
       app.kubernetes.io/component: proxy
   ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "19000"
-              protocol: TCP
-            - port: "19001"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node
