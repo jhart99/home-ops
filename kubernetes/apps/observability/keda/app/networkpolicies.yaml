@@ -18,12 +18,28 @@ spec:
   endpointSelector:
     matchLabels:
       app.kubernetes.io/part-of: keda-operator
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: keda-operator
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: prometheus
   egress:
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/part-of: keda-operator
+      toPorts:
+        - ports:
+            - port: "9666"
+              protocol: TCP
     - toEntities:
         - cluster
       toPorts:
         - ports:
             - port: "9090"
+              protocol: TCP
+            - port: "9666"
               protocol: TCP
 ---
 # Allow kube-apiserver access to the keda admission webhooks (:9443) and
