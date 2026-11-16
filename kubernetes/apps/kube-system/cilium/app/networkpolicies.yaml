@@ -129,6 +129,12 @@ spec:
         - matchExpressions:
             - key: io.kubernetes.pod.namespace
               operator: Exists
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 # Allow pods across the cluster to receive ingress traffic from envoy-internal and envoy-external Gateway proxies
