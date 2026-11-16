@@ -94,6 +94,23 @@ spec:
               protocol: TCP
             - port: "10443"
               protocol: TCP
+    - toServices:
+        - k8sService:
+            serviceName: barman-cloud
+            namespace: database
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: plugin-barman-cloud
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: database
+            app.kubernetes.io/name: plugin-barman-cloud
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumnetworkpolicy_v2.json
 # Allow kubelet health probes from node

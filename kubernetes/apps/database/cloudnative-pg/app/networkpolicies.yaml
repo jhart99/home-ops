@@ -60,6 +60,33 @@ spec:
           - cloudnative-pg
           - cnpg-operator
   ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: plugin-barman-cloud
     - fromEntities:
         - host
         - remote-node
+  egress:
+    - toServices:
+        - k8sService:
+            serviceName: barman-cloud
+            namespace: database
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: plugin-barman-cloud
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+    - toEndpoints:
+        - matchExpressions:
+            - key: io.kubernetes.pod.namespace
+              operator: Exists
+            - key: cnpg.io/cluster
+              operator: Exists
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+            - port: "5432"
+              protocol: TCP
