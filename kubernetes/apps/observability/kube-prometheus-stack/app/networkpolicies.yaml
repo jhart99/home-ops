@@ -178,13 +178,10 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
-      toPorts:
-        - ports:
-            - port: "9090"
-              protocol: TCP
     - fromEntities:
         - host
         - remote-node
+        - kube-apiserver
       toPorts:
         - ports:
             - port: "9090"
