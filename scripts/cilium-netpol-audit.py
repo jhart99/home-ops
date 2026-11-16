@@ -225,6 +225,62 @@ def cmd_unaccounted(args: argparse.Namespace, client: PrometheusClient) -> None:
         print("   Run: ./scripts/cilium-endpoint-inspect.py <pod> -F --unmatched-only to inspect exact IPs, ports, and policy verdicts.")
 
 
+def cmd_dropped(args: argparse.Namespace, client: PrometheusClient) -> None:
+    """List flows actively dropped by enforced CiliumNetworkPolicy default-deny (action='dropped')."""
+    filters = ['action="dropped"']
+    if args.direction and args.direction != "both":
+        filters.append(f'direction="{args.direction}"')
+
+    promql = _build_filter_queries(
+        "hubble_policy_verdicts_total",
+        filters=filters,
+        window=args.window,
+        namespace=args.namespace,
+        workload=args.workload,
+        group_by="source_namespace, source_workload, destination_namespace, destination_workload, direction",
+    )
+
+    if getattr(args, "show_promql", False):
+        print(f"PromQL: {promql}\n")
+
+    results = client.query(promql)
+
+    rows: List[Tuple[float, str, str, str]] = []
+    for r in results:
+        rate_val = float(r["value"][1])
+        m = r["metric"]
+        src = f"{m.get('source_namespace') or ''}/{m.get('source_workload') or '<unknown>'}"
+        dst = f"{m.get('destination_namespace') or ''}/{m.get('destination_workload') or '<unknown>'}"
+        direction = m.get("direction", "unknown")
+        rows.append((rate_val, direction, src, dst))
+
+    rows.sort(key=lambda x: x[0], reverse=True)
+
+    filter_desc = []
+    if args.namespace:
+        filter_desc.append(f"namespace='{args.namespace}'")
+    if args.workload:
+        filter_desc.append(f"workload='{args.workload}'")
+    target_str = f" for {', '.join(filter_desc)}" if filter_desc else " cluster-wide"
+
+    if not rows:
+        print(f"🎉 No enforced policy drops (action='dropped') observed{target_str} in the last {args.window}!")
+        return
+
+    print(f"\nEnforced Policy Drops (action='dropped') over window [{args.window}]{target_str}")
+    print(f"{'RATE (drops/s)':<16} {'DIRECTION':<12} {'SOURCE':<38} {'DESTINATION':<38}")
+    print("-" * 106)
+
+    limit = args.top if args.top > 0 else len(rows)
+    for rate_val, direction, src, dst in rows[:limit]:
+        print(f"{rate_val:<16.3f} {direction:<12} {src:<38} {dst:<38}")
+
+    if len(rows) > limit:
+        print(f"\n... and {len(rows) - limit} more. Use --top 0 to show all.")
+
+    print("\n💡 Tip: Run ./scripts/cilium-endpoint-inspect.py <pod> -n <ns> -F -V DROPPED to inspect exact IPs, ports, and TCP flags.")
+
+
 def cmd_verdicts(args: argparse.Namespace, client: PrometheusClient) -> None:
     """Display all active traffic verdicts (l3-l4, l3-only, l4-only, all) broken down by workload."""
     filters = []
@@ -327,7 +383,8 @@ def cmd_summary(args: argparse.Namespace, client: PrometheusClient) -> None:
     def print_section(title: str, m: Dict[str, float]) -> None:
         accounted = m["l3-l4"] + m["l3-only"] + m["l4-only"]
         unaccounted = m["all"]
-        total = accounted + unaccounted
+        dropped = m["none"]
+        total = accounted + unaccounted + dropped
         pct = (accounted / total * 100) if total > 0 else 100.0
 
         print(f"\n=== {title} ===")
@@ -336,7 +393,8 @@ def cmd_summary(args: argparse.Namespace, client: PrometheusClient) -> None:
         print(f"  - l3-l4:        {m['l3-l4']:<8.3f} flows/sec")
         print(f"  - l3-only:      {m['l3-only']:<8.3f} flows/sec")
         print(f"  - l4-only:      {m['l4-only']:<8.3f} flows/sec")
-        print(f"  - all (audit):  {m['all']:<8.3f} flows/sec  <-- UNACCOUNTED (drop risk)")
+        print(f"  - all (audit):  {m['all']:<8.3f} flows/sec  <-- UNACCOUNTED (audit fallthrough)")
+        print(f"  - none (drop):  {m['none']:<8.3f} flows/sec  <-- ENFORCED DROPS (blocked)")
 
     scope_parts = []
     if args.namespace:
@@ -445,7 +503,7 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Subcommand: unaccounted
-    p_unacc = subparsers.add_parser("unaccounted", help="List flows with match='all'")
+    p_unacc = subparsers.add_parser("unaccounted", help="List audit fallthrough flows with match='all'")
     p_unacc.add_argument("-n", "--namespace", help="Filter by namespace")
     p_unacc.add_argument("-W", "--workload", help="Filter by workload name (regex/substring)")
     p_unacc.add_argument(
@@ -457,15 +515,28 @@ def main() -> None:
     p_unacc.add_argument("--top", type=int, default=25, help="Number of flows to show (0 for all)")
     p_unacc.add_argument("--promql", dest="show_promql", action="store_true", help="Print the generated PromQL query")
 
+    # Subcommand: dropped
+    p_drop = subparsers.add_parser("dropped", help="List enforced policy drops with action='dropped'")
+    p_drop.add_argument("-n", "--namespace", help="Filter by namespace")
+    p_drop.add_argument("-W", "--workload", help="Filter by workload name (regex/substring)")
+    p_drop.add_argument(
+        "-d", "--direction", choices=["ingress", "egress", "both"], default="both", help="Traffic direction"
+    )
+    p_drop.add_argument(
+        "-w", "--window", default="5m", help="PromQL rate interval window (e.g. 1m, 5m, 15m)"
+    )
+    p_drop.add_argument("--top", type=int, default=25, help="Number of flows to show (0 for all)")
+    p_drop.add_argument("--promql", dest="show_promql", action="store_true", help="Print the generated PromQL query")
+
     # Subcommand: verdicts
-    p_verd = subparsers.add_parser("verdicts", help="Display all active traffic verdicts (l3-l4, l3-only, l4-only, all)")
+    p_verd = subparsers.add_parser("verdicts", help="Display all active traffic verdicts (l3-l4, l3-only, l4-only, all, none)")
     p_verd.add_argument("-n", "--namespace", help="Filter by namespace")
     p_verd.add_argument("-W", "--workload", help="Filter by workload name (regex/substring)")
     p_verd.add_argument(
         "-d", "--direction", choices=["ingress", "egress", "both"], default="both", help="Traffic direction"
     )
     p_verd.add_argument(
-        "-m", "--match", choices=["all", "l3-l4", "l3-only", "l4-only", "any"], default="any", help="Filter match type"
+        "-m", "--match", choices=["all", "none", "l3-l4", "l3-only", "l4-only", "any"], default="any", help="Filter match type"
     )
     p_verd.add_argument(
         "-w", "--window", default="1m", help="PromQL rate interval window (e.g. 1m, 5m)"
@@ -496,6 +567,8 @@ def main() -> None:
     try:
         if args.command == "unaccounted":
             cmd_unaccounted(args, client)
+        elif args.command == "dropped":
+            cmd_dropped(args, client)
         elif args.command == "verdicts":
             cmd_verdicts(args, client)
         elif args.command == "summary":

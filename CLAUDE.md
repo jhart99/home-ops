@@ -141,30 +141,35 @@ The `cluster-secrets` Secret (in `kubernetes/components/sops/cluster-secrets.sop
 
 ## Cilium NetworkPolicy Auditing & Diagnostics
 
-The cluster is migrating toward strict default-deny Cilium NetworkPolicies. All policies currently run in **audit mode** (`enableDefaultDeny: { ingress: false, egress: false }`, annotated with `policy.cilium.io/audit-mode: "true"`).
+The cluster enforces strict default-deny Cilium NetworkPolicies across all namespaces via `components/deny-all`, shared `CiliumClusterwideNetworkPolicy` baselines in `kubernetes/apps/kube-system/cilium/app/networkpolicies.yaml` (`allow-dns`, `allow-k8s-api`, `allow-prometheus-scrape`, `allow-volsync-mover`, `allow-envoy-egress`, `allow-envoy-ingress`), and per-application `CiliumNetworkPolicy` manifests.
 
 ### Policy Verdicts
 In Hubble and the Grafana **Cilium NetworkPolicy Audit** dashboard (`uid: cilium-netpol-audit`):
 - **Accounted (`match=~"l3-l4|l3-only|l4-only"`)**: Flows explicitly permitted by an installed policy rule.
-- **Unaccounted (`match="all"`)**: Flows that fell through to the default audit allow rule. **These will be dropped once default-deny enforcement is turned on.**
+- **Enforced Drops (`action="dropped", match="none"`)**: Flows actively blocked by default-deny enforcement.
+- **Unaccounted (`match="all"`)**: Flows that fell through to the default audit allow rule (when `enableDefaultDeny: false` is used during auditing).
 
 ### Diagnostic Scripts (`scripts/`)
 Two zero-dependency Python tools automate metric queries and node-level BPF inspection:
 
 1. **`scripts/cilium-netpol-audit.py`** (Prometheus & Hubble metric auditor; automatically sets up `kubectl port-forward`):
    ```sh
-   # Show top unaccounted flows (match="all") cluster-wide, per-namespace, or per-workload
+   # Show actively dropped flows (action="dropped") cluster-wide, per-namespace, or per-workload
+   ./scripts/cilium-netpol-audit.py dropped
+   ./scripts/cilium-netpol-audit.py dropped -n observability -d ingress
+
+   # Show top unaccounted audit flows (match="all") cluster-wide, per-namespace, or per-workload
    ./scripts/cilium-netpol-audit.py unaccounted
    ./scripts/cilium-netpol-audit.py unaccounted -n observability -d egress
    ./scripts/cilium-netpol-audit.py unaccounted -W wg-easy
 
-   # View active traffic verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
+   # View active traffic verdict rates broken down by match type (l3-l4, l3-only, l4-only, all, none)
    ./scripts/cilium-netpol-audit.py verdicts -W wg-easy
 
    # Audit non-workload flows (CloudNativePG databases, CRDs, host/world) using -W unknown
    ./scripts/cilium-netpol-audit.py verdicts -W unknown -n security
 
-   # Summary of accounted vs unaccounted rate and coverage percentage
+   # Summary of accounted vs unaccounted vs dropped rate and coverage percentage
    ./scripts/cilium-netpol-audit.py summary -n observability
    ./scripts/cilium-netpol-audit.py summary -W wg-easy
 

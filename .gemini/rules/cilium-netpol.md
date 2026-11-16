@@ -2,27 +2,38 @@
 
 When working with CiliumNetworkPolicies (CNPs), diagnosing network flows, or auditing default-deny readiness in this cluster:
 
-## 1. Audit Mode Semantics
-- Every namespace has CNPs deployed in **audit mode** (`enableDefaultDeny: { ingress: false, egress: false }`, with annotation `policy.cilium.io/audit-mode: "true"`).
+## 1. Enforce & Audit Mode Semantics
+- Every namespace includes `components/deny-all` (`default-deny-ingress` and `default-deny-egress`) and per-application `CiliumNetworkPolicy` resources with default-deny enforcement enabled (`enableDefaultDeny` omitted / `true`).
+- Cluster-wide baseline `CiliumClusterwideNetworkPolicy` (CCNP) rules in `kubernetes/apps/kube-system/cilium/app/networkpolicies.yaml` provide shared cluster plumbing:
+  - `allow-dns`: Pod egress to `kube-system/kube-dns` (`53/UDP`, `53/TCP`) + ingress from `kube-dns` for same-node RevNAT replies.
+  - `allow-k8s-api`: Pod egress to `default/kubernetes` Service and `kube-apiserver` / `host` / `remote-node` (`6443/TCP`, `443/TCP`).
+  - `allow-prometheus-scrape`: Pod ingress from `observability/prometheus`.
+  - `allow-volsync-mover`: VolSync mover job (`app.kubernetes.io/created-by: volsync`) egress to `volsync-system/kopia` (`80/TCP`).
+  - `allow-envoy-egress`: Envoy Gateway proxy (`envoy-internal` / `envoy-external`) egress to all cluster pods (`io.kubernetes.pod.namespace: Exists`) and `world:443/TCP` (OIDC).
+  - `allow-envoy-ingress`: Pod ingress across all namespaces from `envoy-internal` and `envoy-external` proxies.
 - In Hubble and the Grafana **Cilium NetworkPolicy Audit** dashboard (`uid: cilium-netpol-audit`):
   - **Accounted (`match=~"l3-l4|l3-only|l4-only"`)**: Flows explicitly matched and allowed by installed policies.
-  - **Unaccounted (`match="all"`)**: Flows that fell through to the default audit allow rule. **These will be dropped once default-deny enforcement is turned on.**
+  - **Enforced Drops (`action="dropped", match="none"`)**: Flows actively blocked by default-deny enforcement.
+  - **Unaccounted (`match="all"`)**: Flows falling through to the default allow rule on any policy still in audit mode (`enableDefaultDeny: false`).
 
 ## 2. Reusable Scripts (`scripts/`)
 Always prefer using the checked-in scripts rather than rewriting ad-hoc python scripts:
 
 - **Audit Prometheus & Hubble Metrics**:
   ```bash
-  # Check top unaccounted flows (match="all") cluster-wide, by namespace, or by workload
+  # Check actively dropped flows (action="dropped") under default-deny enforcement
+  ./scripts/cilium-netpol-audit.py dropped [-n <namespace>] [-W <workload>] [-d ingress|egress]
+
+  # Check top unaccounted audit flows (match="all") cluster-wide, by namespace, or by workload
   ./scripts/cilium-netpol-audit.py unaccounted [-n <namespace>] [-W <workload>] [-d ingress|egress]
 
-  # View live flow verdict rates broken down by match type (l3-l4, l3-only, l4-only, all)
+  # View live flow verdict rates broken down by match type (l3-l4, l3-only, l4-only, all, none)
   ./scripts/cilium-netpol-audit.py verdicts [-W <workload>] [-n <namespace>] [-m <match_type>]
 
   # Audit non-workload flows (CloudNativePG databases, CRDs, host/world) using -W unknown
   ./scripts/cilium-netpol-audit.py verdicts -W unknown -n security
 
-  # Get accounted vs unaccounted summary and coverage percentage
+  # Get accounted vs unaccounted vs dropped summary and coverage percentage
   ./scripts/cilium-netpol-audit.py summary [-n <namespace>] [-W <workload>]
 
   # Inspect required Prometheus scrape ports (partitioned by cluster pods vs host/node daemons)
@@ -118,3 +129,11 @@ Always prefer using the checked-in scripts rather than rewriting ad-hoc python s
          - key: io.kubernetes.pod.namespace
            operator: Exists
      ```
+
+10. **`kubectl port-forward` & Control-Plane Node Identity (`kube-apiserver`)**:
+    - On control-plane nodes (`talos-cp-1/2/3`), the node identity combines `reserved:host` / `reserved:remote-node` with `reserved:kube-apiserver`.
+    - When `kubectl port-forward` connects to a pod (such as `prometheus:9090`), or when kubelet/hubble-relay probes arrive from a control-plane node, rules that only list `fromEntities: [host, remote-node]` can drop traffic originating from `kube-apiserver`. Include `kube-apiserver` in `fromEntities: [host, remote-node, kube-apiserver]` for services accessed via `port-forward` or control-plane daemons.
+
+11. **Do Not Pin Destination Ports on Client-Side `fromEndpoints` That Receive Same-Node Service RevNAT**:
+    - If Pod A (e.g. `prometheus`, `silence-operator`, `gatus`, `envoy`, `cnpg-operator`) connects as a client to Pod B via a Kubernetes Service on the same node, the `SYN, ACK` return packet arrives at Pod A's **ephemeral client port** (`32768-60999`).
+    - If Pod A's `ingress` rule for `fromEndpoints` (matching Pod B or Pod B's namespace) pins `toPorts` to Pod A's listening port (e.g. `9090/TCP`), the `SYN, ACK` return packet on the ephemeral port will be **DROPPED** in enforce mode. Omit `toPorts` on `fromEndpoints` rules that also cover same-node Service return traffic.

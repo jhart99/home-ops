@@ -39,6 +39,18 @@ def run_cmd(cmd: List[str]) -> str:
     return res.stdout.strip()
 
 
+def _pick_best_pod(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Prefers Running pods that have an assigned podIP over Completed/Pending pods."""
+    for item in items:
+        status = item.get("status", {})
+        if status.get("phase") == "Running" and status.get("podIP"):
+            return item
+    for item in items:
+        if item.get("status", {}).get("podIP"):
+            return item
+    return items[0]
+
+
 def find_pod(
     name_or_query: str, namespace: str = "default", label_selector: Optional[str] = None
 ) -> Dict[str, Any]:
@@ -49,7 +61,7 @@ def find_pod(
         data = json.loads(raw)
         if not data.get("items"):
             raise RuntimeError(f"No pods found in namespace '{namespace}' matching selector '{label_selector}'")
-        return data["items"][0]
+        return _pick_best_pod(data["items"])
 
     if "/" in name_or_query:
         namespace, name_or_query = name_or_query.split("/", 1)
@@ -73,7 +85,7 @@ def find_pod(
             raw = run_cmd(["kubectl", "get", "pods", "-n", namespace, "-l", sel, "-o", "json"])
             data = json.loads(raw)
             if data.get("items"):
-                return data["items"][0]
+                return _pick_best_pod(data["items"])
         except RuntimeError:
             pass
 
@@ -81,14 +93,36 @@ def find_pod(
     try:
         raw = run_cmd(["kubectl", "get", "pods", "-n", namespace, "-o", "json"])
         data = json.loads(raw)
+        matches = []
         for item in data.get("items", []):
             pname = item.get("metadata", {}).get("name", "")
             if pname.startswith(f"{name_or_query}-") or pname.startswith(name_or_query):
-                return item
+                matches.append(item)
+        if matches:
+            return _pick_best_pod(matches)
     except RuntimeError:
         pass
 
     raise RuntimeError(f"No pods found in namespace '{namespace}' matching '{name_or_query}' (exact name, prefix, or label)")
+
+
+def list_all_cilium_pods() -> List[str]:
+    """Returns all running Cilium agent pod names across all cluster nodes."""
+    cmd = [
+        "kubectl",
+        "get",
+        "pods",
+        "-n",
+        "kube-system",
+        "-l",
+        "k8s-app=cilium",
+        "--field-selector",
+        "status.phase=Running",
+        "-o",
+        "jsonpath={.items[*].metadata.name}",
+    ]
+    raw = run_cmd(cmd)
+    return [p for p in raw.split() if p]
 
 
 def find_cilium_pod_on_node(node_name: Optional[str] = None) -> str:
@@ -638,28 +672,39 @@ def main() -> None:
             except Exception:
                 pass
 
-        cilium_pod = find_cilium_pod_on_node(args.node)
+        if args.node:
+            cilium_pods = [find_cilium_pod_on_node(args.node)]
+        else:
+            cilium_pods = list_all_cilium_pods()
+
         target_desc = f"namespace '{args.namespace}'"
         if args.from_pod: target_desc += f" from-pod '{args.from_pod}'"
         if args.to_pod: target_desc += f" to-pod '{args.to_pod}'"
-        print(f"Querying Hubble flows for {target_desc} (Cilium agent: {cilium_pod})...")
-        flows = get_hubble_flows(
-            cilium_pod,
-            namespace=args.namespace if not (args.from_pod or args.to_pod or args.from_namespace or args.to_namespace) else None,
-            last=args.last,
-            direction=args.direction,
-            port=args.port,
-            unmatched_only=args.unmatched_only,
-            verdicts_only=args.verdicts_only,
-            non_reply_only=args.non_reply_only,
-            syn_only=args.syn_only,
-            dropped_only=args.dropped_only,
-            verdict=args.verdict,
-            to_pod=args.to_pod,
-            from_pod=args.from_pod,
-            to_namespace=args.to_namespace,
-            from_namespace=args.from_namespace,
-        )
+        print(f"Querying Hubble flows for {target_desc} (Cilium agents: {', '.join(cilium_pods)})...")
+        flows = []
+        for cp in cilium_pods:
+            flows.extend(
+                get_hubble_flows(
+                    cp,
+                    namespace=args.namespace if not (args.from_pod or args.to_pod or args.from_namespace or args.to_namespace) else None,
+                    last=args.last,
+                    direction=args.direction,
+                    port=args.port,
+                    unmatched_only=args.unmatched_only,
+                    verdicts_only=args.verdicts_only,
+                    non_reply_only=args.non_reply_only,
+                    syn_only=args.syn_only,
+                    dropped_only=args.dropped_only,
+                    verdict=args.verdict,
+                    to_pod=args.to_pod,
+                    from_pod=args.from_pod,
+                    to_namespace=args.to_namespace,
+                    from_namespace=args.from_namespace,
+                )
+            )
+        flows.sort(key=lambda x: x.get("time", ""))
+        if args.last > 0 and len(flows) > args.last:
+            flows = flows[-args.last:]
         print_flows_table(flows)
         return
 
