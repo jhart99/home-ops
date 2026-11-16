@@ -36,12 +36,12 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "panels": [],
-      "title": "Overview — Accounted vs Unaccounted Policy Verdicts",
+      "title": "Overview — Enforced Drops, Unaccounted Audit Traffic & Policy Coverage",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Percentage of forwarded ingress policy verdicts matched by an explicit CiliumNetworkPolicy rule (l3-l4, l3-only, l4-only) vs falling through to default-allow (match=all).",
+      "description": "Percentage of ingress policy verdicts matched by an explicit CiliumNetworkPolicy rule (l3-l4, l3-only, l4-only) vs total ingress verdicts (including match=all audit fallthrough and action=dropped enforced denials).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -61,7 +61,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 5, "x": 0, "y": 1 },
+      "gridPos": { "h": 5, "w": 4, "x": 0, "y": 1 },
       "id": 2,
       "options": {
         "minVizHeight": 75,
@@ -77,7 +77,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "editorMode": "code",
-          "expr": "100 * (sum(increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__range])) or vector(0)) / clamp_min(sum(increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", action=\"forwarded\"}[$__range])), 1)",
+          "expr": "100 * (sum(increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__range])) or vector(0)) / clamp_min(sum(increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\"}[$__range])), 1)",
           "instant": true,
           "refId": "A"
         }
@@ -85,7 +85,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Percentage of forwarded egress policy verdicts matched by an explicit CiliumNetworkPolicy rule (l3-l4, l3-only, l4-only) vs falling through to default-allow (match=all).",
+      "description": "Percentage of egress policy verdicts matched by an explicit CiliumNetworkPolicy rule (l3-l4, l3-only, l4-only) vs total egress verdicts (including match=all audit fallthrough and action=dropped enforced denials).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -105,7 +105,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 5, "x": 5, "y": 1 },
+      "gridPos": { "h": 5, "w": 4, "x": 4, "y": 1 },
       "id": 3,
       "options": {
         "minVizHeight": 75,
@@ -121,7 +121,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "editorMode": "code",
-          "expr": "100 * (sum(increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__range])) or vector(0)) / clamp_min(sum(increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", action=\"forwarded\"}[$__range])), 1)",
+          "expr": "100 * (sum(increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__range])) or vector(0)) / clamp_min(sum(increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\"}[$__range])), 1)",
           "instant": true,
           "refId": "A"
         }
@@ -129,7 +129,89 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Number of ingress connections in the selected time range that did NOT match any CiliumNetworkPolicy allow rule and fell through to allow-any-ingress (match=all).",
+      "description": "Total enforced ingress policy drops (action=dropped, direction=ingress) in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 8, "y": 1 },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Enforced Ingress Drops",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "round(sum(increase(hubble_policy_verdicts_total{direction=\"ingress\", action=\"dropped\", destination_namespace=~\"$namespace\"}[$__range])) or vector(0))",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Total enforced egress policy drops (action=dropped, direction=egress) in the selected time range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 20 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 4, "x": 12, "y": 1 },
+      "id": 19,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "title": "Enforced Egress Drops",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "round(sum(increase(hubble_policy_verdicts_total{direction=\"egress\", action=\"dropped\", source_namespace=~\"$namespace\"}[$__range])) or vector(0))",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Number of ingress connections in the selected time range that fell through to allow-any-ingress (match=all, audit mode).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -146,7 +228,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 5, "x": 10, "y": 1 },
+      "gridPos": { "h": 5, "w": 4, "x": 16, "y": 1 },
       "id": 4,
       "options": {
         "colorMode": "background",
@@ -170,7 +252,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Number of egress connections in the selected time range that did NOT match any CiliumNetworkPolicy allow rule and fell through to allow-any-egress (match=all).",
+      "description": "Number of egress connections in the selected time range that fell through to allow-any-egress (match=all, audit mode).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -187,7 +269,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 5, "x": 15, "y": 1 },
+      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 1 },
       "id": 5,
       "options": {
         "colorMode": "background",
@@ -210,56 +292,16 @@
       ]
     },
     {
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Total policy drops (action=dropped) in the selected time range.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 5, "w": 4, "x": 20, "y": 1 },
-      "id": 6,
-      "options": {
-        "colorMode": "background",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "auto"
-      },
-      "title": "Enforced Policy Drops",
-      "type": "stat",
-      "targets": [
-        {
-          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-          "editorMode": "code",
-          "expr": "round((sum(increase(hubble_policy_verdicts_total{action=\"dropped\", destination_namespace=~\"$namespace\"}[$__range])) or vector(0)) + (sum(increase(hubble_policy_verdicts_total{action=\"dropped\", source_namespace=~\"$namespace\"}[$__range])) or vector(0)))",
-          "instant": true,
-          "refId": "A"
-        }
-      ]
-    },
-    {
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
       "id": 7,
       "panels": [],
-      "title": "Per-Namespace Readiness (100% = Ready to Enforce Default-Deny)",
+      "title": "Per-Namespace Coverage % (Accounted vs Enforced Drops & Unaccounted)",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Ingress policy coverage % per namespace. 100% means every observed ingress connection matched an explicit CiliumNetworkPolicy rule.",
+      "description": "Ingress policy coverage % per namespace. 100% means every observed ingress connection matched an explicit CiliumNetworkPolicy rule with zero drops or audit fallthrough.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -297,7 +339,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "editorMode": "code",
-          "expr": "100 * ((sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\", match=~\"l3-l4|l3-only|l4-only\"}[$__range]))) or (0 * sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\", action=\"forwarded\"}[$__range])))) / clamp_min(sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\", action=\"forwarded\"}[$__range])), 1)",
+          "expr": "100 * ((sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\", match=~\"l3-l4|l3-only|l4-only\"}[$__range]))) or (0 * sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\"}[$__range])))) / clamp_min(sum by (destination_namespace) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", destination_namespace!=\"\"}[$__range])), 1)",
           "instant": true,
           "legendFormat": "{{destination_namespace}}",
           "refId": "A"
@@ -306,7 +348,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Egress policy coverage % per namespace. 100% means every observed egress connection matched an explicit CiliumNetworkPolicy rule.",
+      "description": "Egress policy coverage % per namespace. 100% means every observed egress connection matched an explicit CiliumNetworkPolicy rule with zero drops or audit fallthrough.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -344,7 +386,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
           "editorMode": "code",
-          "expr": "100 * ((sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\", match=~\"l3-l4|l3-only|l4-only\"}[$__range]))) or (0 * sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\", action=\"forwarded\"}[$__range])))) / clamp_min(sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\", action=\"forwarded\"}[$__range])), 1)",
+          "expr": "100 * ((sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\", match=~\"l3-l4|l3-only|l4-only\"}[$__range]))) or (0 * sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\"}[$__range])))) / clamp_min(sum by (source_namespace) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", source_namespace!=\"\"}[$__range])), 1)",
           "instant": true,
           "legendFormat": "{{source_namespace}}",
           "refId": "A"
@@ -354,9 +396,225 @@
     {
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 20,
+      "panels": [],
+      "title": "Enforced Policy Drops (action=\"dropped\" — Blocked by Default-Deny)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Ingress flows actively dropped by enforced CiliumNetworkPolicy default-deny (action=dropped, match=none).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Value" },
+            "properties": [
+              { "id": "displayName", "value": "Dropped Verdicts" },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "color-background" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
+      "id": 21,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": true },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Dropped Verdicts" }]
+      },
+      "title": "Dropped Ingress by Workload (action=\"dropped\")",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": {
+              "destination_namespace": 0,
+              "destination_workload": 1,
+              "source_namespace": 2,
+              "source_workload": 3,
+              "Value": 4
+            },
+            "renameByName": {
+              "destination_namespace": "Dest Namespace",
+              "destination_workload": "Dest Workload",
+              "source_namespace": "Source Namespace",
+              "source_workload": "Source Workload"
+            }
+          }
+        }
+      ],
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "round(sum by (destination_namespace, destination_workload, source_namespace, source_workload) (increase(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", action=\"dropped\"}[$__range]))) > 0",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "description": "Egress flows actively dropped by enforced CiliumNetworkPolicy default-deny (action=dropped, match=none).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 20 }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Value" },
+            "properties": [
+              { "id": "displayName", "value": "Dropped Verdicts" },
+              { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "color-background" } }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
+      "id": 22,
+      "options": {
+        "cellHeight": "sm",
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": true },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "Dropped Verdicts" }]
+      },
+      "title": "Dropped Egress by Workload (action=\"dropped\")",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": {
+              "source_namespace": 0,
+              "source_workload": 1,
+              "destination_namespace": 2,
+              "destination_workload": 3,
+              "Value": 4
+            },
+            "renameByName": {
+              "source_namespace": "Source Namespace",
+              "source_workload": "Source Workload",
+              "destination_namespace": "Dest Namespace",
+              "destination_workload": "Dest Workload"
+            }
+          }
+        }
+      ],
+      "type": "table",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "round(sum by (source_namespace, source_workload, destination_namespace, destination_workload) (increase(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", action=\"dropped\"}[$__range]))) > 0",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "drops/s",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+      "id": 23,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Dropped Ingress Rate Over Time (action=\"dropped\")",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "sum by (destination_namespace, destination_workload, source_namespace, source_workload) (rate(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", action=\"dropped\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{source_namespace}}/{{source_workload}} -> {{destination_namespace}}/{{destination_workload}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "drops/s",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+      "id": 24,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Dropped Egress Rate Over Time (action=\"dropped\")",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "sum by (source_namespace, source_workload, destination_namespace, destination_workload) (rate(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", action=\"dropped\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{source_namespace}}/{{source_workload}} -> {{destination_namespace}}/{{destination_workload}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 34 },
       "id": 10,
       "panels": [],
-      "title": "Unaccounted Traffic (match=\"all\" — Would Be Dropped by Default-Deny)",
+      "title": "Unaccounted Audit Traffic (match=\"all\" — Audit Mode Fallthrough)",
       "type": "row"
     },
     {
@@ -385,7 +643,7 @@
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 16 },
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 35 },
       "id": 11,
       "options": {
         "cellHeight": "sm",
@@ -453,7 +711,7 @@
           }
         ]
       },
-      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 16 },
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 35 },
       "id": 12,
       "options": {
         "cellHeight": "sm",
@@ -496,14 +754,6 @@
       ]
     },
     {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
-      "id": 13,
-      "panels": [],
-      "title": "Verdict Rates Over Time",
-      "type": "row"
-    },
-    {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "fieldConfig": {
         "defaults": {
@@ -521,7 +771,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
       "id": 14,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -557,7 +807,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
       "id": 15,
       "options": {
         "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -577,15 +827,15 @@
     },
     {
       "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 53 },
       "id": 16,
       "panels": [],
-      "title": "Accounted Traffic (Matched by Explicit CiliumNetworkPolicy Rules)",
+      "title": "Accounted & Enforced Allowed Traffic (match=~\"l3-l4|l3-only|l4-only\")",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Ingress flows explicitly matched by CiliumNetworkPolicy rules (match=l3-l4, l3-only, l4-only).",
+      "description": "Ingress flows explicitly matched and allowed by CiliumNetworkPolicy rules (match=l3-l4, l3-only, l4-only).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -606,7 +856,7 @@
           }
         ]
       },
-      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 36 },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 54 },
       "id": 17,
       "options": {
         "cellHeight": "sm",
@@ -652,7 +902,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-      "description": "Egress flows explicitly matched by CiliumNetworkPolicy rules (match=l3-l4, l3-only, l4-only).",
+      "description": "Egress flows explicitly matched and allowed by CiliumNetworkPolicy rules (match=l3-l4, l3-only, l4-only).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -673,7 +923,7 @@
           }
         ]
       },
-      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 36 },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 54 },
       "id": 18,
       "options": {
         "cellHeight": "sm",
@@ -716,6 +966,78 @@
           "refId": "A"
         }
       ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "verdicts/s",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 63 },
+      "id": 25,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Accounted Ingress Rate Over Time (match=~\"l3-l4|l3-only|l4-only\")",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "sum by (destination_namespace, destination_workload, match) (rate(hubble_policy_verdicts_total{direction=\"ingress\", destination_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{destination_namespace}}/{{destination_workload}} ({{match}})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisLabel": "verdicts/s",
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 63 },
+      "id": 26,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "title": "Accounted Egress Rate Over Time (match=~\"l3-l4|l3-only|l4-only\")",
+      "type": "timeseries",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+          "editorMode": "code",
+          "expr": "sum by (source_namespace, source_workload, match) (rate(hubble_policy_verdicts_total{direction=\"egress\", source_namespace=~\"$namespace\", match=~\"l3-l4|l3-only|l4-only\"}[$__rate_interval])) > 0",
+          "legendFormat": "{{source_namespace}}/{{source_workload}} ({{match}})",
+          "refId": "A"
+        }
+      ]
     }
   ],
   "refresh": "30s",
@@ -740,7 +1062,7 @@
       {
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
-        "definition": "label_values(hubble_policy_verdicts_total, destination_namespace)",
+        "definition": "label_values(hubble_policy_verdicts_total, source_namespace)",
         "hide": 0,
         "includeAll": true,
         "allValue": ".*",
@@ -749,7 +1071,7 @@
         "name": "namespace",
         "options": [],
         "query": {
-          "query": "label_values(hubble_policy_verdicts_total, destination_namespace)",
+          "query": "label_values(hubble_policy_verdicts_total, source_namespace)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 2,
@@ -765,5 +1087,5 @@
   "timezone": "browser",
   "title": "Cilium NetworkPolicy Audit",
   "uid": "cilium-netpol-audit",
-  "version": 1
+  "version": 2
 }
