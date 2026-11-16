@@ -57,6 +57,10 @@ spec:
     matchLabels:
       app.kubernetes.io/name: gatus
   ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: default
+            app.kubernetes.io/name: mosquitto
     - fromEntities:
         - world
         - cluster
