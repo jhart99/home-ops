@@ -46,6 +46,10 @@ spec:
     matchLabels:
       app.kubernetes.io/name: cloudflare-tunnel
   egress:
+    - toServices:
+        - k8sService:
+            serviceName: envoy-external
+            namespace: network
     - toEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: network
@@ -53,6 +57,8 @@ spec:
       toPorts:
         - ports:
             - port: "443"
+              protocol: TCP
+            - port: "10443"
               protocol: TCP
 ---
 # Allow Prometheus to scrape the tunnel metrics (TUNNEL_METRICS: 0.0.0.0:8080,
