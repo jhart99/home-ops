@@ -33,6 +33,9 @@ spec:
     - fromEndpoints:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: ai
       toPorts:
         - ports:
             - port: "3000"
