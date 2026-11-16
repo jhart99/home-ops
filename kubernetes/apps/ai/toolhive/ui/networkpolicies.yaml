@@ -11,9 +11,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/instance: toolhive-ui
@@ -55,9 +52,6 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/instance: toolhive-ui

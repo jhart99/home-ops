@@ -12,9 +12,6 @@ metadata:
   name: csi-driver-nfs-allow-kubelet-probes
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: csi-driver-nfs
@@ -31,9 +28,6 @@ metadata:
   name: csi-driver-nfs-allow-nfs
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: csi-driver-nfs

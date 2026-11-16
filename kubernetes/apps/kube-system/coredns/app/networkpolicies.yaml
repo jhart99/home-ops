@@ -16,9 +16,6 @@ metadata:
   name: coredns-allow-dns-ingress
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       k8s-app: kube-dns
@@ -39,9 +36,6 @@ metadata:
   name: coredns-allow-dns-egress
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       k8s-app: kube-dns
@@ -63,9 +57,6 @@ metadata:
   name: coredns-allow-kubelet-probes
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       k8s-app: kube-dns

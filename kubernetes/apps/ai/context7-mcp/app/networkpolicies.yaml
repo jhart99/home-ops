@@ -12,9 +12,6 @@ metadata:
   name: context7-allow-egress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       toolhive-name: context7-mcp

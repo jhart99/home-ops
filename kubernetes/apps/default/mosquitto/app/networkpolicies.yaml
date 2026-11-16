@@ -13,9 +13,6 @@ metadata:
   name: mosquitto-allow-ingress
   namespace: default
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: mosquitto

@@ -11,9 +11,6 @@ metadata:
   name: zwave-allow-mqtt
   namespace: default
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: zwave
@@ -36,9 +33,6 @@ metadata:
   name: zwave-allow-ingress
   namespace: default
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: zwave

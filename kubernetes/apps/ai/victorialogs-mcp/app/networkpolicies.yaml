@@ -12,9 +12,6 @@ metadata:
   name: victorialogs-mcp-allow-egress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       toolhive-name: victorialogs-mcp
@@ -38,9 +35,6 @@ metadata:
   name: victorialogs-mcp-allow-ingress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       toolhive-name: victorialogs-mcp

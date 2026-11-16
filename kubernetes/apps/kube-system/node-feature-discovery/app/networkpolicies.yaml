@@ -12,9 +12,6 @@ metadata:
   name: node-feature-discovery-allow-kubelet-probes
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: node-feature-discovery
@@ -33,9 +30,6 @@ metadata:
   name: node-feature-discovery-allow-master-grpc
   namespace: kube-system
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: node-feature-discovery

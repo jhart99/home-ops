@@ -10,9 +10,6 @@ kind: CiliumNetworkPolicy
 metadata:
   name: default-deny-ingress
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector: {}
   ingress:
     - fromEndpoints:
@@ -30,9 +27,6 @@ kind: CiliumNetworkPolicy
 metadata:
   name: default-deny-egress
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector: {}
   egress:
     - toEndpoints:

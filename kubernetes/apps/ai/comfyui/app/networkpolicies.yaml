@@ -12,9 +12,6 @@ metadata:
   name: comfyui-allow-egress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: comfyui
@@ -36,9 +33,6 @@ metadata:
   name: comfyui-allow-ingress
   namespace: ai
 spec:
-  enableDefaultDeny:
-    ingress: false
-    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/name: comfyui
