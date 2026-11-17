@@ -14,7 +14,7 @@ metadata:
     toolhive.stacklok.dev/tool-definitions: |
       [{"name":"echo","description":"Echo back an alphanumeric string for deterministic testing. Also echoes back any _meta field from the request for testing metadata propagation."}]
 spec:
-  image: ghcr.io/stackloklabs/yardstick/yardstick-server:1.3.0
+  image: ghcr.io/stackloklabs/yardstick/yardstick-server:1.3.1
   transport: streamable-http
   env:
   - name: TRANSPORT
