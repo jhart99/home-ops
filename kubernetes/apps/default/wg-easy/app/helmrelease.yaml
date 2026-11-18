@@ -31,6 +31,7 @@ spec:
               INIT_PORT: 51820
               INIT_DNS: 192.168.1.1
               INIT_IPV4_CIDR: 192.168.45.0/24
+              INSECURE: true
             envFrom:
               - secretRef:
                   name: wg-easy-secret
