@@ -29,7 +29,7 @@ spec:
   image: ghcr.io/renovatebot/renovate:44.251.0
   provider:
     name: forgejo
-    endpoint: https://forgejo.rnatr.com/api/v1
+    endpoint: https://forgejo/api/v1
   parallelism: 5
   resources:
     requests:
