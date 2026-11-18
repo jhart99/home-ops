@@ -81,6 +81,25 @@ spec:
         - ports:
             - port: "18000"
               protocol: TCP
+  egress:
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "443"
+              protocol: UDP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: envoy
+            app.kubernetes.io/component: proxy
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "10443"
+              protocol: TCP
 ---
 # Allow the envoy proxies to receive xDS configuration from the envoy-gateway
 # control plane (proxy -> control-plane stream).
