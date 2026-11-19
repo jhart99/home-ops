@@ -33,6 +33,20 @@ spec:
         - ports:
             - port: "3000"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: network
+            app.kubernetes.io/name: envoy
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "10080"
+              protocol: TCP
+            - port: "10443"
+              protocol: TCP
     - toEntities:
         - world
       toPorts:
