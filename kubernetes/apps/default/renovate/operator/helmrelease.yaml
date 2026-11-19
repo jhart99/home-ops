@@ -24,6 +24,7 @@ spec:
         - github.com
         - forgejo.rnatr.com
         - forgejo
+        - forgejo-http
         - forgejo.default
         - forgejo.default.svc.cluster.local
     route:
