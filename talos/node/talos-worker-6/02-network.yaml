@@ -4,7 +4,7 @@ kind: LinkAliasConfig
 name: net0  # <--- This is the common name Multus will look for
 selector:
   # Match this specific node's hardware by MAC
-  match: "mac(link.permanent_addr) == '52:54:00:c3:4a:4f'"
+  match: "mac(link.permanent_addr) == 'b8:59:9f:c3:4a:4e'"
 ---
 apiVersion: v1alpha1
 kind: LinkConfig
