@@ -29,14 +29,19 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: TCP
+            - port: "8006"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
     - toEntities:
         - world
+        - cluster
       icmps:
         - fields:
             - type: 8
               family: IPv4
 ---
-# Allow return traffic from probes (ICMP EchoReply from world).
+# Allow return traffic from probes (ICMP EchoReply from world and cluster).
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -51,6 +56,7 @@ spec:
   ingress:
     - fromEntities:
         - world
+        - cluster
       icmps:
         - fields:
             - type: 0

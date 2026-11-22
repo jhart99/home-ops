@@ -58,6 +58,14 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: observability
             app.kubernetes.io/name: prometheus
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: observability
+            app.kubernetes.io/name: blackbox-exporter-lan
+      icmps:
+        - fields:
+            - type: 8
+              family: IPv4
 ---
 # yaml-language-server: $schema=https://kubernetes-schemas.pages.dev/cilium.io/ciliumclusterwidenetworkpolicy_v2.json
 # Allow all pods in the cluster to reach the Kubernetes API server

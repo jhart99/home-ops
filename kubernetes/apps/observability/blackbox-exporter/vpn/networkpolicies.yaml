@@ -35,6 +35,13 @@ spec:
         - fields:
             - type: 8
               family: IPv4
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "1"
+              endPort: 65535
+              protocol: UDP
 ---
 # Allow return traffic from probes (ICMP EchoReply from world).
 apiVersion: cilium.io/v2
