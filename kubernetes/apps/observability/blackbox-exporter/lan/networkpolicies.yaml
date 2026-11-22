@@ -5,8 +5,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# NOTE: the selector uses app.kubernetes.io/instance because both blackbox
-# deployments (lan + vpn) share the chart-derived app.kubernetes.io/name.
 # Allow blackbox probe egress to the LAN targets configured in probes.yaml
 # (icmp to pve/unifi, tcp 2049 to pve).
 apiVersion: cilium.io/v2
@@ -19,7 +17,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-lan
+      app.kubernetes.io/name: blackbox-exporter-lan
   egress:
     - toEntities:
         - world
@@ -49,7 +47,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-lan
+      app.kubernetes.io/name: blackbox-exporter-lan
   ingress:
     - fromEntities:
         - world
@@ -70,7 +68,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-lan
+      app.kubernetes.io/name: blackbox-exporter-lan
   ingress:
     - fromEntities:
         - host

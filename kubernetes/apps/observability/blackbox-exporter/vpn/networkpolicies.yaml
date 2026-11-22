@@ -5,8 +5,6 @@
 # their matches are visible in Hubble, but non-matching traffic still passes.
 # Enforcement is flipped on in a follow-up PR per namespace once the allow-list
 # is validated against observed traffic.
-# NOTE: the selector uses app.kubernetes.io/instance because both blackbox
-# deployments (lan + vpn) share the chart-derived app.kubernetes.io/name.
 # The vpn instance additionally carries the components/vpn
 # CiliumEgressGatewayPolicy (egress via net0.10 on the control-plane nodes).
 # Allow blackbox probe egress through the VPN to the targets in probes.yaml
@@ -21,7 +19,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-vpn
+      app.kubernetes.io/name: blackbox-exporter-vpn
   egress:
     - toEntities:
         - world
@@ -49,7 +47,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-vpn
+      app.kubernetes.io/name: blackbox-exporter-vpn
   ingress:
     - fromEntities:
         - world
@@ -70,7 +68,7 @@ metadata:
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/instance: blackbox-exporter-vpn
+      app.kubernetes.io/name: blackbox-exporter-vpn
   ingress:
     - fromEntities:
         - host

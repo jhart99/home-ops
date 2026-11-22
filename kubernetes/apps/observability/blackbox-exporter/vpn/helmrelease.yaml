@@ -10,6 +10,7 @@ spec:
     name: blackbox-exporter-vpn
   interval: 1h
   values:
+    nameOverride: blackbox-exporter-vpn
     fullnameOverride: blackbox-exporter-vpn
     strategy:
       type: Recreate
