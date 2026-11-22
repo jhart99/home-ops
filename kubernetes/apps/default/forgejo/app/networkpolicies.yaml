@@ -55,6 +55,13 @@ spec:
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
+            io.kubernetes.pod.namespace: ai
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
             io.kubernetes.pod.namespace: network
       toPorts:
         - ports:
