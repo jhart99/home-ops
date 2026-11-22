@@ -7,4 +7,3 @@ resources:
   - ./networkpolicies.yaml
   - ./networks.yaml
   - ./ocirepository.yaml
-  - ./talospatcher.yaml

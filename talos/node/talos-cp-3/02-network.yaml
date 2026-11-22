@@ -31,7 +31,19 @@ addresses:
 routes:
   - gateway: 192.168.2.1
     metric: 2000
+  - destination: 192.168.2.0/24
+    source: 192.168.2.13
+    table: "200"
+  - gateway: 192.168.2.1
+    table: "200"
 mtu: 9000
+---
+apiVersion: v1alpha1
+kind: RoutingRuleConfig
+name: 1000
+src: 192.168.2.13/32
+table: "200"
+action: unicast
 ---
 apiVersion: v1alpha1
 kind: VLANConfig
