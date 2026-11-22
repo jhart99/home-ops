@@ -9,6 +9,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: io.kubernetes.pod.namespace
@@ -49,6 +52,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: io.kubernetes.pod.namespace
@@ -76,6 +82,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: io.kubernetes.pod.namespace
@@ -105,6 +114,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchLabels:
       app.kubernetes.io/created-by: volsync
@@ -155,6 +167,9 @@ metadata:
   annotations:
     policy.cilium.io/audit-mode: "true"
 spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
   endpointSelector:
     matchExpressions:
       - key: io.kubernetes.pod.namespace
