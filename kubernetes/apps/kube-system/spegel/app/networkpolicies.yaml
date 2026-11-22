@@ -44,3 +44,20 @@ spec:
         - matchLabels:
             io.kubernetes.pod.namespace: kube-system
             app.kubernetes.io/name: spegel
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "5000"
+              protocol: TCP
+            - port: "5001"
+              protocol: TCP
+            - port: "29999"
+              protocol: TCP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
