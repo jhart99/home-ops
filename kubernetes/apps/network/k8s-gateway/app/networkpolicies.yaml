@@ -33,3 +33,23 @@ spec:
               protocol: UDP
             - port: "53"
               protocol: TCP
+    - fromEntities:
+        - host
+        - remote-node
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8181"
+              protocol: TCP
+  egress:
+    - toEntities:
+        - host
+        - world
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+            - port: "53"
+              protocol: TCP
