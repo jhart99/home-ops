@@ -248,6 +248,8 @@ def get_hubble_flows(
     last: int = 30,
     direction: str = "both",
     port: Optional[str] = None,
+    ip: Optional[str] = None,
+    protocol: Optional[str] = None,
     unmatched_only: bool = False,
     verdicts_only: bool = False,
     non_reply_only: bool = False,
@@ -281,8 +283,13 @@ def get_hubble_flows(
 
     if pod_full_name:
         cmd.extend(["--pod", pod_full_name])
-    elif namespace:
+    elif namespace and not ip:
         cmd.extend(["-n", namespace])
+
+    if ip:
+        cmd.extend(["--ip", ip])
+    if protocol:
+        cmd.extend(["--protocol", protocol])
 
     if to_pod:
         cmd.extend(["--to-pod", to_pod])
@@ -336,6 +343,147 @@ def get_hubble_flows(
         except Exception:
             continue
     return flows
+
+
+def get_node_ip_map() -> Dict[str, str]:
+    """Maps Node InternalIP -> Node Name."""
+    node_map: Dict[str, str] = {}
+    try:
+        raw_nodes = run_cmd(["kubectl", "get", "nodes", "-o", "json"])
+        for node in json.loads(raw_nodes).get("items", []):
+            n_name = node.get("metadata", {}).get("name", "")
+            for addr in node.get("status", {}).get("addresses", []):
+                if addr.get("type") == "InternalIP":
+                    node_map[addr.get("address")] = n_name
+    except Exception:
+        pass
+    return node_map
+
+
+def inspect_egress_gateway_and_ct(
+    pod_ns: str,
+    pod_name: str,
+    pod_ip: str,
+    node_name: str,
+    cilium_pod: str,
+    target_ip: Optional[str] = None,
+    target_port: Optional[str] = None,
+    check_ct: bool = False,
+    check_nat: bool = False,
+) -> None:
+    """Inspects Cilium BPF Egress Gateway rules, Conntrack, and SNAT entries on both source and gateway nodes."""
+    print(f"\n=== Egress Gateway & Datapath State for {pod_ns}/{pod_name} ({pod_ip} on {node_name}) ===")
+    try:
+        eg_raw = run_cmd([
+            "kubectl", "exec", "-n", "kube-system", cilium_pod, "-c", "cilium-agent",
+            "--", "cilium-dbg", "bpf", "egress", "list"
+        ])
+    except Exception as e:
+        print(f"Error querying bpf egress list: {e}")
+        return
+
+    node_ip_map = get_node_ip_map()
+    gw_ips = set()
+    matched_eg_lines = []
+    header = ""
+    for line in eg_raw.splitlines():
+        if line.startswith("Source IP"):
+            header = line
+            continue
+        if line.startswith(pod_ip + " "):
+            matched_eg_lines.append(line)
+            parts = line.split()
+            if len(parts) >= 4 and parts[3] not in ("Excluded", "0.0.0.0"):
+                gw_ips.add(parts[3])
+
+    if not matched_eg_lines:
+        print("  No BPF Egress Gateway entries matched this pod IP.")
+    else:
+        print(f"\n[Source Node: {node_name} ({cilium_pod})] BPF Egress Table:")
+        if header:
+            print(f"  {header}")
+        for l in matched_eg_lines:
+            print(f"  {l}")
+
+    nodes_to_inspect: List[Tuple[str, str, str]] = [("Source Node", node_name, cilium_pod)]
+    for gw_ip in sorted(gw_ips):
+        gw_node = node_ip_map.get(gw_ip)
+        if gw_node and gw_node != node_name:
+            try:
+                gw_cp = find_cilium_pod_on_node(gw_node)
+                nodes_to_inspect.append((f"Egress Gateway Node ({gw_ip})", gw_node, gw_cp))
+            except Exception:
+                pass
+
+    # If a gateway node exists, show its BPF egress entry (which has the actual Egress IP & Ifindex)
+    for role, n_name, cp in nodes_to_inspect[1:]:
+        try:
+            gw_eg_raw = run_cmd([
+                "kubectl", "exec", "-n", "kube-system", cp, "-c", "cilium-agent",
+                "--", "cilium-dbg", "bpf", "egress", "list"
+            ])
+            print(f"\n[{role}: {n_name} ({cp})] BPF Egress Table:")
+            if header:
+                print(f"  {header}")
+            for line in gw_eg_raw.splitlines():
+                if line.startswith(pod_ip + " "):
+                    print(f"  {line}")
+        except Exception:
+            pass
+
+    if check_ct:
+        for role, n_name, cp in nodes_to_inspect:
+            print(f"\n[{role}: {n_name} ({cp})] BPF Conntrack (pod={pod_ip}" + (f", filter={target_ip}" if target_ip else "") + "):")
+            try:
+                ct_raw = run_cmd([
+                    "kubectl", "exec", "-n", "kube-system", cp, "-c", "cilium-agent",
+                    "--", "cilium-dbg", "bpf", "ct", "list", "global"
+                ])
+                matches = []
+                for line in ct_raw.splitlines():
+                    if pod_ip not in line:
+                        continue
+                    if target_ip and target_ip not in line:
+                        continue
+                    if target_port and f":{target_port} " not in line and f":{target_port}->" not in line:
+                        continue
+                    matches.append(line)
+                if not matches:
+                    print("  (no matching conntrack entries)")
+                else:
+                    for m in matches[:25]:
+                        print(f"  {m}")
+                    if len(matches) > 25:
+                        print(f"  ... and {len(matches) - 25} more entries")
+            except Exception as e:
+                print(f"  Error reading conntrack: {e}")
+
+    if check_nat:
+        for role, n_name, cp in nodes_to_inspect:
+            print(f"\n[{role}: {n_name} ({cp})] BPF NAT Table (pod={pod_ip}" + (f", filter={target_ip}" if target_ip else "") + "):")
+            try:
+                nat_raw = run_cmd([
+                    "kubectl", "exec", "-n", "kube-system", cp, "-c", "cilium-agent",
+                    "--", "cilium-dbg", "bpf", "nat", "list"
+                ])
+                matches = []
+                for line in nat_raw.splitlines():
+                    if pod_ip not in line:
+                        continue
+                    if target_ip and target_ip not in line:
+                        continue
+                    if target_port and f":{target_port} " not in line:
+                        continue
+                    matches.append(line)
+                if not matches:
+                    print("  (no matching NAT entries)")
+                else:
+                    for m in matches[:25]:
+                        print(f"  {m}")
+                    if len(matches) > 25:
+                        print(f"  ... and {len(matches) - 25} more entries")
+            except Exception as e:
+                print(f"  Error reading NAT table: {e}")
 
 
 class ClusterIPResolver:
@@ -472,8 +620,11 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
         match_str = MATCH_TYPE_NAMES.get(pmt, str(pmt))
 
         src_ip = f.get("IP", {}).get("source")
+        src_xlated = f.get("IP", {}).get("source_xlated")
         dst_ip = f.get("IP", {}).get("destination")
         src = format_endpoint_summary(f.get("source", {}), src_ip)
+        if src_xlated:
+            src = f"{src} [SNAT:{src_xlated}]"
         dst = format_endpoint_summary(f.get("destination", {}), dst_ip)
 
         l4 = f.get("l4", {})
@@ -490,6 +641,9 @@ def print_flows_table(flows: List[Dict[str, Any]]) -> None:
 
         port_str = f"{port}/{proto}" if port else proto
         summary = f.get("Summary", "")
+        iface = f.get("interface", {}).get("name")
+        if iface:
+            summary += f" [dev:{iface}]"
 
         # Detect same-node Service RevNAT return edge-case:
         is_reply = f.get("is_reply", False)
@@ -648,6 +802,17 @@ def main() -> None:
     parser.add_argument(
         "--dropped-only", action="store_true", help="Filter Hubble flows for dropped packets (verdict=DROPPED)"
     )
+    parser.add_argument("--ip", help="Filter Hubble flows, BPF Conntrack, or NAT entries by IP address")
+    parser.add_argument("--protocol", help="Filter Hubble flows by L4 protocol (e.g. TCP, UDP, ICMPv4)")
+    parser.add_argument(
+        "-E", "--egress-gw", action="store_true", help="Inspect Cilium BPF Egress Gateway routing for the pod across source and gateway nodes"
+    )
+    parser.add_argument(
+        "--ct", action="store_true", help="Inspect Cilium BPF Conntrack entries for the pod across source and egress gateway nodes"
+    )
+    parser.add_argument(
+        "--nat", action="store_true", help="Inspect Cilium BPF SNAT/DNAT entries for the pod across source and egress gateway nodes"
+    )
 
     args = parser.parse_args()
 
@@ -657,7 +822,7 @@ def main() -> None:
         inspect_identity(args.identity, cilium_pod)
         return
 
-    # 2. Namespace-wide flow inspection mode (no pod specified)
+    # 2. Namespace-wide or IP-wide flow inspection mode (no pod specified)
     if args.flows and not args.pod and not args.selector:
         # If --from-pod or --to-pod is given, automatically discover its node
         target_ref = args.from_pod or args.to_pod
@@ -677,7 +842,7 @@ def main() -> None:
         else:
             cilium_pods = list_all_cilium_pods()
 
-        target_desc = f"namespace '{args.namespace}'"
+        target_desc = f"IP '{args.ip}'" if args.ip else f"namespace '{args.namespace}'"
         if args.from_pod: target_desc += f" from-pod '{args.from_pod}'"
         if args.to_pod: target_desc += f" to-pod '{args.to_pod}'"
         print(f"Querying Hubble flows for {target_desc} (Cilium agents: {', '.join(cilium_pods)})...")
@@ -686,10 +851,12 @@ def main() -> None:
             flows.extend(
                 get_hubble_flows(
                     cp,
-                    namespace=args.namespace if not (args.from_pod or args.to_pod or args.from_namespace or args.to_namespace) else None,
+                    namespace=args.namespace if not (args.from_pod or args.to_pod or args.from_namespace or args.to_namespace or args.ip) else None,
                     last=args.last,
                     direction=args.direction,
                     port=args.port,
+                    ip=args.ip,
+                    protocol=args.protocol,
                     unmatched_only=args.unmatched_only,
                     verdicts_only=args.verdicts_only,
                     non_reply_only=args.non_reply_only,
@@ -751,14 +918,31 @@ def main() -> None:
         print("\n" + json.dumps(ep, indent=2))
         return
 
+    if args.egress_gw or args.ct or args.nat:
+        inspect_egress_gateway_and_ct(
+            pod_ns=pod_ns,
+            pod_name=pod_name,
+            pod_ip=pod_ip,
+            node_name=node_name,
+            cilium_pod=cilium_pod,
+            target_ip=args.ip,
+            target_port=args.port,
+            check_ct=args.ct,
+            check_nat=args.nat,
+        )
+        if not args.flows:
+            return
+
     # If --flows is requested, run Hubble flow inspection
     if args.flows:
         flows = get_hubble_flows(
             cilium_pod,
-            pod_full_name=f"{pod_ns}/{pod_name}",
+            pod_full_name=f"{pod_ns}/{pod_name}" if not args.ip else None,
             last=args.last,
             direction=args.direction,
             port=args.port,
+            ip=args.ip,
+            protocol=args.protocol,
             unmatched_only=args.unmatched_only,
             verdicts_only=args.verdicts_only,
             non_reply_only=args.non_reply_only,

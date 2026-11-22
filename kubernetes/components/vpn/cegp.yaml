@@ -15,7 +15,10 @@ spec:
   destinationCIDRs:
     - "0.0.0.0/0"
   excludedCIDRs:
-   - "192.168.1.0/24"
+    - "10.42.0.0/16"
+    - "10.43.0.0/16"
+    - "192.168.1.0/24"
+    - "192.168.30.0/24"
 
   # 3. Which node handles the exit, and what IP/interface to use?
   egressGateway:
