@@ -32,6 +32,10 @@ spec:
                     key: uri
               REDIS_HOSTNAME: &redisHostname "immich-dragonfly"
               IMMICH_TELEMETRY_INCLUDE: "all"
+              # OTel's Prometheus exporter builds its request base URL from this host;
+              # the code default "::" produces http://:::8081/, URL parsing throws and
+              # every /metrics scrape answers 400 Bad Request (up==0 -> TargetDown).
+              IMMICH_HOST: "0.0.0.0"
             resources:
               requests:
                 cpu: 100m
