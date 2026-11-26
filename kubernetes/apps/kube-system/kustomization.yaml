@@ -15,6 +15,7 @@ resources:
   - ./descheduler/ks.yaml
   - ./etcd-defrag/ks.yaml
   - ./generic-device-plugin/ks.yaml
+  - ./intel-arc-rebar/ks.yaml
   - ./intel-device-plugins/ks.yaml
   # - ./intel-gpu-resource-driver/ks.yaml
   - ./metrics-server/ks.yaml
