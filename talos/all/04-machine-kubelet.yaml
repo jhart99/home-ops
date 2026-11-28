@@ -6,6 +6,8 @@ config:
   kubeAPIQPS: 100
   kubeAPIBurst: 200
   serializeImagePulls: false
+  imageGCHighThresholdPercent: 60
+  imageGCLowThresholdPercent: 50
 ---
 apiVersion: v1alpha1
 kind: KubeNodeConfig
