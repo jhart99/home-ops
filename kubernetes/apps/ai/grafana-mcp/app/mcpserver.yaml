@@ -31,6 +31,10 @@ spec:
   env:
     - name: GRAFANA_URL
       value: http://grafana-service.observability.svc.cluster.local:3000
+  secrets:
+    - name: grafana-mcp-token
+      key: token
+      targetEnvName: GRAFANA_SERVICE_ACCOUNT_TOKEN
   toolConfigRef:
     name: *name
   podTemplateSpec:
