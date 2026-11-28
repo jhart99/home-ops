@@ -6,6 +6,10 @@ metadata:
   name: grafana-mcp
 spec:
   dependsOn:
+    - name: external-secrets
+      namespace: external-secrets
+    - name: grafana-instance
+      namespace: observability
     - name: toolhive-crds
       namespace: ai
   interval: 1h
